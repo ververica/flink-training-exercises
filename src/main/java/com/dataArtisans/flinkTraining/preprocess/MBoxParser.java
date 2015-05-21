@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.mboxParser;
+package com.dataArtisans.flinkTraining.preprocess;
 
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.io.DelimitedInputFormat;

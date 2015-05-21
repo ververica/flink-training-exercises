@@ -79,6 +79,7 @@ under the License.
     on a cluster. Change the value of Program-Class if your program entry point changes. -->
 	<build>
 		<plugins>
+            <!--
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.4.1</version>
@@ -102,7 +103,7 @@ under the License.
 					</execution>
 				</executions>
 			</plugin>
-
+            -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
