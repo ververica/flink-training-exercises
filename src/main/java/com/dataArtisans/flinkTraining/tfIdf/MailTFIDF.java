@@ -18,6 +18,7 @@
 
 package com.dataArtisans.flinkTraining.tfIdf;
 
+import com.dataArtisans.flinkTraining.mboxParser.MBoxParser;
 import org.apache.flink.api.common.functions.JoinFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
@@ -43,15 +44,15 @@ public class MailTFIDF {
 
 		if(args.length != 1) {
 			System.err.println("parameters: <mails-input>");
+			System.exit(1);
 		}
 
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
 		DataSet<Tuple2<String, String>> mails =
 				env.readCsvFile(args[0])
-						.lineDelimiter("\n")
-						.fieldDelimiter("#|#")
-						.includeFields("1101")
+						.lineDelimiter(MBoxParser.MAIL_RECORD_DELIM)
+						.fieldDelimiter(MBoxParser.MAIL_FIELD_DELIM)
 						.types(String.class, String.class, String.class)
 				.map(new DocIdGenerator());
 

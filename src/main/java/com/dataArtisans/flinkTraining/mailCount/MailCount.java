@@ -18,6 +18,7 @@
 
 package com.dataArtisans.flinkTraining.mailCount;
 
+import com.dataArtisans.flinkTraining.mboxParser.MBoxParser;
 import org.apache.flink.api.common.functions.GroupReduceFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
@@ -32,14 +33,15 @@ public class MailCount {
 
 		if(args.length != 1) {
 			System.err.println("parameters: <mails-input>");
+			System.exit(1);
 		}
 
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
 		DataSet<Tuple2<String, String>> mails =
 			env.readCsvFile(args[0])
-				.lineDelimiter("\n")
-				.fieldDelimiter("#|#")
+				.lineDelimiter(MBoxParser.MAIL_RECORD_DELIM)
+				.fieldDelimiter(MBoxParser.MAIL_FIELD_DELIM)
 				.types(String.class, String.class);
 
 		mails
