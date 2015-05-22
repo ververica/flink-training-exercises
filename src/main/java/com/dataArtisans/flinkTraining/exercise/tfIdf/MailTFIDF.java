@@ -20,7 +20,6 @@ package com.dataArtisans.flinkTraining.exercise.tfIdf;
 
 import com.dataArtisans.flinkTraining.preprocess.MBoxParser;
 import org.apache.flink.api.common.functions.JoinFunction;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
@@ -39,6 +38,12 @@ import java.util.regex.Pattern;
 
 public class MailTFIDF {
 
+	public final static String[] STOP_WORDS = {
+			"the", "i", "a", "an", "at", "are", "am", "for", "and", "or", "is",
+			"there", "it", "this", "that", "on", "was", "by", "of", "to", "in",
+			"to", "message", "not", "be", "with", "you", "have", "as", "can"
+	};
+
 	public static void main(String[] args) throws Exception {
 
 		if(args.length != 1) {
@@ -52,21 +57,17 @@ public class MailTFIDF {
 				env.readCsvFile(args[0])
 						.lineDelimiter(MBoxParser.MAIL_RECORD_DELIM)
 						.fieldDelimiter(MBoxParser.MAIL_FIELD_DELIM)
-						.types(String.class, String.class, String.class)
-				.map(new DocIdGenerator());
+						.includeFields("10001")
+						.types(String.class, String.class);
 
 		long docCount = mails.count();
 
-		DataSet<String> stopWords = env.fromElements("the", "i", "a", "an", "at", "are", "am", "for",
-				"there", "it", "this", "that", "on", "was", "by", "of", "to", "in", "and", "or", "is",
-				"to", "message", "not", "be", "with", "you", "have", "as", "can");
-
 		DataSet<Tuple2<String, Integer>> docFrequency = mails
-				.flatMap(new UniqueWordExtractor()).withBroadcastSet(stopWords, "stopWords")
+				.flatMap(new UniqueWordExtractor(STOP_WORDS))
 				.groupBy(0).sum(1);
 
 		DataSet<Tuple3<String, String, Integer>> termFrequency = mails
-				.flatMap(new TFComputer()).withBroadcastSet(stopWords, "stopWords");
+				.flatMap(new TFComputer(STOP_WORDS));
 
 		DataSet<Tuple3<String, String, Double>> tfIdf =
 				docFrequency.join(termFrequency).where(0).equalTo(1)
@@ -77,23 +78,25 @@ public class MailTFIDF {
 
 	}
 
-	public static class DocIdGenerator implements MapFunction<Tuple3<String, String, String>, Tuple2<String, String>> {
-
-		@Override
-		public Tuple2<String, String> map(Tuple3<String, String, String> mail) throws Exception {
-			return new Tuple2<String, String>(mail.f0 + mail.f1, mail.f2);
-		}
-	}
-
 	public static class UniqueWordExtractor extends RichFlatMapFunction<Tuple2<String, String>, Tuple2<String, Integer>> {
 
-		private transient Set<String> stopWords;
+		private Set<String> stopWords;
 		private transient Set<String> emittedWords;
 		private transient Pattern wordPattern;
 
+		public UniqueWordExtractor() {
+			this.stopWords = new HashSet<String>();
+		}
+
+		public UniqueWordExtractor(String[] stopWords) {
+			this.stopWords = new HashSet<String>();
+			for(String s : stopWords) {
+				this.stopWords.add(s);
+			}
+		}
+
 		@Override
 		public void open(Configuration config) {
-			this.stopWords = new HashSet<String>(this.getRuntimeContext().<String>getBroadcastVariable("stopWords"));
 			this.emittedWords = new HashSet<String>();
 			this.wordPattern = Pattern.compile("(\\p{Alpha})+");
 		}
@@ -117,13 +120,23 @@ public class MailTFIDF {
 
 	public static class TFComputer extends RichFlatMapFunction<Tuple2<String, String>, Tuple3<String, String, Integer>> {
 
-		private transient Set<String> stopWords;
+		private Set<String> stopWords;
 		private transient Map<String, Integer> wordCounts;
 		private transient Pattern wordPattern;
 
+		public TFComputer() {
+			this.stopWords = new HashSet<String>();
+		}
+
+		public TFComputer(String[] stopWords) {
+			this.stopWords = new HashSet<String>();
+			for(String s : stopWords) {
+				this.stopWords.add(s);
+			}
+		}
+
 		@Override
 		public void open(Configuration config) {
-			this.stopWords = new HashSet(this.getRuntimeContext().<String>getBroadcastVariable("stopWords"));
 			this.wordPattern = Pattern.compile("(\\p{Alpha})+");
 			this.wordCounts = new HashMap<String, Integer>();
 		}

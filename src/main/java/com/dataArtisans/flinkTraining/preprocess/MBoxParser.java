@@ -22,7 +22,7 @@ import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.io.DelimitedInputFormat;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.tuple.Tuple6;
+import org.apache.flink.api.java.tuple.Tuple7;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 import org.joda.time.DateTime;
@@ -46,17 +46,15 @@ public class MBoxParser {
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
 		DataSet<String> rawMails =
-				// "From " indicates a new message in MBox
 				env.readFile(new MBoxMailFormat(), args[0]);
 
-		rawMails
-				.flatMap(new MBoxMailParser())
-				.writeAsCsv(args[1], MAIL_RECORD_DELIM, MAIL_FIELD_DELIM);
+		DataSet<Tuple7<String, String, String, String, String, String, String>> mails = rawMails
+				.flatMap(new MBoxMailParser());
 
+		mails.writeAsCsv(args[1], MAIL_RECORD_DELIM, MAIL_FIELD_DELIM);
 		env.execute();
+
 	}
-
-
 
 	public static class MBoxMailFormat extends DelimitedInputFormat<String> {
 
@@ -78,20 +76,24 @@ public class MBoxParser {
 	}
 
 	public static class MBoxMailParser extends
-			RichFlatMapFunction<String, Tuple6<String, String, String, String, String, String>> {
+			RichFlatMapFunction<String, Tuple7<String, String, String, String, String, String, String>> {
 
 		private transient DateTimeFormatter inDF;
 		private transient DateTimeFormatter outDF;
+		private transient long cnt;
+		private transient String idPostFix;
 
 		@Override
 		public void open(Configuration config) {
 			this.inDF = DateTimeFormat.forPattern("EEE MMM d HH:mm:ss yyyy");
 			this.outDF = DateTimeFormat.forPattern("yyyy-MM-dd-HH:mm:ss");
+			this.cnt = 0;
+			this.idPostFix = ":"+this.getRuntimeContext().getIndexOfThisSubtask();
 		}
 
 		@Override
 		public void flatMap(String mail,
-							Collector<Tuple6<String, String, String, String, String, String>> out)
+							Collector<Tuple7<String, String, String, String, String, String, String>> out)
 				throws Exception {
 
 			boolean bodyStarted = false;
@@ -166,17 +168,15 @@ public class MBoxParser {
 			if(bodyStarted) {
 				body = bodyBuilder.toString();
 				if(containsDelimiter(body)) {
-					// don't include mail
+					// don't include email
 					return;
 				}
 
-				if(body.trim().length() == 0) {
-					System.out.println("asdfasdf");
-				}
-
-				out.collect(new Tuple6<String, String, String, String, String, String>(
-						time, from, subject, body, messageId, replyTo
+				out.collect(new Tuple7<String, String, String, String, String, String, String>(
+						cnt+idPostFix, time, from, subject, body, messageId, replyTo
 				));
+
+				cnt++;
 			}
 
 		}
@@ -184,6 +184,7 @@ public class MBoxParser {
 		private boolean containsDelimiter(String s) {
 			return s.contains(MAIL_FIELD_DELIM) || s.contains(MAIL_RECORD_DELIM);
 		}
+
 	}
 
 }

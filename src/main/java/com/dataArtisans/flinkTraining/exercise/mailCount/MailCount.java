@@ -42,6 +42,7 @@ public class MailCount {
 			env.readCsvFile(args[0])
 				.lineDelimiter(MBoxParser.MAIL_RECORD_DELIM)
 				.fieldDelimiter(MBoxParser.MAIL_FIELD_DELIM)
+				.includeFields("011")
 				.types(String.class, String.class);
 
 		mails
