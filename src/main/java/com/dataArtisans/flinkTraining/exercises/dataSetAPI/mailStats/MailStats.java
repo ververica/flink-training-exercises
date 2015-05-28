@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataSetAPI.mailCount;
+package com.dataArtisans.flinkTraining.exercises.dataSetAPI.mailStats;
 
 import com.dataArtisans.flinkTraining.dataSetPreparation.MBoxParser;
 import org.apache.flink.api.common.functions.GroupReduceFunction;
@@ -27,7 +27,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.util.Collector;
 
-public class MailCount {
+public class MailStats {
 
 	public static void main(String[] args) throws Exception {
 
@@ -50,7 +50,6 @@ public class MailCount {
 				.groupBy(0, 1).reduceGroup(new MailCounter())
 				.print();
 
-		env.execute();
 
 	}
 
