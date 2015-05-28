@@ -22,7 +22,7 @@ import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.io.DelimitedInputFormat;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.tuple.Tuple7;
+import org.apache.flink.api.java.tuple.Tuple6;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 import org.joda.time.DateTime;
@@ -38,62 +38,71 @@ public class MBoxParser {
 
 	public static void main(String[] args) throws Exception {
 
-		if(args.length != 2) {
-			System.err.println("parameters <mbox-input> <mails-output>");
+		if(args.length != 3) {
+			System.err.println("parameters <mbox-input> <mailer-daemon-prefix> <mails-output>");
 			System.exit(1);
 		}
 
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
 		DataSet<String> rawMails =
-				env.readFile(new MBoxMailFormat(), args[0]);
+				env.readFile(new MBoxMailFormat(args[1]), args[0]);
 
-		DataSet<Tuple7<String, String, String, String, String, String, String>> mails = rawMails
-				.flatMap(new MBoxMailParser());
+		DataSet<Tuple6<String, String, String, String, String, String>> mails = rawMails
+				.flatMap(new MBoxMailParser(args[1]))
+				.distinct(0);
 
-		mails.writeAsCsv(args[1], MAIL_RECORD_DELIM, MAIL_FIELD_DELIM);
+		mails.writeAsCsv(args[2], MAIL_RECORD_DELIM, MAIL_FIELD_DELIM);
 		env.execute();
 
 	}
 
 	public static class MBoxMailFormat extends DelimitedInputFormat<String> {
 
-		public MBoxMailFormat() {
-			this.setDelimiter("From dev-return");
+		String newMailPrefix;
+
+		public MBoxMailFormat() {};
+
+		public MBoxMailFormat(String mailDaemonPrefix) {
+			this.setDelimiter("From "+mailDaemonPrefix);
+			this.newMailPrefix = "From "+mailDaemonPrefix;
 		}
 
 		@Override
 		public String readRecord(String reuse, byte[] bytes, int offset, int numBytes) throws IOException {
 
 			String textString = new String(bytes, offset, numBytes);
-			if(textString.startsWith("From dev-return")) {
+			if(textString.startsWith("From ")) {
 				return textString;
 			}
 			else {
-				return "From dev-return" + textString;
+				return newMailPrefix + textString;
 			}
 		}
 	}
 
 	public static class MBoxMailParser extends
-			RichFlatMapFunction<String, Tuple7<String, String, String, String, String, String, String>> {
+			RichFlatMapFunction<String, Tuple6<String, String, String, String, String, String>> {
 
+		private String newMailPrefix;
 		private transient DateTimeFormatter inDF;
 		private transient DateTimeFormatter outDF;
-		private transient long cnt;
-		private transient String idPostFix;
+
+		public MBoxMailParser() {};
+
+		public MBoxMailParser(String mailDaemonPrefix) {
+			this.newMailPrefix = "From "+mailDaemonPrefix;
+		}
 
 		@Override
 		public void open(Configuration config) {
-			this.inDF = DateTimeFormat.forPattern("EEE MMM d HH:mm:ss yyyy");
-			this.outDF = DateTimeFormat.forPattern("yyyy-MM-dd-HH:mm:ss");
-			this.cnt = 0;
-			this.idPostFix = ":"+this.getRuntimeContext().getIndexOfThisSubtask();
+			this.inDF = DateTimeFormat.forPattern("EEE MMM d HH:mm:ss yyyy").withZoneUTC();
+			this.outDF = DateTimeFormat.forPattern("yyyy-MM-dd-HH:mm:ss").withZoneUTC();
 		}
 
 		@Override
 		public void flatMap(String mail,
-							Collector<Tuple7<String, String, String, String, String, String, String>> out)
+							Collector<Tuple6<String, String, String, String, String, String>> out)
 				throws Exception {
 
 			boolean bodyStarted = false;
@@ -127,7 +136,7 @@ public class MBoxParser {
 						bodyBuilder.append('\n');
 					}
 				}
-				else if(line.startsWith("From ")) {
+				else if(line.startsWith(newMailPrefix)) {
 					if(line.length() < 24) {
 						return;
 					}
@@ -135,28 +144,28 @@ public class MBoxParser {
 					String dateStr = line.substring(line.length() - 24).replaceAll("\\s+", " ");
 					time = DateTime.parse(dateStr, inDF).toString(outDF);
 				}
-				else if(line.startsWith("Subject: ")) {
+				else if(line.toLowerCase().startsWith("subject: ")) {
 					subject = line.substring(9);
 					if(containsDelimiter(subject)) {
 						// don't include mail
 						return;
 					}
 				}
-				else if(line.startsWith("From: ")) {
+				else if(line.toLowerCase().startsWith("from: ")) {
 					from = line.substring(6);
 					if(containsDelimiter(from)) {
 						// don't include mail
 						return;
 					}
 				}
-				else if(line.startsWith("Message-Id: ")) {
+				else if(line.toLowerCase().startsWith("message-id: ")) {
 					messageId = line.substring(12);
 					if(containsDelimiter(messageId)) {
 						// don't include mail
 						return;
 					}
 				}
-				else if(line.startsWith("In-Reply-To: ")) {
+				else if(line.toLowerCase().startsWith("in-reply-to: ")) {
 					replyTo = line.substring(13);
 					if(containsDelimiter(replyTo)) {
 						// don't include mail
@@ -165,18 +174,17 @@ public class MBoxParser {
 				}
 			}
 
-			if(bodyStarted) {
+			if(messageId != null && time != null && from != null && subject != null && bodyStarted) {
 				body = bodyBuilder.toString();
 				if(containsDelimiter(body)) {
 					// don't include email
 					return;
 				}
 
-				out.collect(new Tuple7<String, String, String, String, String, String, String>(
-						cnt+idPostFix, time, from, subject, body, messageId, replyTo
+				out.collect(new Tuple6<String, String, String, String, String, String>(
+						messageId, time, from, subject, body, replyTo
 				));
 
-				cnt++;
 			}
 
 		}
