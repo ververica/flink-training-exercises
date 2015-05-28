@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercise.tfIdfTable;
+package com.dataArtisans.flinkTraining.exercises.tableAPI.tfIdf;
 
-import com.dataArtisans.flinkTraining.preprocess.MBoxParser;
+import com.dataArtisans.flinkTraining.dataSetPreparation.MBoxParser;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.java.DataSet;
@@ -40,7 +40,7 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MailTFIDFTable {
+public class MailTFIDF {
 
 	public static void main(String[] args) throws Exception {
 

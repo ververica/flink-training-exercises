@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.preprocess;
+package com.dataArtisans.flinkTraining.dataSetPreparation;
 
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.io.DelimitedInputFormat;

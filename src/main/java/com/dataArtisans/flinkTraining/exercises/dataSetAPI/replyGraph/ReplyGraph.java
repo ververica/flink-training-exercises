@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercise.contributorGraph;
+package com.dataArtisans.flinkTraining.exercises.dataSetAPI.replyGraph;
 
-import com.dataArtisans.flinkTraining.preprocess.MBoxParser;
+import com.dataArtisans.flinkTraining.dataSetPreparation.MBoxParser;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.operators.Order;

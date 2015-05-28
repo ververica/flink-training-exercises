@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercise.mailCount;
+package com.dataArtisans.flinkTraining.exercises.dataSetAPI.mailCount;
 
-import com.dataArtisans.flinkTraining.preprocess.MBoxParser;
+import com.dataArtisans.flinkTraining.dataSetPreparation.MBoxParser;
 import org.apache.flink.api.common.functions.GroupReduceFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
