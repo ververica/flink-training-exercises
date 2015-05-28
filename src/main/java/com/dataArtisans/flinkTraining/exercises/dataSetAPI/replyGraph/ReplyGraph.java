@@ -63,7 +63,6 @@ public class ReplyGraph {
 					}
 				})
 				.groupBy(0, 1).sum(2)
-				.sortPartition(2, Order.DESCENDING).setParallelism(1)
 				.print();
 
 	}
