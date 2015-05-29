@@ -79,31 +79,38 @@ under the License.
     on a cluster. Change the value of Program-Class if your program entry point changes. -->
 	<build>
 		<plugins>
-            <!--
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.4.1</version>
-				<configuration>
-					<descriptors>
-						<descriptor>src/assembly/flink-fat-jar.xml</descriptor>
-					</descriptors>
-					<archive>
-						<manifestEntries>
-							<Program-Class>org.myorg.quickstart.Job</Program-Class>
-						</manifestEntries>
-					</archive>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+
+                    <!-- MBoxParser -->
+                    <execution>
+                        <id>MBoxParser</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+
+                        <configuration>
+                            <classifier>MBoxParser</classifier>
+
+                            <archive>
+                                <manifestEntries>
+                                    <main-class>com.dataArtisans.flinkTraining.dataSetPreparation.MBoxParser</main-class>
+                                </manifestEntries>
+                            </archive>
+
+                            <includes>
+                                <include>**/MBoxParser.class</include>
+                                <include>**/MBoxParser$*.class</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+
+                </executions>
+            </plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
