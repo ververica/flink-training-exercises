@@ -16,57 +16,67 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataSetAPI.replyGraph;
+package com.dataArtisans.flinkTraining.exercises.dataSetJava.replyGraph;
 
 import com.dataArtisans.flinkTraining.dataSetPreparation.MBoxParser;
 import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.functions.GroupReduceFunction;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.util.Collector;
 
+/**
+ * Java reference implementation for the "Reply Graph" exercise of the Flink training.
+ * The task of the exercise is to enumerate the reply connection between two email addresses in
+ * Flink's developer mailing list and count the number of connections between two email addresses.
+ *
+ * Required parameters:
+ *   --input path-to-input-directory
+ */
 public class ReplyGraph {
 
 	public static void main(String[] args) throws Exception {
 
-//		if(args.length != 1) {
-//			System.err.println("parameters: <mails-input>");
-//			System.exit(1);
-//		}
+		// parse parameters
+		ParameterTool params = ParameterTool.fromArgs(args);
+		String input = params.getRequired("input");
 
+		// obtain an execution environment
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
+		// read messageId, sender, and reply-to fields from the input data set
 		DataSet<Tuple3<String, String, String>> mails =
-				env.readCsvFile("/users/fhueske/data/FlinkDevListParsed")
+				env.readCsvFile(input)
 						.lineDelimiter(MBoxParser.MAIL_RECORD_DELIM)
 						.fieldDelimiter(MBoxParser.MAIL_FIELD_DELIM)
+						// messageId at position 0, sender at 2, reply-to at 5
 						.includeFields("101001")
 						.types(String.class, String.class, String.class);
 
+		// extract email addresses and filter out mails from bots
 		DataSet<Tuple3<String, String, String>> addressMails = mails
 				.map(new EmailExtractor())
 				.filter(new ExcludeEmailFilter("git@git.apache.org"))
 				.filter(new ExcludeEmailFilter("jira@apache.org"));
 
-
+		// construct reply connections by joining on messageId and reply-To
 		DataSet<Tuple2<String, String>> replyConnections = addressMails
 				.join(addressMails).where(2).equalTo(0).projectFirst(1).<Tuple2<String, String>>projectSecond(1);
 
-		replyConnections.map(
-				new MapFunction<Tuple2<String, String>, Tuple3<String, String, Integer>>() {
-
-					@Override
-					public Tuple3<String, String, Integer> map(Tuple2<String, String> c) throws Exception {
-						return new Tuple3<String, String, Integer>(c.f0, c.f1, 1);
-					}
-				})
-				.groupBy(0, 1).sum(2)
+		// count reply connections for each pair of email addresses
+		replyConnections
+				.groupBy(0, 1).reduceGroup(new ConnectionCounter())
 				.print();
 
 	}
 
+	/**
+	 * Extracts the email address from the sender field
+	 */
 	public static class EmailExtractor implements MapFunction<Tuple3<String, String, String>, Tuple3<String, String, String>> {
 
 		@Override
@@ -77,6 +87,9 @@ public class ReplyGraph {
 		}
 	}
 
+	/**
+	 * Filter records for a specific email address
+	 */
 	public static class ExcludeEmailFilter implements FilterFunction<Tuple3<String, String, String>> {
 
 		private String filterEmail;
@@ -90,6 +103,26 @@ public class ReplyGraph {
 		@Override
 		public boolean filter(Tuple3<String, String, String> mail) throws Exception {
 			return !mail.f1.equals(filterEmail);
+		}
+	}
+
+	/**
+	 * Count the number of records per group
+	 */
+	public static class ConnectionCounter implements GroupReduceFunction<Tuple2<String,String>, Tuple3<String, String, Integer>> {
+
+		Tuple3<String, String, Integer> outT = new Tuple3<String, String, Integer>();
+
+		@Override
+		public void reduce(Iterable<Tuple2<String, String>> cs, Collector<Tuple3<String, String, Integer>> out) {
+			outT.f2 = 0;
+
+			for(Tuple2<String, String> c : cs) {
+				outT.f0 = c.f0;
+				outT.f1 = c.f1;
+				outT.f2 += 1;
+			}
+			out.collect(outT);
 		}
 	}
 

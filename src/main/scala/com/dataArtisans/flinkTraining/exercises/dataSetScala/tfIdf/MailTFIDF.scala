@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataSetAPI.tfIdf
+package com.dataArtisans.flinkTraining.exercises.dataSetScala.tfIdf
 
 import java.util.StringTokenizer
 import java.util.regex.Pattern
@@ -47,15 +47,23 @@ object MailTFIDF {
        includedFields = Array(0,4)
      )
 
-//     val cnt = mails.count
+     val docCnt = mails.count
 
      val tf = mails
        .flatMap(new TFComputer(STOP_WORDS))
+
+     val idf = mails
+       .flatMap(new UniqueWordExtractor(STOP_WORDS))
+       .groupBy(0).reduceGroup { ws => ws.reduce( (l, r) => (l._1, l._2 + r._2 ) ) }
+
+     tf.join(idf).where(1).equalTo(0) { (l, r) => (l._1, l._2, l._3 * (docCnt.toDouble / r._2) ) }
        .print
+
 
    }
 
-  class TFComputer(stopWordsA: Array[String]) extends FlatMapFunction[(String, String), (String, Int)] {
+  class TFComputer(stopWordsA: Array[String])
+    extends FlatMapFunction[(String, String), (String, String, Int)] {
 
     val stopWords: HashSet[String] = new HashSet[String]
     val wordCounts: HashMap[String, Int] = new HashMap[String, Int]
@@ -65,23 +73,51 @@ object MailTFIDF {
       this.stopWords.add(sw)
     }
 
-    override def flatMap(t: (String, String), out: Collector[(String, Int)]): Unit = {
+    override def flatMap(t: (String, String), out: Collector[(String, String, Int)]): Unit = {
       wordCounts.clear
 
       val tokens = new StringTokenizer(t._2)
       while (tokens.hasMoreTokens) {
-        val word = tokens.nextToken().toLowerCase()
-        if (!stopWords.contains(word) && wordPattern.matcher(word).matches()) {
+        val word = tokens.nextToken.toLowerCase
+        if (!stopWords.contains(word) && wordPattern.matcher(word).matches) {
 
           val cnt = wordCounts.getOrElse(word, 0)
           wordCounts.put(word, cnt+1)
         }
       }
       for (wc <- wordCounts.iterator) {
-        out.collect(wc)
+        out.collect( (t._1, wc._1, wc._2) )
       }
     }
+  }
 
+  class UniqueWordExtractor(stopWordsA: Array[String])
+    extends FlatMapFunction[(String, String), (String, Int)] {
+
+    val stopWords: HashSet[String] = new HashSet[String]
+    val uniqueWords: HashSet[String] = new HashSet[String]
+    val wordPattern: Pattern = Pattern.compile("(\\p{Alpha})+")
+
+    for(sw <- stopWordsA) {
+      this.stopWords.add(sw)
+    }
+
+    override def flatMap(t: (String, String), out: Collector[(String, Int)]): Unit = {
+
+      uniqueWords.clear()
+
+      val tokens = new StringTokenizer(t._2)
+      while(tokens.hasMoreTokens) {
+        val word = tokens.nextToken.toLowerCase
+        if (!stopWords.contains(word) && wordPattern.matcher(word).matches) {
+          uniqueWords.add(word)
+        }
+      }
+
+      for(w <- uniqueWords) {
+        out.collect( (w, 1) )
+      }
+    }
   }
 
  }

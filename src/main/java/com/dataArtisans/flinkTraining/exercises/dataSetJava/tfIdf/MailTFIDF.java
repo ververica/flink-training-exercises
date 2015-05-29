@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataSetAPI.tfIdf;
+package com.dataArtisans.flinkTraining.exercises.dataSetJava.tfIdf;
 
 import com.dataArtisans.flinkTraining.dataSetPreparation.MBoxParser;
 import org.apache.flink.api.common.functions.JoinFunction;

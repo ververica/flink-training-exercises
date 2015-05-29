@@ -23,6 +23,7 @@ import org.apache.flink.api.common.io.DelimitedInputFormat;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple6;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 import org.joda.time.DateTime;
@@ -31,32 +32,63 @@ import org.joda.time.format.DateTimeFormatter;
 
 import java.io.IOException;
 
+/**
+ * Converts MBox archive files of Apache Flink's developer mailing list into a processable
+ * text-based, delimited file format.
+ * For MBox files of different mailing lists, the MAIL_DAEMON_PREFIX parameter needs to be adapted.
+ *
+ * Mail records are separated by "##//##" and record fields are separated by "#|#".
+ *
+ * Mail records have six fields:
+ * - MessageID : String (unique)
+ * - Time      : String
+ * - Sender    : String
+ * - Subject   : String
+ * - Body      : String
+ * - Reply-To  : String (points a MessageID, might be "null")
+ *
+ * Parameters:
+ *   --input path-to-mbox-files
+ *   --output path-to-output
+ *
+ */
 public class MBoxParser {
 
-	public static String MAIL_FIELD_DELIM = "#|#";
-	public static String MAIL_RECORD_DELIM = "##//##";
+	public final static String MAIL_FIELD_DELIM = "#|#";
+	public final static String MAIL_RECORD_DELIM = "##//##";
+
+	private final static String MAIL_DAEMON_PREFIX = "dev-return";
 
 	public static void main(String[] args) throws Exception {
 
-		if(args.length != 3) {
-			System.err.println("parameters <mbox-input> <mailer-daemon-prefix> <mails-output>");
-			System.exit(1);
-		}
+		// parse parameters
+		ParameterTool params = ParameterTool.fromArgs(args);
+		String input = params.getRequired("input");
+		String output = params.getRequired("output");
 
+		// obtain execution environment
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
+		// read the raw mail data, each mail is a String
 		DataSet<String> rawMails =
-				env.readFile(new MBoxMailFormat(args[1]), args[0]);
+				env.readFile(new MBoxMailFormat(MAIL_DAEMON_PREFIX), input);
 
+		// parse mail String into record with six fields
 		DataSet<Tuple6<String, String, String, String, String, String>> mails = rawMails
-				.flatMap(new MBoxMailParser(args[1]))
+				// parse mails
+				.flatMap(new MBoxMailParser(MAIL_DAEMON_PREFIX))
+				// filter out mails with duplicate messageIds
 				.distinct(0);
 
-		mails.writeAsCsv(args[2], MAIL_RECORD_DELIM, MAIL_FIELD_DELIM);
+		// write mail records as delimited files
+		mails.writeAsCsv(output, MAIL_RECORD_DELIM, MAIL_FIELD_DELIM);
 		env.execute();
-
 	}
 
+	/**
+	 * InputFormat that splits MBox files into strings of individual mails.
+	 * Each mail becomes a String.
+	 */
 	public static class MBoxMailFormat extends DelimitedInputFormat<String> {
 
 		String newMailPrefix;
@@ -64,6 +96,7 @@ public class MBoxParser {
 		public MBoxMailFormat() {};
 
 		public MBoxMailFormat(String mailDaemonPrefix) {
+			// set the record delimiter
 			this.setDelimiter("From "+mailDaemonPrefix);
 			this.newMailPrefix = "From "+mailDaemonPrefix;
 		}
@@ -76,11 +109,15 @@ public class MBoxParser {
 				return textString;
 			}
 			else {
+				// append the delimiter if it was cut off
 				return newMailPrefix + textString;
 			}
 		}
 	}
 
+	/**
+	 * Parses a mail String into a record of six fields: (MessageId, Time, Sender, Subject, Body, Reply-To).
+	 */
 	public static class MBoxMailParser extends
 			RichFlatMapFunction<String, Tuple6<String, String, String, String, String, String>> {
 
@@ -96,14 +133,13 @@ public class MBoxParser {
 
 		@Override
 		public void open(Configuration config) {
+			// configure DataTime formats for parsing and formatting
 			this.inDF = DateTimeFormat.forPattern("EEE MMM d HH:mm:ss yyyy").withZoneUTC();
 			this.outDF = DateTimeFormat.forPattern("yyyy-MM-dd-HH:mm:ss").withZoneUTC();
 		}
 
 		@Override
-		public void flatMap(String mail,
-							Collector<Tuple6<String, String, String, String, String, String>> out)
-				throws Exception {
+		public void flatMap(String mail, Collector<Tuple6<String, String, String, String, String, String>> out) {
 
 			boolean bodyStarted = false;
 			StringBuilder bodyBuilder = null;
@@ -111,10 +147,10 @@ public class MBoxParser {
 			String time = null;
 			String from = null;
 			String subject = null;
-			String body = null;
-			String messageId = "null";
+			String messageId = null;
 			String replyTo = "null";
 
+			// split mail String line-wise
 			String[] lines = mail.split("\\n");
 
 			for(int i=0; i<lines.length; i++) {
@@ -124,6 +160,7 @@ public class MBoxParser {
 				if(!bodyStarted && line.trim().length() == 0) {
 					bodyStarted = true;
 					bodyBuilder = new StringBuilder();
+					// all following lines are added to the body
 				}
 
 				if(bodyStarted) {
@@ -132,10 +169,10 @@ public class MBoxParser {
 						bodyBuilder.append(line, 0, line.length()-1);
 					}
 					else {
-						bodyBuilder.append(line);
-						bodyBuilder.append('\n');
+						bodyBuilder.append(line).append('\n');
 					}
 				}
+				// first line of a mail, contains time
 				else if(line.startsWith(newMailPrefix)) {
 					if(line.length() < 24) {
 						return;
@@ -144,6 +181,7 @@ public class MBoxParser {
 					String dateStr = line.substring(line.length() - 24).replaceAll("\\s+", " ");
 					time = DateTime.parse(dateStr, inDF).toString(outDF);
 				}
+				// extract subject
 				else if(line.toLowerCase().startsWith("subject: ")) {
 					subject = line.substring(9);
 					if(containsDelimiter(subject)) {
@@ -151,6 +189,7 @@ public class MBoxParser {
 						return;
 					}
 				}
+				// extract sender
 				else if(line.toLowerCase().startsWith("from: ")) {
 					from = line.substring(6);
 					if(containsDelimiter(from)) {
@@ -158,6 +197,7 @@ public class MBoxParser {
 						return;
 					}
 				}
+				// extract message-id
 				else if(line.toLowerCase().startsWith("message-id: ")) {
 					messageId = line.substring(12);
 					if(containsDelimiter(messageId)) {
@@ -165,6 +205,7 @@ public class MBoxParser {
 						return;
 					}
 				}
+				// extract reply-to
 				else if(line.toLowerCase().startsWith("in-reply-to: ")) {
 					replyTo = line.substring(13);
 					if(containsDelimiter(replyTo)) {
@@ -174,8 +215,9 @@ public class MBoxParser {
 				}
 			}
 
+			// check if all fields (except reply to) are set
 			if(messageId != null && time != null && from != null && subject != null && bodyStarted) {
-				body = bodyBuilder.toString();
+				String body = bodyBuilder.toString();
 				if(containsDelimiter(body)) {
 					// don't include email
 					return;
@@ -189,6 +231,12 @@ public class MBoxParser {
 
 		}
 
+		/**
+		 * Checks if the string contains a record or field delimiter.
+		 *
+		 * @param s The string to check.
+		 * @return True if a delimiter is contained, false otherwise.
+		 */
 		private boolean containsDelimiter(String s) {
 			return s.contains(MAIL_FIELD_DELIM) || s.contains(MAIL_RECORD_DELIM);
 		}
