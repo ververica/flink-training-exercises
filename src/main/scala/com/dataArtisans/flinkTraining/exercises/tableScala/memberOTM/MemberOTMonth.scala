@@ -16,21 +16,24 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataSetScala.mailStats
+package com.dataArtisans.flinkTraining.exercises.tableScala.memberOTM
 
 import com.dataArtisans.flinkTraining.dataSetPreparation.MBoxParser
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.api.scala._
+import org.apache.flink.api.scala.table._
+import org.apache.flink.api.table.Row
 
 /**
- * Java reference implementation for the "Mail Stats" exercise of the Flink training.
- * The task of the exercise is to count the number of mails sent for each month and email address.
+ * Scala reference implementation for the "Member of the Month" exercise of the Flink training.
+ * The task of the exercise is to identify for each month the email address that sent the most
+ * emails to the Flink developer mailing list.
  *
  * Required parameters:
  * --input path-to-input-directory
  *
  */
-object MailStats {
+object MemberOTMonth {
   def main(args: Array[String]) {
 
     // parse parameters
@@ -48,17 +51,29 @@ object MailStats {
       includedFields = Array(1,2)
     )
 
-    mails
+    val mailsPerSenderMonth = mails
       .map { m => (
                     // extract month from time string
                     m._1.substring(0, 7),
                     // extract email address from sender
                     m._2.substring(m._2.lastIndexOf("<") + 1, m._2.length - 1) ) }
-      // group by month and sender and count the number of records per group
-      .groupBy(0, 1).reduceGroup { ms => ms.foldLeft(("","",0))( (c, m) => (m._1, m._2, c._3+1)) }
-      // print the result
-      .print
+      // convert to table
+      .toTable.as('month, 'sender)
+      // filter out bot mails
+      .filter(('sender !== "jira@apache.org") &&
+              ('sender !== "git@git.apache.org") &&
+              ('sender !== "no-reply@apache.org"))
+      // count emails per month and sender
+      .groupBy('month, 'sender).select('month, 'sender, 'month.count as 'cnt)
 
+    val membersOTMonth = mailsPerSenderMonth
+      // find max number of mails send in each month
+      .groupBy('month).select('month as 'm, 'cnt.max as 'max)
+      // find email address that sent the most emails per month
+      .join(mailsPerSenderMonth).where('m === 'month && 'max === 'cnt).select('month, 'sender)
+
+    // print out result
+    membersOTMonth.toSet[Row].print
   }
 
 }

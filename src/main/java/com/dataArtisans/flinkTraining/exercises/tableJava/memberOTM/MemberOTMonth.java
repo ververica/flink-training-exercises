@@ -16,27 +16,28 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataSetJava.mailStats;
+package com.dataArtisans.flinkTraining.exercises.tableJava.memberOTM;
 
 import com.dataArtisans.flinkTraining.dataSetPreparation.MBoxParser;
-import org.apache.flink.api.common.functions.GroupReduceFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.api.java.table.TableEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.util.Collector;
+import org.apache.flink.api.table.Row;
+import org.apache.flink.api.table.Table;
 
 /**
- * Java reference implementation for the "Mail Stats" exercise of the Flink training.
- * The task of the exercise is to count the number of mails sent for each month and email address.
+ * Java reference implementation for the "Member of the Month" exercise of the Flink training.
+ * The task of the exercise is to identify for each month the email address that sent the most
+ * emails to the Flink developer mailing list.
  *
  * Required parameters:
- *   --input path-to-input-directory
+ * --input path-to-input-directory
  *
  */
-public class MailStats {
+public class MemberOTMonth {
 
 	public static void main(String[] args) throws Exception {
 
@@ -49,19 +50,36 @@ public class MailStats {
 
 		// read the "time" and "sender" fields of the input data set (field 2 and 3) as Strings
 		DataSet<Tuple2<String, String>> mails =
-			env.readCsvFile(input)
-				.lineDelimiter(MBoxParser.MAIL_RECORD_DELIM)
-				.fieldDelimiter(MBoxParser.MAIL_FIELD_DELIM)
-				.includeFields("011")
-				.types(String.class, String.class);
+				env.readCsvFile(input)
+						.lineDelimiter(MBoxParser.MAIL_RECORD_DELIM)
+						.fieldDelimiter(MBoxParser.MAIL_FIELD_DELIM)
+						.includeFields("011")
+						.types(String.class, String.class);
 
-		mails
+		DataSet<Tuple2<String, String>> monthSender = mails
 				// extract the month from the time field and the email address from the sender field
-				.map(new MonthEmailExtractor())
-				// group by month and email address and count number of records per group
-				.groupBy(0, 1).reduceGroup(new MailCounter())
-				// print the result
-				.print();
+				.map(new MonthEmailExtractor());
+
+		TableEnvironment tEnv = new TableEnvironment();
+
+		Table mailsPerSenderMonth = tEnv
+				// to table
+				.toTable(monthSender).as("month, sender")
+				// filter out bot email addresses
+				.filter("sender !== 'jira@apache.org' && " +
+						"sender !== 'no-reply@apache.org' && " +
+						"sender !== 'git@git.apache.org'")
+				// count emails per month and email address
+				.groupBy("month, sender").select("month, sender, month.count as cnt");
+
+		Table membersOTMonth = mailsPerSenderMonth
+				// find max number of emails sent by an address per month
+				.groupBy("month").select("month as m, cnt.max as max")
+				// find email address that sent the most emails in each month
+				.join(mailsPerSenderMonth).where("month = m && cnt = max").select("month, sender");
+
+		// print out result
+		tEnv.toSet(membersOTMonth, Row.class).print();
 
 	}
 
@@ -78,29 +96,5 @@ public class MailStats {
 			return new Tuple2<String, String>(month, email);
 		}
 	}
-
-	public static class MailCounter implements GroupReduceFunction<Tuple2<String ,String>, Tuple3<String ,String, Integer>> {
-
-		@Override
-		public void reduce(Iterable<Tuple2<String, String>> mails, Collector<Tuple3<String, String, Integer>> out) throws Exception {
-
-			String month = null;
-			String email = null;
-			int cnt = 0;
-
-			// count number of tuples
-			for(Tuple2<String, String> m : mails) {
-				// remember month and email address
-				month = m.f0;
-				email = m.f1;
-				// increase count
-				cnt++;
-			}
-
-			// emit month, email address, and count
-			out.collect(new Tuple3<String, String, Integer>(month, email, cnt));
-		}
-	}
-
 
 }

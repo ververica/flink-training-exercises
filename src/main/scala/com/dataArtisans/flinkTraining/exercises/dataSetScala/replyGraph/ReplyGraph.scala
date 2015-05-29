@@ -23,7 +23,7 @@ import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.api.scala._
 
 /**
- * Java reference implementation for the "Reply Graph" exercise of the Flink training.
+ * Scala reference implementation for the "Reply Graph" exercise of the Flink training.
  * The task of the exercise is to enumerate the reply connection between two email addresses in
  * Flink's developer mailing list and count the number of connections between two email addresses.
  *

@@ -30,7 +30,7 @@ import org.apache.flink.util.Collector
 import scala.collection.mutable.{HashMap, HashSet}
 
 /**
- * Java reference implementation for the "TF-IDF" exercise of the Flink training.
+ * Scala reference implementation for the "TF-IDF" exercise of the Flink training.
  * The task of the exercise is to compute the TF-IDF score for words in mails of the
  * Apache Flink developer mailing list archive.
  *
