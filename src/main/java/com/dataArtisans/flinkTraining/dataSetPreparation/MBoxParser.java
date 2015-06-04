@@ -30,6 +30,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import java.util.Locale;
 import java.io.IOException;
 
 /**
@@ -134,8 +135,8 @@ public class MBoxParser {
 		@Override
 		public void open(Configuration config) {
 			// configure DataTime formats for parsing and formatting
-			this.inDF = DateTimeFormat.forPattern("EEE MMM d HH:mm:ss yyyy").withZoneUTC();
-			this.outDF = DateTimeFormat.forPattern("yyyy-MM-dd-HH:mm:ss").withZoneUTC();
+			this.inDF = DateTimeFormat.forPattern("EEE MMM d HH:mm:ss yyyy").withLocale(Locale.US).withZoneUTC();
+			this.outDF = DateTimeFormat.forPattern("yyyy-MM-dd-HH:mm:ss").withLocale(Locale.US).withZoneUTC();
 		}
 
 		@Override
