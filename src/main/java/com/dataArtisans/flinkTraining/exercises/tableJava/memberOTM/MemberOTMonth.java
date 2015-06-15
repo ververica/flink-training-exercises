@@ -64,7 +64,7 @@ public class MemberOTMonth {
 
 		Table mailsPerSenderMonth = tEnv
 				// to table
-				.toTable(monthSender).as("month, sender")
+				.fromDataSet(monthSender).as("month, sender")
 				// filter out bot email addresses
 				.filter("sender !== 'jira@apache.org' && " +
 						"sender !== 'no-reply@apache.org' && " +
@@ -79,7 +79,7 @@ public class MemberOTMonth {
 				.join(mailsPerSenderMonth).where("month = m && cnt = max").select("month, sender");
 
 		// print out result
-		tEnv.toSet(membersOTMonth, Row.class).print();
+		tEnv.toDataSet(membersOTMonth, Row.class).print();
 
 	}
 
