@@ -71,6 +71,12 @@ under the License.
             <artifactId>joda-time</artifactId>
             <version>2.7</version>
         </dependency>
+        
+        <dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-gelly</artifactId>
+			<version>0.9-SNAPSHOT</version>
+		</dependency>
 
     </dependencies>
 
