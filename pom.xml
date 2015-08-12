@@ -31,91 +31,78 @@ under the License.
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
-	<repositories>
-		<repository>
-			<id>apache.snapshots</id>
-			<name>Apache Development Snapshot Repository</name>
-			<url>https://repository.apache.org/content/repositories/snapshots/</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-			</snapshots>
-		</repository>
-	</repositories>
-	
 	<!-- These two requirements are the minimum to use and develop Flink. 
 		You can add others like <artifactId>flink-scala</artifactId> for Scala! -->
 	<dependencies>
 		
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-java</artifactId>
-            <version>0.9-SNAPSHOT</version>
-        </dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-java</artifactId>
+			<version>0.9.0</version>
+		</dependency>
 
-        <dependency>
+		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-scala</artifactId>
-			<version>0.9-SNAPSHOT</version>
+			<version>0.9.0</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-table</artifactId>
-			<version>0.9-SNAPSHOT</version>
+			<version>0.9.0</version>
 		</dependency>
 
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.7</version>
-        </dependency>
-        
-        <dependency>
+		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-gelly</artifactId>
-			<version>0.9-SNAPSHOT</version>
+			<version>0.9.0</version>
 		</dependency>
 
-    </dependencies>
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.7</version>
+		</dependency>
+		
+	</dependencies>
 
 	<!-- We use the maven-assembly plugin to create a fat jar that contains all dependencies
-    except flink and it's transitive dependencies. The resulting fat-jar can be executed
-    on a cluster. Change the value of Program-Class if your program entry point changes. -->
+	except flink and it's transitive dependencies. The resulting fat-jar can be executed
+	on a cluster. Change the value of Program-Class if your program entry point changes. -->
 	<build>
 		<plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<executions>
 
-                    <!-- MBoxParser -->
-                    <execution>
-                        <id>MBoxParser</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
+					<!-- MBoxParser -->
+					<execution>
+						<id>MBoxParser</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
 
-                        <configuration>
-                            <classifier>MBoxParser</classifier>
+						<configuration>
+							<classifier>MBoxParser</classifier>
 
-                            <archive>
-                                <manifestEntries>
-                                    <main-class>com.dataArtisans.flinkTraining.dataSetPreparation.MBoxParser</main-class>
-                                </manifestEntries>
-                            </archive>
+							<archive>
+								<manifestEntries>
+									<main-class>com.dataArtisans.flinkTraining.dataSetPreparation.MBoxParser</main-class>
+								</manifestEntries>
+							</archive>
 
-                            <includes>
-                                <include>**/MBoxParser.class</include>
-                                <include>**/MBoxParser$*.class</include>
-                            </includes>
-                        </configuration>
-                    </execution>
+							<includes>
+								<include>**/MBoxParser.class</include>
+								<include>**/MBoxParser$*.class</include>
+							</includes>
+						</configuration>
+					</execution>
 
-                </executions>
-            </plugin>
+				</executions>
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
