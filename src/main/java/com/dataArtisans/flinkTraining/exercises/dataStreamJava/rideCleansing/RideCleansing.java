@@ -18,23 +18,65 @@
 
 package com.dataArtisans.flinkTraining.exercises.dataStreamJava.rideCleansing;
 
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.GeoUtils;
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRide;
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideGenerator;
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideSchema;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.connectors.kafka.api.KafkaSink;
 
 public class RideCleansing {
 
-	public static void main(String[] args) throws Exception {
+  public static String inputPath = "/tmp/trips_start_end_sorted_1.csv";
+  public static float servingSpeedFactor = 100.0f;
 
+	public static void main(String[] args) throws Exception {
+    /* parse arguments if given */
+    if(!parseArguments(args)) {
+      return;
+    }
+
+    /* set up streaming execution environment */
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		DataStream<TaxiRide> rides =
-				env.addSource(new TaxiRideGenerator("/users/fhueske/Downloads/nyc-taxi/trips_start_end_sorted_1.csv", 8928.0f));
+    /* start the data generator */
+		DataStream<TaxiRide> rides = env.addSource(new TaxiRideGenerator(inputPath, servingSpeedFactor));
 
-		rides.print();
+    DataStream<TaxiRide> filteredRides = rides.filter(new FilterFunction<TaxiRide>() {
+      @Override
+      public boolean filter(TaxiRide taxiRide) throws Exception {
+        /* filter out rides which do not start OR stop in NYC */
+        return GeoUtils.isInNYC(taxiRide);
+      }
+    });
 
-		env.execute("Socket Stream WordCount");
+    /* write the filtered data to a Kafka sink */
+    filteredRides.addSink(new KafkaSink<TaxiRide>("localhost:9092", "flink-streaming", new TaxiRideSchema()));
+
+    /* run the cleansing pipeline */
+    env.execute("Basic Exercise 1");
 	}
+
+  /** Expects 2 arguments or none:
+   *   1) path to input file
+   *   2) fast-forward factor
+   *
+   * @param args program arguments
+   * @return true if arguments can be parsed, otherwise false
+   */
+  private static boolean parseArguments(String[] args) {
+    if(args.length > 0) {
+      if(args.length == 2) {
+        inputPath = args[0];
+        servingSpeedFactor = Float.parseFloat(args[1]);
+        return true;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }
 
 }

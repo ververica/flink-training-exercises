@@ -22,10 +22,10 @@ import org.joda.time.DateTime;
 
 public class TaxiRide {
 
-	public static enum Event {
+  public static enum Event {
 		START,
 		END
-	};
+	}
 
 	public TaxiRide() {}
 
@@ -56,17 +56,25 @@ public class TaxiRide {
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(rideId).append(", ");
-		sb.append(time).append(", ");
-		sb.append(event).append(", ");
-		sb.append(startLon).append(", ");
-		sb.append(startLat).append(", ");
-		sb.append(endLon).append(", ");
-		sb.append(endLat).append(", ");
-		sb.append(passengerCnt).append(", ");
+		sb.append(rideId).append(",");
+		sb.append(time).append(",");
+		sb.append(event).append(",");
+		sb.append(startLon).append(",");
+		sb.append(startLat).append(",");
+		sb.append(endLon).append(",");
+		sb.append(endLat).append(",");
+		sb.append(passengerCnt).append(",");
 		sb.append(travelDistance);
 
 		return sb.toString();
 	}
+
+  public boolean isStart() {
+    return this.event == Event.START;
+  }
+
+  public boolean isEnd() {
+    return this.event == Event.END;
+  }
 
 }
