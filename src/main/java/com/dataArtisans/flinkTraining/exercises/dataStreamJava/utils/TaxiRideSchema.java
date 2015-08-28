@@ -25,23 +25,23 @@ import org.apache.flink.streaming.util.serialization.SerializationSchema;
 
 public class TaxiRideSchema implements DeserializationSchema<TaxiRide>, SerializationSchema<TaxiRide, byte[]> {
 
-  @Override
-  public byte[] serialize(TaxiRide element) {
-    return element.toString().getBytes();
-  }
+	@Override
+	public byte[] serialize(TaxiRide element) {
+		return element.toString().getBytes();
+	}
 
-  @Override
-  public TaxiRide deserialize(byte[] message) {
-    return TaxiRideUtils.deserialize(new String(message));
-  }
+	@Override
+	public TaxiRide deserialize(byte[] message) {
+		return TaxiRide.fromString(new String(message));
+	}
 
-  @Override
-  public boolean isEndOfStream(TaxiRide nextElement) {
-    return false;
-  }
+	@Override
+	public boolean isEndOfStream(TaxiRide nextElement) {
+		return false;
+	}
 
-  @Override
-  public TypeInformation<TaxiRide> getProducedType() {
-    return TypeExtractor.getForClass(TaxiRide.class);
-  }
+	@Override
+	public TypeInformation<TaxiRide> getProducedType() {
+		return TypeExtractor.getForClass(TaxiRide.class);
+	}
 }

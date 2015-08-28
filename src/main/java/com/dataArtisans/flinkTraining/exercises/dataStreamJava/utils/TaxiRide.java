@@ -19,23 +19,25 @@
 package com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import java.util.Locale;
 
 public class TaxiRide {
 
-  public static enum Event {
-		START,
-		END
-	}
+	private static transient DateTimeFormatter timeFormatter =
+			DateTimeFormat.forPattern("yyyy-MM-DD HH:mm:ss").withLocale(Locale.US).withZoneUTC();
 
 	public TaxiRide() {}
 
-	public TaxiRide(long rideId, DateTime time, Event event,
+	public TaxiRide(long rideId, DateTime time, boolean isStart,
 					float startLon, float startLat, float endLon, float endLat,
 					short passengerCnt, float travelDistance) {
 
 		this.rideId = rideId;
 		this.time = time;
-		this.event = event;
+		this.isStart = isStart;
 		this.startLon = startLon;
 		this.startLat = startLat;
 		this.endLon = endLon;
@@ -46,7 +48,7 @@ public class TaxiRide {
 
 	public long rideId;
 	public DateTime time;
-	public Event event;
+	public boolean isStart;
 	public float startLon;
 	public float startLat;
 	public float endLon;
@@ -57,8 +59,8 @@ public class TaxiRide {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(rideId).append(",");
-		sb.append(time).append(",");
-		sb.append(event).append(",");
+		sb.append(time.toString(timeFormatter)).append(",");
+		sb.append(isStart ? "START" : "END").append(",");
 		sb.append(startLon).append(",");
 		sb.append(startLat).append(",");
 		sb.append(endLon).append(",");
@@ -69,12 +71,50 @@ public class TaxiRide {
 		return sb.toString();
 	}
 
-  public boolean isStart() {
-    return this.event == Event.START;
+	public static TaxiRide fromString(String line) {
+
+		String[] tokens = line.split(",");
+		if (tokens.length != 9) {
+			throw new RuntimeException("Invalid record: " + line);
+		}
+
+		TaxiRide ride = new TaxiRide();
+
+		try {
+			ride.rideId = Long.parseLong(tokens[0]);
+			ride.time = DateTime.parse(tokens[1], timeFormatter);
+			ride.startLon = tokens[3].length() > 0 ? Float.parseFloat(tokens[3]) : 0.0f;
+			ride.startLat = tokens[4].length() > 0 ? Float.parseFloat(tokens[4]) : 0.0f;
+			ride.endLon = tokens[5].length() > 0 ? Float.parseFloat(tokens[5]) : 0.0f;
+			ride.endLat = tokens[6].length() > 0 ? Float.parseFloat(tokens[6]) : 0.0f;
+			ride.passengerCnt = Short.parseShort(tokens[7]);
+			ride.travelDistance = tokens[8].length() > 0 ? Float.parseFloat(tokens[8]) : 0.0f;
+
+			if(tokens[2].equals("START")) {
+				ride.isStart = true;
+			}
+			else if(tokens[2].equals("END")) {
+				ride.isStart = false;
+			}
+			else {
+				throw new RuntimeException("Invalid record: "+ line);
+			}
+
+		} catch (NumberFormatException nfe) {
+			throw new RuntimeException("Invalid record: " + line, nfe);
+		}
+
+		return ride;
+	}
+
+	public boolean isStart() {
+    return this.isStart;
   }
 
-  public boolean isEnd() {
-    return this.event == Event.END;
+	public boolean isEnd() {
+    return !this.isStart;
   }
+
+
 
 }
