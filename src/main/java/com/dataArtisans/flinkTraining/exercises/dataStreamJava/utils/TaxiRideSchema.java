@@ -18,6 +18,7 @@
 
 package com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils;
 
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.util.serialization.DeserializationSchema;

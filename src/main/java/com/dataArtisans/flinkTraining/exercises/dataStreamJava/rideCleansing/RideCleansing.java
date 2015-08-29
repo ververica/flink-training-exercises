@@ -19,7 +19,7 @@
 package com.dataArtisans.flinkTraining.exercises.dataStreamJava.rideCleansing;
 
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.GeoUtils;
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRide;
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide;
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideGenerator;
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideSchema;
 import org.apache.flink.api.common.functions.FilterFunction;

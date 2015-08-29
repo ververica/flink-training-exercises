@@ -18,7 +18,7 @@
 
 package com.dataArtisans.flinkTraining.exercises.dataStreamJava.rideSpeed;
 
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRide;
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide;
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideGenerator;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.MapFunction;
@@ -66,7 +66,7 @@ public class RideSpeed {
 		@Override
 		public void flatMap(TaxiRide rideEvent, Collector<Tuple2<TaxiRide, TaxiRide>> out) throws Exception {
 
-			if(rideEvent.isStart()) {
+			if(rideEvent.isStart) {
 				startRecords.put(rideEvent.rideId, rideEvent);
 			}
 			else {

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils;
+package com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -107,14 +107,19 @@ public class TaxiRide {
 		return ride;
 	}
 
-	public boolean isStart() {
-    return this.isStart;
-  }
+	@Override
+	public boolean equals(Object other) {
+		if(other instanceof TaxiRide) {
+			return this.rideId == ((TaxiRide)other).rideId;
+		}
+		else {
+			return false;
+		}
+	}
 
-	public boolean isEnd() {
-    return !this.isStart;
-  }
-
-
+	@Override
+	public int hashCode() {
+		return (int)this.rideId;
+	}
 
 }

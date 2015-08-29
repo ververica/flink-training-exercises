@@ -20,9 +20,8 @@ package com.dataArtisans.flinkTraining.exercises.dataStreamJava.popularPlaces;
 
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.rideCleansing.RideCleansing;
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.GeoUtils;
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRide;
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide;
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideGenerator;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -83,7 +82,7 @@ public class PopularPlaces {
 
 		@Override
 		public Tuple2<Integer, Boolean> map(TaxiRide taxiRide) throws Exception {
-			if(taxiRide.isStart()) {
+			if(taxiRide.isStart) {
 				int gridId = GeoUtils.mapToGridCell(taxiRide.startLon, taxiRide.startLat);
 				return new Tuple2<Integer, Boolean>(gridId, true);
 			} else {

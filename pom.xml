@@ -32,8 +32,6 @@ under the License.
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
-	<!-- These two requirements are the minimum to use and develop Flink. 
-		You can add others like <artifactId>flink-scala</artifactId> for Scala! -->
 	<dependencies>
 		
 		<dependency>
@@ -80,9 +78,6 @@ under the License.
 
 	</dependencies>
 
-	<!-- We use the maven-assembly plugin to create a fat jar that contains all dependencies
-	except flink and it's transitive dependencies. The resulting fat-jar can be executed
-	on a cluster. Change the value of Program-Class if your program entry point changes. -->
 	<build>
 		<plugins>
 			<plugin>

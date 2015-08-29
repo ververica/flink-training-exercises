@@ -18,6 +18,7 @@
 
 package com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils;
 
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
 import java.io.BufferedReader;
