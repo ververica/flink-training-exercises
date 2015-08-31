@@ -18,15 +18,8 @@ package com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils;
 
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.Accident;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
-import org.joda.time.DateTime;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Calendar;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Random;

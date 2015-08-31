@@ -16,7 +16,6 @@
 
 package com.dataArtisans.flinkTraining.exercises.gellyJava;
 
-
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
@@ -81,10 +80,10 @@ public class PageRankWithEdgeWeights{
 		//create a Graph with vertex values initialized to 1.0
 		Graph<String, Double, Double> network = Graph.fromDataSet(links,
 				new MapFunction<String, Double>() {
-			         public Double map(String value) throws Exception {
-			        	 return 1.0;
-			        	 }
-			         }, env);
+					public Double map(String value) throws Exception {
+						return 1.0;
+					}
+				}, env);
 		
 		
 		//for each vertex calculate the total weight of its outgoing edges
