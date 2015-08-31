@@ -1,0 +1,5 @@
+Cascading Connector for Apache Flink 
+Copyright 2015 data Artisans GmbH
+
+This product includes software developed at
+data Artisans GmbH, Berlin, Germany (http://www.data-artisans.com).
