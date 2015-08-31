@@ -28,6 +28,9 @@ import org.apache.flink.streaming.connectors.kafka.api.KafkaSink;
 
 public class RideCleansing {
 
+	private static final String LOCAL_KAFKA_BROKER = "localhost:9092";
+	public static final String CLEANSED_RIDES_TOPIC = "cleansedRides";
+
 	public static void main(String[] args) throws Exception {
 
 		ParameterTool params = ParameterTool.fromArgs(args);
@@ -45,7 +48,7 @@ public class RideCleansing {
 				.filter(new NYCFilter());
 
 		// write the filtered data to a Kafka sink
-		filteredRides.addSink(new KafkaSink<TaxiRide>("localhost:9092", "cleansedRides", new TaxiRideSchema()));
+		filteredRides.addSink(new KafkaSink<TaxiRide>(LOCAL_KAFKA_BROKER, CLEANSED_RIDES_TOPIC, new TaxiRideSchema()));
 
 		// run the cleansing pipeline
 		env.execute("Taxi Ride Cleansing");

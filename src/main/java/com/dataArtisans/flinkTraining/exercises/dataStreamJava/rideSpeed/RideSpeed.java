@@ -17,32 +17,30 @@
 package com.dataArtisans.flinkTraining.exercises.dataStreamJava.rideSpeed;
 
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide;
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideGenerator;
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.rideCleansing.RideCleansing;
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideSchema;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.connectors.kafka.api.KafkaSource;
 import org.apache.flink.util.Collector;
 
 import java.util.HashMap;
 
 public class RideSpeed {
 
-	public static void main(String[] args) throws Exception {
+	private static final String LOCAL_ZOOKEEPER_HOST = "localhost:2181";
 
-		ParameterTool params = ParameterTool.fromArgs(args);
-		String input = params.getRequired("input");
-		float servingSpeedFactor = params.getFloat("speed", 1.0f);
+	public static void main(String[] args) throws Exception {
 
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
 		// create a data source
-		//DataStream<TaxiRide> rides =
-		//			env.addSource(new KafkaSource<TaxiRide>("localhost:9092", "flink-streaming", new TaxiRideSchema()));
-		DataStream<TaxiRide> rides = env.addSource(new TaxiRideGenerator(input, servingSpeedFactor)); // TODO remove this
+		DataStream<TaxiRide> rides =
+					env.addSource(new KafkaSource<TaxiRide>(LOCAL_ZOOKEEPER_HOST, RideCleansing.CLEANSED_RIDES_TOPIC, new TaxiRideSchema()));
 
 		DataStream<Tuple2<Long, Float>> rideSpeeds = rides
 				.groupBy("rideId")
