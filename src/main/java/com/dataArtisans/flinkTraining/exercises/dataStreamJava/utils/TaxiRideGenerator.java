@@ -20,10 +20,12 @@ import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRid
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Calendar;
+import java.util.zip.GZIPInputStream;
 
 /**
  *
@@ -34,6 +36,7 @@ public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
 	private float servingSpeedFactor;
 
 	private transient BufferedReader reader;
+	private transient InputStream gzipStream;
 
 	private transient long dataStartTime;
 	private transient long servingStartTime;
@@ -51,7 +54,9 @@ public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
 	public void run(SourceContext<TaxiRide> sourceContext) throws Exception {
 
 		this.servingStartTime = Calendar.getInstance().getTimeInMillis();
-		reader = new BufferedReader(new FileReader(new File(dataFilePath)));
+
+		gzipStream = new GZIPInputStream(new FileInputStream(dataFilePath));
+		reader = new BufferedReader(new InputStreamReader(gzipStream, "UTF-8"));
 
 		String line;
 		if (reader.ready() && (line = reader.readLine()) != null) {
@@ -80,6 +85,8 @@ public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
 
 		this.reader.close();
 		this.reader = null;
+		this.gzipStream.close();
+		this.gzipStream = null;
 	}
 
 	@Override
@@ -88,10 +95,14 @@ public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
 			if (this.reader != null) {
 				this.reader.close();
 			}
+			if( this.gzipStream != null) {
+				this.gzipStream.close();
+			}
 		} catch (IOException ioe) {
 			//
 		} finally {
 			this.reader = null;
+			this.gzipStream = null;
 		}
 	}
 
