@@ -16,30 +16,41 @@
 
 package com.dataArtisans.flinkTraining.exercises.dataStreamScala
 
+import java.util.Properties
+
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideSchema
 import org.apache.flink.api.common.functions.{MapFunction, FlatMapFunction}
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer082
 import org.apache.flink.util.Collector
 
 import scala.collection.mutable
 
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.connectors.kafka.api.KafkaSource
 
 
 object RideSpeed {
-  private val LOCAL_ZOOKEEPER_HOST: String = "localhost:2181"
+
+  private val LOCAL_ZOOKEEPER_HOST = "localhost:2181"
+  private val LOCAL_KAFKA_BROKER = "localhost:9092"
+  private val RIDE_SPEED_GROUP = "rideSpeedGroup"
 
   @throws(classOf[Exception])
   def main(args: Array[String]) {
 
     val env = StreamExecutionEnvironment.getExecutionEnvironment
 
+    val kafkaProps = new Properties
+    kafkaProps.setProperty("zookeeper.connect", LOCAL_ZOOKEEPER_HOST)
+    kafkaProps.setProperty("bootstrap.servers", LOCAL_KAFKA_BROKER)
+    kafkaProps.setProperty("group.id", RIDE_SPEED_GROUP)
+
+    // create a data source
     val rides = env.addSource(
-      new KafkaSource[TaxiRide](
-        LOCAL_ZOOKEEPER_HOST,
+      new FlinkKafkaConsumer082[TaxiRide](
         RideCleansing.CLEANSED_RIDES_TOPIC,
-        new TaxiRideSchema))
+        new TaxiRideSchema,
+        kafkaProps))
 
     val rideSpeeds = rides
       .groupBy("rideId")
