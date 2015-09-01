@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataStreamScala
+package com.dataArtisans.flinkTraining.exercises.dataStreamScala.accidentDelays
 
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.{TaxiRide, Accident}
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.{GeoUtils, AccidentGenerator, TaxiRideGenerator}
-import org.apache.flink.api.common.functions.{MapFunction, FlatMapFunction}
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.{Accident, TaxiRide}
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.{AccidentGenerator, GeoUtils, TaxiRideGenerator}
+import org.apache.flink.api.common.functions.{FlatMapFunction, MapFunction}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.functions.co.CoFlatMapFunction
-
-import scala.collection.JavaConverters._
-
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.util.Collector
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 object AccidentDelays {

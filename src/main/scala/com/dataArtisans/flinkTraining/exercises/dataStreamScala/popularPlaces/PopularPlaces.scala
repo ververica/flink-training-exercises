@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataStreamScala
+package com.dataArtisans.flinkTraining.exercises.dataStreamScala.popularPlaces
 
 import java.util.concurrent.TimeUnit
 
@@ -23,12 +23,11 @@ import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.{GeoUtils, 
 import org.apache.flink.api.common.functions.MapFunction
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.functions.WindowMapFunction
-
-import scala.collection.JavaConverters._
-
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.scala.windowing.Time
 import org.apache.flink.util.Collector
+
+import scala.collection.JavaConverters._
 
 object PopularPlaces {
   private val COUNT_WINDOW_LENGTH = 15 * 60 * 1000L // 15 minutes in msecs

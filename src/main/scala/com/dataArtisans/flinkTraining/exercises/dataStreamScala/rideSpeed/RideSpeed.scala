@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataStreamScala
+package com.dataArtisans.flinkTraining.exercises.dataStreamScala.rideSpeed
 
 import java.util.Properties
 
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideSchema
-import org.apache.flink.api.common.functions.{MapFunction, FlatMapFunction}
+import com.dataArtisans.flinkTraining.exercises.dataStreamScala.rideCleansing.RideCleansing
+import org.apache.flink.api.common.functions.{FlatMapFunction, MapFunction}
+import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer082
 import org.apache.flink.util.Collector
 
 import scala.collection.mutable
-
-import org.apache.flink.streaming.api.scala._
 
 
 object RideSpeed {
