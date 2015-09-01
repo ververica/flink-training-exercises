@@ -65,8 +65,7 @@ public class AccidentDelays {
 				.connect(accidents)
 				.flatMap(new AccidentsPerRideCounter());
 
-		rideAccidents
-				.print();
+		rideAccidents.print();
 
 		// run the transformation pipeline
 		env.execute("Accident Delayed Rides");

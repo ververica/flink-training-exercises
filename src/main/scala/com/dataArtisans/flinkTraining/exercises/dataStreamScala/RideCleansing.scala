@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataStreamScala.rideCleansing
+package com.dataArtisans.flinkTraining.exercises.dataStreamScala
 
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.GeoUtils
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideSchema
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideGenerator
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.{GeoUtils, TaxiRideGenerator, TaxiRideSchema}
 import org.apache.flink.api.java.utils.ParameterTool
-import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
+import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.connectors.kafka.api.KafkaSink
 
 /**
