@@ -56,12 +56,12 @@ public class AccidentDelays {
 				.addSource(new AccidentGenerator(servingSpeedFactor))
 				.map(new AccidentCellMapper())
 				// group by accident cell id
-				.partitionByHash(0);
+				.groupBy(0);
 
 		DataStream<Tuple2<Integer, TaxiRide>> rideAccidents = rides
 				.flatMap(new RouteCellMapper())
 				// group by route cell id
-				.partitionByHash(0)
+				.groupBy(0)
 				.connect(accidents)
 				.flatMap(new AccidentsPerRideCounter());
 
@@ -95,9 +95,7 @@ public class AccidentDelays {
 					taxiRide.endLon, taxiRide.endLat);
 
 			outT.f1 = taxiRide;
-			outT.f0 = routeCellIds.get(0);
-
-			out.collect(outT);
+			
 			for(Integer cellId : routeCellIds) {
 				outT.f0 = cellId;
 				out.collect(outT);
