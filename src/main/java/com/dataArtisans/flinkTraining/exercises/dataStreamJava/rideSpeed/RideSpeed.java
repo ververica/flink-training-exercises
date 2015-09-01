@@ -24,23 +24,35 @@ import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.kafka.api.KafkaSource;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer082;
 import org.apache.flink.util.Collector;
 
 import java.util.HashMap;
+import java.util.Properties;
 
 public class RideSpeed {
 
 	private static final String LOCAL_ZOOKEEPER_HOST = "localhost:2181";
+	private static final String LOCAL_KAFKA_BROKER = "localhost:9092";
+	private static final String RIDE_SPEED_GROUP = "rideSpeedGroup";
 
 	public static void main(String[] args) throws Exception {
 
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+		Properties kafkaProps = new Properties();
+		kafkaProps.setProperty("zookeeper.connect", LOCAL_ZOOKEEPER_HOST);
+		kafkaProps.setProperty("bootstrap.servers", LOCAL_KAFKA_BROKER);
+		kafkaProps.setProperty("group.id", RIDE_SPEED_GROUP);
+
 		// create a data source
 		DataStream<TaxiRide> rides =
-					env.addSource(new KafkaSource<TaxiRide>(LOCAL_ZOOKEEPER_HOST, RideCleansing.CLEANSED_RIDES_TOPIC, new TaxiRideSchema()));
+					env.addSource(new FlinkKafkaConsumer082<TaxiRide>(
+							RideCleansing.CLEANSED_RIDES_TOPIC,
+							new TaxiRideSchema(),
+							kafkaProps)
+					);
 
 		DataStream<Tuple2<Long, Float>> rideSpeeds = rides
 				.groupBy("rideId")
@@ -71,9 +83,6 @@ public class RideSpeed {
 					joinedEvents.f0 = startRecord;
 					joinedEvents.f1 = rideEvent;
 					out.collect(joinedEvents);
-				}
-				else {
-					throw new RuntimeException("asdf");
 				}
 			}
 		}

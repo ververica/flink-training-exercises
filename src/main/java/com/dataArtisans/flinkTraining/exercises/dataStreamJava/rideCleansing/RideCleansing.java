@@ -24,7 +24,7 @@ import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.kafka.api.KafkaSink;
+import org.apache.flink.streaming.connectors.kafka.KafkaSink;
 
 public class RideCleansing {
 
@@ -48,7 +48,10 @@ public class RideCleansing {
 				.filter(new NYCFilter());
 
 		// write the filtered data to a Kafka sink
-		filteredRides.addSink(new KafkaSink<TaxiRide>(LOCAL_KAFKA_BROKER, CLEANSED_RIDES_TOPIC, new TaxiRideSchema()));
+		filteredRides.addSink(new KafkaSink<TaxiRide>(
+				LOCAL_KAFKA_BROKER,
+				CLEANSED_RIDES_TOPIC,
+				new TaxiRideSchema()));
 
 		// run the cleansing pipeline
 		env.execute("Taxi Ride Cleansing");
