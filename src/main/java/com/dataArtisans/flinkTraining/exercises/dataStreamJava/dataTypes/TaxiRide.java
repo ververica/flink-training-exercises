@@ -22,6 +22,21 @@ import org.joda.time.format.DateTimeFormatter;
 
 import java.util.Locale;
 
+/**
+ * A TaxiRide is a taxi ride event. There are two types of events, a taxi ride start event and a
+ * taxi ride end event. The isStart flag specifies the type of the event.
+ *
+ * A TaxiRide consists of
+ * - the rideId of the event which is identical for start and end record
+ * - the time of the event
+ * - the longitude of the start location
+ * - the latitude of the start location
+ * - the longitude of the end location
+ * - the latitude of the end location
+ * - the passengerCnt of the ride
+ * - the travelDistance which is -1 for start events
+ *
+ */
 public class TaxiRide {
 
 	private static transient DateTimeFormatter timeFormatter =

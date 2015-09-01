@@ -28,6 +28,13 @@ import java.util.Calendar;
 import java.util.zip.GZIPInputStream;
 
 /**
+ * Generates a data stream of TaxiRide records.
+ *
+ * The TaxiRide records are read from a gzipped input file.
+ * Each record has a time stamp and the input file is order by this time stamp.
+ * Records are emitted proportional to their time stamp. The serving time can be proportionally
+ * adjusted by a serving speed factor. A factor of 4.0 increases the logical serving time by a factor
+ * of four, i.e., within 10 actual minutes all records with a time stamp width of 40 minutes are served.
  *
  */
 public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
@@ -38,13 +45,22 @@ public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
 	private transient BufferedReader reader;
 	private transient InputStream gzipStream;
 
-	private transient long dataStartTime;
-	private transient long servingStartTime;
-
+	/**
+	 * Serves the TaxiRide records from the specified gzipped input file.
+	 *
+	 * @param dataFilePath The gzipped input file from which the TaxiRide records are read.
+	 */
 	public TaxiRideGenerator(String dataFilePath) {
 		this(dataFilePath, 1.0f);
 	}
 
+	/**
+	 * Serves the TaxiRide records from the specified gzipped input file proportional to the
+	 * specified serving speed factor.
+	 *
+	 * @param dataFilePath The gzipped input file from which the TaxiRide records are read.
+	 * @param servingSpeedFactor The serving speed factor by which the logical serving time is adjusted.
+	 */
 	public TaxiRideGenerator(String dataFilePath, float servingSpeedFactor) {
 		this.dataFilePath = dataFilePath;
 		this.servingSpeedFactor = servingSpeedFactor;
@@ -53,16 +69,17 @@ public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
 	@Override
 	public void run(SourceContext<TaxiRide> sourceContext) throws Exception {
 
-		this.servingStartTime = Calendar.getInstance().getTimeInMillis();
+		long servingStartTime = Calendar.getInstance().getTimeInMillis();
 
 		gzipStream = new GZIPInputStream(new FileInputStream(dataFilePath));
 		reader = new BufferedReader(new InputStreamReader(gzipStream, "UTF-8"));
 
 		String line;
+		long dataStartTime;
 		if (reader.ready() && (line = reader.readLine()) != null) {
 			TaxiRide ride = TaxiRide.fromString(line);
 
-			this.dataStartTime = ride.time.getMillis();
+			dataStartTime = ride.time.getMillis();
 			sourceContext.collect(ride);
 		} else {
 			return;
@@ -72,8 +89,8 @@ public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
 
 			TaxiRide ride = TaxiRide.fromString(line);
 
-			long dataDiff = ride.time.getMillis() - this.dataStartTime;
-			long servingDiff = Calendar.getInstance().getTimeInMillis() - this.servingStartTime;
+			long dataDiff = ride.time.getMillis() - dataStartTime;
+			long servingDiff = Calendar.getInstance().getTimeInMillis() - servingStartTime;
 
 			long wait = (long) ((dataDiff / this.servingSpeedFactor) - servingDiff);
 			if (wait > 0) {

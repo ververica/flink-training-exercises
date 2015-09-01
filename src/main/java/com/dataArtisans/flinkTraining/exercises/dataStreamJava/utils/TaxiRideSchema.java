@@ -22,6 +22,9 @@ import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.streaming.util.serialization.DeserializationSchema;
 import org.apache.flink.streaming.util.serialization.SerializationSchema;
 
+/**
+ * Implements a SerializationSchema and DeserializationSchema for TaxiRide for Kafka data sources and sinks.
+ */
 public class TaxiRideSchema implements DeserializationSchema<TaxiRide>, SerializationSchema<TaxiRide, byte[]> {
 
 	@Override

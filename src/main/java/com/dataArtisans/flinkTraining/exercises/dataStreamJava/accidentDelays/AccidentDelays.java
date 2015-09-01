@@ -36,6 +36,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Java reference implementation for the "Accident Delays" exercise of the Flink training (http://dataartisans.github.io/flink-training).
+ * The task of the exercise is to connect a data stream of taxi rides and a stream of accident reports to identify taxi rides that
+ * might have been delayed due to accidents.
+ *
+ * Parameters:
+ *   --input path-to-input-directory
+ *   --speed serving-speed-of-generator
+ *
+ */
 public class AccidentDelays {
 
 	public static void main(String[] args) throws Exception {
@@ -49,19 +59,23 @@ public class AccidentDelays {
 
 		// create taxi ride stream
 		DataStream<TaxiRide> rides = env.addSource(new TaxiRideGenerator(input, servingSpeedFactor))
+				// filter rides which do not start and end in NYC
 				.filter(new RideCleansing.NYCFilter());
 
 		// create accidents stream
 		DataStream<Tuple2<Integer,Accident>> accidents = env
 				.addSource(new AccidentGenerator(servingSpeedFactor))
+				// map accident to grid cell
 				.map(new AccidentCellMapper())
 				// group by accident cell id
 				.groupBy(0);
 
 		DataStream<Tuple2<Integer, TaxiRide>> rideAccidents = rides
+				// map taxi ride to all grid cells on its way
 				.flatMap(new RouteCellMapper())
 				// group by route cell id
 				.groupBy(0)
+				// connect streams and match rides and accidents on the same grid cell
 				.connect(accidents)
 				.flatMap(new AccidentsPerRideCounter());
 
@@ -71,6 +85,9 @@ public class AccidentDelays {
 		env.execute("Accident Delayed Rides");
 	}
 
+	/**
+	 * Maps an Accident to the grid cell id of its location.
+	 */
 	public static class AccidentCellMapper implements MapFunction<Accident, Tuple2<Integer, Accident>> {
 
 		Tuple2<Integer, Accident> outT = new Tuple2<Integer, Accident>();
@@ -83,6 +100,10 @@ public class AccidentDelays {
 		}
 	}
 
+	/**
+	 * Maps a TaxiRide to all grid cells between its start and its end location.
+	 * For each grid cell on the way, a record is emitted.
+	 */
 	public static class RouteCellMapper implements FlatMapFunction<TaxiRide, Tuple2<Integer, TaxiRide>> {
 
 		Tuple2<Integer, TaxiRide> outT = new Tuple2<Integer, TaxiRide>();
@@ -90,6 +111,7 @@ public class AccidentDelays {
 		@Override
 		public void flatMap(TaxiRide taxiRide, Collector<Tuple2<Integer, TaxiRide>> out) throws Exception {
 
+			// get all grid cells on the way from start to end of the ride
 			List<Integer> routeCellIds = GeoUtils.mapToGridCellsOnWay(
 					taxiRide.startLon, taxiRide.startLat,
 					taxiRide.endLon, taxiRide.endLat);
@@ -97,19 +119,27 @@ public class AccidentDelays {
 			outT.f1 = taxiRide;
 			
 			for(Integer cellId : routeCellIds) {
+				// emit a record for each grid cell
 				outT.f0 = cellId;
 				out.collect(outT);
 			}
 		}
 	}
 
+	/**
+	 * Matches taxi rides which pass accidents on the same grid cell.
+	 * Accidents are kept until a clearance event is received.
+	 */
 	public static class AccidentsPerRideCounter implements CoFlatMapFunction<
 			Tuple2<Integer, TaxiRide>,
 			Tuple2<Integer, Accident>,
 			Tuple2<Integer, TaxiRide>> {
 
+		// holds accidents indexed by cell id
 		private HashMap<Integer, Set<Long>> accidentsByCell = new HashMap<Integer, Set<Long>>();
+		// holds taxi rides indexed by cell id
 		private HashMap<Integer, Set<TaxiRide>> ridesByCell = new HashMap<Integer, Set<TaxiRide>>();
+		// the output record
 		private Tuple2<Integer, TaxiRide> outT = new Tuple2<Integer, TaxiRide>();
 
 		@Override
@@ -119,13 +149,14 @@ public class AccidentDelays {
 			int cell = ride.f0;
 
 			if (ride.f1.isStart) {
+				// ride event is a start event
 
-				// check accidents on cell
+				// check if an accident happened on the cell
 				Set<Long> accidents = accidentsByCell.get(cell);
 				boolean accidentOnCell = (accidents != null && accidents.size() > 0);
 
 				if (accidentOnCell) {
-					// emit ride directly
+					// emit ride directly and do not remember it
 					out.collect(ride);
 				} else {
 					// remember ride
@@ -137,8 +168,9 @@ public class AccidentDelays {
 					ridesOnCell.add(ride.f1);
 				}
 			} else {
+				// ride event is an end event
 
-				// remove ride
+				// forget ride
 				Set<TaxiRide> ridesOnCell = this.ridesByCell.get(cell);
 				if (ridesOnCell != null) {
 					ridesOnCell.remove(ride.f1);
@@ -153,20 +185,22 @@ public class AccidentDelays {
 			int cell = accident.f0;
 
 			if (!accident.f1.isCleared) {
+				// accident event is an emergence event
 
-				// emit all rides on cell
+				// check if taxi rides pass this cell
 				Set<TaxiRide> ridesOnCell = this.ridesByCell.get(cell);
 				if (ridesOnCell != null) {
+					// emit all rides on cell
 					outT.f0 = cell;
 					for (TaxiRide ride : ridesOnCell) {
 						outT.f1 = ride;
 						out.collect(outT);
 					}
-					// clear all rides
+					// forget all rides on cell
 					ridesOnCell.clear();
 				}
 
-				// add accident
+				// remember accident
 				Set<Long> accidentsOnCell = accidentsByCell.get(cell);
 				if (accidentsOnCell == null) {
 					accidentsOnCell = new HashSet<Long>();
@@ -175,8 +209,9 @@ public class AccidentDelays {
 				accidentsOnCell.add(accident.f1.accidentId);
 
 			} else {
+				// accident event is a clearance event
 
-				// remove accident
+				// forget accident
 				Set<Long> accidentIds = accidentsByCell.get(cell);
 				if (accidentIds != null) {
 					accidentIds.remove(accident.f1.accidentId);

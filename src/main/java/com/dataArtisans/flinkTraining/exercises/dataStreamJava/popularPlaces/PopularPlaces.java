@@ -33,6 +33,16 @@ import org.apache.flink.util.Collector;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Java reference implementation for the "Popular Places" exercise of the Flink training (http://dataartisans.github.io/flink-training).
+ * The task of the exercise is to identify every five minutes popular areas where many taxi rides arrived or departed in the last 15 minutes.
+ *
+ * Parameters:
+ *   --input path-to-input-directory
+ *   -- popThreshold min-num-of-taxis-for-popular-places
+ *   --speed serving-speed-of-generator
+ *
+ */
 public class PopularPlaces {
 
 	private static final long COUNT_WINDOW_LENGTH = 15 * 60 * 1000; // 15 minutes in msecs
@@ -43,7 +53,7 @@ public class PopularPlaces {
 		// read parameters
 		ParameterTool params = ParameterTool.fromArgs(args);
 		String input = params.getRequired("input");
-		int popThreashold = Integer.parseInt(params.getRequired("popThreshold"));
+		int popThreshold = Integer.parseInt(params.getRequired("popThreshold"));
 		float servingSpeedFactor = params.getFloat("speed", 1.0f);
 
 		// adjust window size and eviction interval to fast-forward factor
@@ -58,12 +68,18 @@ public class PopularPlaces {
 
 		// find n most popular spots
 		DataStream<Tuple4<Float, Float, Boolean, Integer>> popularSpots = rides
+				// remove all rides which are not within NYC
 				.filter(new RideCleansing.NYCFilter())
+				// match ride to grid cell and event type (start or end)
 				.map(new GridCellMatcher())
+				// partition by cell id and event type
 				.groupBy(0, 1)
+				// build sliding window
 				.window(Time.of(windowSize, TimeUnit.MILLISECONDS)).every(Time.of(evictionInterval, TimeUnit.MILLISECONDS))
-				.mapWindow(new PopularityCounter(popThreashold))
+				// count events in window
+				.mapWindow(new PopularityCounter(popThreshold))
 				.flatten()
+				// map grid cell to coordinates
 				.map(new GridToCoordinates());
 
 		// print result on stdout
@@ -74,16 +90,19 @@ public class PopularPlaces {
 	}
 
 	/**
-	 * MapFunction to map start / end location of a TaxiRide to a cell Id
+	 * Map taxi ride to grid cell and event type.
+	 * Start records use departure location, end record use arrival location.
 	 */
 	public static class GridCellMatcher implements MapFunction<TaxiRide, Tuple2<Integer, Boolean>> {
 
 		@Override
 		public Tuple2<Integer, Boolean> map(TaxiRide taxiRide) throws Exception {
 			if(taxiRide.isStart) {
+				// get grid cell id for start location
 				int gridId = GeoUtils.mapToGridCell(taxiRide.startLon, taxiRide.startLat);
 				return new Tuple2<Integer, Boolean>(gridId, true);
 			} else {
+				// get grid cell id for end location
 				int gridId = GeoUtils.mapToGridCell(taxiRide.endLon, taxiRide.endLat);
 				return new Tuple2<Integer, Boolean>(gridId, false);
 			}
@@ -91,9 +110,9 @@ public class PopularPlaces {
 	}
 
 	/**
-	 * WindowMapFunction to count starts or stops per grid cell.
+	 * Count window events for grid cell and event type.
+	 * Only emits records if the count is equal or larger than the popularity threshold.
 	 */
-
 	public static class PopularityCounter implements WindowMapFunction<Tuple2<Integer, Boolean>, Tuple3<Integer, Boolean, Integer>> {
 
 		private int popThreshold;
@@ -117,13 +136,18 @@ public class PopularPlaces {
 				cellCount.f2++;
 			}
 
+			// check threshold
 			if(cellCount.f2 >= popThreshold) {
+				// emit record
 				out.collect(cellCount);
 			}
 		}
 
 	}
 
+	/**
+	 * Maps the grid cell id back to longitude and latitude coordinates.
+	 */
 	public static class GridToCoordinates implements MapFunction<Tuple3<Integer, Boolean, Integer>, Tuple4<Float, Float, Boolean, Integer>> {
 
 		@Override

@@ -20,9 +20,16 @@ import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRid
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.{GeoUtils, TaxiRideGenerator, TaxiRideSchema}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.connectors.kafka.api.KafkaSink
+import org.apache.flink.streaming.connectors.kafka.KafkaSink
 
 /**
+ * Scala reference implementation for the "Ride Cleansing" exercise of the Flink training (http://dataartisans.github.io/flink-training).
+ * The task of the exercise is to filter a data stream of taxi ride records to keep only rides that start and end within New York City.
+ * The resulting stream should be written to an Apache Kafka topic.
+ *
+ * Parameters:
+ * --input path-to-input-directory
+ * --speed serving-speed-of-generator
  *
  */
 object RideCleansing {

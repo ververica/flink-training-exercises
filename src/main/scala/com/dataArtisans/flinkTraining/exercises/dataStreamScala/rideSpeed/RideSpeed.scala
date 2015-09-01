@@ -28,7 +28,11 @@ import org.apache.flink.util.Collector
 
 import scala.collection.mutable
 
-
+/**
+ * Scala reference implementation for the "Ride Speed" exercise of the Flink training (http://dataartisans.github.io/flink-training).
+ * The task of the exercise is to read taxi ride records from an Apache Kafka topic and compute the average speed of completed taxi rides.
+ *
+ */
 object RideSpeed {
 
   private val LOCAL_ZOOKEEPER_HOST = "localhost:2181"
@@ -40,12 +44,13 @@ object RideSpeed {
 
     val env = StreamExecutionEnvironment.getExecutionEnvironment
 
+    // configure Kafka consumer
     val kafkaProps = new Properties
     kafkaProps.setProperty("zookeeper.connect", LOCAL_ZOOKEEPER_HOST)
     kafkaProps.setProperty("bootstrap.servers", LOCAL_KAFKA_BROKER)
     kafkaProps.setProperty("group.id", RIDE_SPEED_GROUP)
 
-    // create a data source
+    // create a TaxiRide data stream
     val rides = env.addSource(
       new FlinkKafkaConsumer082[TaxiRide](
         RideCleansing.CLEANSED_RIDES_TOPIC,
@@ -53,23 +58,33 @@ object RideSpeed {
         kafkaProps))
 
     val rideSpeeds = rides
+      // group records by rideId
       .groupBy("rideId")
+      // match ride start and end records
       .flatMap(new RideEventJoiner)
+      // compute the average speed of a ride
       .map(new SpeedComputer)
 
+    // emit the result on stdout
     rideSpeeds.print()
 
+    // run the transformation pipeline
     env.execute("Average Ride Speed")
   }
 
+  /**
+   * Matches start and end TaxiRide records.
+   */
   class RideEventJoiner extends FlatMapFunction[TaxiRide, (TaxiRide, TaxiRide)] {
 
     private val startRecords = mutable.HashMap.empty[Long, TaxiRide]
 
     def flatMap(rideEvent: TaxiRide, out: Collector[(TaxiRide, TaxiRide)]) {
       if (rideEvent.isStart) {
+        // remember start record
         startRecords += (rideEvent.rideId -> rideEvent)
       } else {
+        // get and forget start record
         startRecords.remove(rideEvent.rideId) match {
           case Some(startRecord) => out.collect((startRecord, rideEvent))
           case _ => // we have no start record, ignore this one
@@ -82,6 +97,9 @@ object RideSpeed {
     private var MILLIS_PER_HOUR: Int = 1000 * 60 * 60
   }
 
+  /**
+   * Computes the average speed of a taxi ride from its start and end record.
+   */
   class SpeedComputer extends MapFunction[(TaxiRide, TaxiRide), (Long, Float)] {
 
     def map(joinedEvents: (TaxiRide, TaxiRide)): (Long, Float) = {

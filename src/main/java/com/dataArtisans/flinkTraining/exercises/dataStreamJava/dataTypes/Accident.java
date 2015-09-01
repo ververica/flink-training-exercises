@@ -16,6 +16,15 @@
 
 package com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes;
 
+/**
+ * Accident is an accident report event. There are two types of accident events, an emergence event
+ * which reports an accident and a clearance event which notifies that an accident was cleared.
+ * The isCleared flag specifies the type of the accident report event.
+ *
+ * In addition, an accident consists of an accidentId (same for emergence and clearance events) and
+ * a location specified by longitude and latitude.
+ *
+ */
 public class Accident {
 
 	public long accidentId;
@@ -23,7 +32,7 @@ public class Accident {
 	public float lat;
 	public boolean isCleared;
 
-	public Accident() {};
+	public Accident() {}
 
 	public Accident(long accidentId, float lon, float lat, boolean isCleared) {
 		this.accidentId = accidentId;

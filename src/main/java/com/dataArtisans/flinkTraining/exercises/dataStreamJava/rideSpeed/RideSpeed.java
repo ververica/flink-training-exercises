@@ -30,6 +30,11 @@ import org.apache.flink.util.Collector;
 import java.util.HashMap;
 import java.util.Properties;
 
+/**
+ * Java reference implementation for the "Ride Speed" exercise of the Flink training (http://dataartisans.github.io/flink-training).
+ * The task of the exercise is to read taxi ride records from an Apache Kafka topic and compute the average speed of completed taxi rides.
+ *
+ */
 public class RideSpeed {
 
 	private static final String LOCAL_ZOOKEEPER_HOST = "localhost:2181";
@@ -41,12 +46,13 @@ public class RideSpeed {
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+		// configure the Kafka consumer
 		Properties kafkaProps = new Properties();
 		kafkaProps.setProperty("zookeeper.connect", LOCAL_ZOOKEEPER_HOST);
 		kafkaProps.setProperty("bootstrap.servers", LOCAL_KAFKA_BROKER);
 		kafkaProps.setProperty("group.id", RIDE_SPEED_GROUP);
 
-		// create a data source
+		// create a TaxiRide data stream
 		DataStream<TaxiRide> rides =
 					env.addSource(new FlinkKafkaConsumer082<TaxiRide>(
 							RideCleansing.CLEANSED_RIDES_TOPIC,
@@ -55,8 +61,11 @@ public class RideSpeed {
 					);
 
 		DataStream<Tuple2<Long, Float>> rideSpeeds = rides
+				// group records by rideId
 				.groupBy("rideId")
+				// match ride start and end records
 				.flatMap(new RideEventJoiner())
+				// compute the average speed of a ride
 				.map(new SpeedComputer());
 
 		// emit the result on stdout
@@ -66,6 +75,9 @@ public class RideSpeed {
 		env.execute("Average Ride Speed");
 	}
 
+	/**
+	 * Matches start and end TaxiRide records.
+	 */
 	public static class RideEventJoiner implements FlatMapFunction<TaxiRide, Tuple2<TaxiRide, TaxiRide>> {
 
 		private HashMap<Long, TaxiRide> startRecords = new HashMap<Long, TaxiRide>();
@@ -75,11 +87,14 @@ public class RideSpeed {
 		public void flatMap(TaxiRide rideEvent, Collector<Tuple2<TaxiRide, TaxiRide>> out) throws Exception {
 
 			if(rideEvent.isStart) {
+				// remember start record
 				startRecords.put(rideEvent.rideId, rideEvent);
 			}
 			else {
+				// get and forget start record
 				TaxiRide startRecord = startRecords.remove(rideEvent.rideId);
 				if(startRecord != null) {
+					// return start and end record
 					joinedEvents.f0 = startRecord;
 					joinedEvents.f1 = rideEvent;
 					out.collect(joinedEvents);
@@ -88,6 +103,9 @@ public class RideSpeed {
 		}
 	}
 
+	/**
+	 * Computes the average speed of a taxi ride from its start and end record.
+	 */
 	public static class SpeedComputer implements MapFunction<Tuple2<TaxiRide, TaxiRide>, Tuple2<Long, Float>> {
 
 		private static int MILLIS_PER_HOUR = 1000 * 60 * 60;
@@ -103,6 +121,7 @@ public class RideSpeed {
 			float speed;
 			long timeDiff = endTime - startTime;
 			if(timeDiff != 0) {
+				// speed = distance / time
 				speed = (distance / timeDiff) * MILLIS_PER_HOUR;
 			}
 			else {

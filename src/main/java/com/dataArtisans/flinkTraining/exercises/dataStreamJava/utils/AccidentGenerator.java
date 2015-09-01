@@ -25,21 +25,53 @@ import java.util.PriorityQueue;
 import java.util.Random;
 
 /**
+ * Generates a data stream of random Accident event records.
+ *
+ * An accident event consists of:
+ * - an accidentId,
+ * - a locations specified by longitude and latitude,
+ * - and a flag stating whether the event is an emergence or clearance event.
+ *
+ * Accidents are randomly placed in the New York City area.
  *
  */
 public class AccidentGenerator implements SourceFunction<Accident> {
 
-	private static int MAX_MINS_TO_CLEARANCE = 120;
-	private static double ACCIDENT_PER_MIN_PROB = 0.4;
+	private static int DEFAULT_MAX_MINS_TO_CLEARANCE = 120;
+	private static double DEFAULT_ACCIDENT_PROB = 0.4;
 
 	private float servingSpeedFactor;
+	private int maxMinsToClearance;
+	private double accidentsProb;
 
 	public AccidentGenerator() {
 		this(1.0f);
 	}
 
+	/**
+	 * Creates an AccidentGenerator for the given serving speed factor.
+	 *
+	 * @param servingSpeedFactor Serving speed is adjusted with respect to the serving speed factor.
+	 */
 	public AccidentGenerator(float servingSpeedFactor) {
+		this(servingSpeedFactor, DEFAULT_MAX_MINS_TO_CLEARANCE, DEFAULT_ACCIDENT_PROB);
+	}
+
+	/**
+	 * Creates an AccidentGenerator. The generator checks each logical minute whether to generate
+	 * an accident or not with probability of accidentProb.
+	 * Logical time is adjusted to actual time with respect to the serving speed factor.
+	 * The time between emergence and clearance of an accident is uniformly distributed between
+	 * 0 and maxMinsToClearance minutues.
+	 *
+	 * @param servingSpeedFactor Serving speed is adjusted with respect to the serving speed factor.
+	 * @param maxMinsToClearance Maximum time until an accident is cleared.
+	 * @param accidentProb Probability to generate an accident every logical minute.
+	 */
+	public AccidentGenerator(float servingSpeedFactor, int maxMinsToClearance, double accidentProb) {
 		this.servingSpeedFactor = servingSpeedFactor;
+		this.maxMinsToClearance = maxMinsToClearance;
+		this.accidentsProb = accidentProb;
 	}
 
 	@Override
@@ -56,18 +88,18 @@ public class AccidentGenerator implements SourceFunction<Accident> {
 
 		while(true) {
 
-			if(rand.nextDouble() < ACCIDENT_PER_MIN_PROB) {
+			if(rand.nextDouble() < this.accidentsProb) {
 				// new accident
 
 				float lon = GeoUtils.getRandomNYCLon(rand);
 				float lat = GeoUtils.getRandomNYCLat(rand);
-				int minutesToClearance = rand.nextInt(MAX_MINS_TO_CLEARANCE);
+				int minutesToClearance = rand.nextInt(this.maxMinsToClearance);
 
 				Accident accident = new Accident(accidentCnt, lon, lat, false);
 				accidentCnt++;
 				// emit accident start record
 				sourceContext.collect(accident);
-				// store accident end record
+				// place accident end record in prio queue ordered by clearance time
 				accidents.add(new Tuple2<Integer, Accident>(curMinute+minutesToClearance, accident));
 			}
 

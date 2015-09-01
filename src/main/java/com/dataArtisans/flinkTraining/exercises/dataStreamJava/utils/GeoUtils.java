@@ -20,9 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * GeoUtils provides utility methods to deal with locations for the data streaming exercises.
+ */
 public class GeoUtils {
 
-	// Geo boundaries of the area of NYC
+	// geo boundaries of the area of NYC
 	public static double LON_EAST = -73.7;
 	public static double LON_WEST = -74.05;
 	public static double LAT_NORTH = 41.0;
@@ -191,10 +194,22 @@ public class GeoUtils {
 		return lat;
 	}
 
+	/**
+	 * Returns a random longitude within the NYC area.
+	 *
+	 * @param rand A random number generator.
+	 * @return A random longitude value within the NYC area.
+	 */
 	public static float getRandomNYCLon(Random rand) {
 		return (float)(LON_EAST - (LON_WIDTH * rand.nextFloat()));
 	}
 
+	/**
+	 * Returns a random latitude within the NYC area.
+	 *
+	 * @param rand A random number generator.
+	 * @return A random latitude value within the NYC area.
+	 */
 	public static float getRandomNYCLat(Random rand) {
 		return (float)(LAT_SOUTH + (LAT_HEIGHT * rand.nextFloat()));
 	}

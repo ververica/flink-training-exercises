@@ -26,6 +26,16 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.KafkaSink;
 
+/**
+ * Java reference implementation for the "Ride Cleansing" exercise of the Flink training (http://dataartisans.github.io/flink-training).
+ * The task of the exercise is to filter a data stream of taxi ride records to keep only rides that start and end within New York City.
+ * The resulting stream should be written to an Apache Kafka topic.
+ *
+ * Parameters:
+ *   --input path-to-input-directory
+ *   --speed serving-speed-of-generator
+ *
+ */
 public class RideCleansing {
 
 	private static final String LOCAL_KAFKA_BROKER = "localhost:9092";
