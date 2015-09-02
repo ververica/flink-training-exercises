@@ -84,7 +84,7 @@ public class AccidentGenerator implements SourceFunction<Accident> {
 
 		long accidentCnt = 0;
 		PriorityQueue<Tuple2<Integer, Accident>> accidents =
-				new PriorityQueue<Tuple2<Integer, Accident>>(new AccidentTimeComparator());
+				new PriorityQueue<Tuple2<Integer, Accident>>(23, new AccidentTimeComparator());
 
 		while(true) {
 
