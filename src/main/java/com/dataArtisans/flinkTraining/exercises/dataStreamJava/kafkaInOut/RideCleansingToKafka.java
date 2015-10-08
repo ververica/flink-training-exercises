@@ -14,27 +14,32 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataStreamJava.rideCleansing;
+package com.dataArtisans.flinkTraining.exercises.dataStreamJava.kafkaInOut;
 
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.GeoUtils;
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide;
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.GeoUtils;
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideGenerator;
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideSchema;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.connectors.kafka.KafkaSink;
 
 /**
  * Java reference implementation for the "Ride Cleansing" exercise of the Flink training (http://dataartisans.github.io/flink-training).
  * The task of the exercise is to filter a data stream of taxi ride records to keep only rides that start and end within New York City.
- * The resulting stream should be printed.
+ * The resulting stream should be written to an Apache Kafka topic.
  *
  * Parameters:
  *   --input path-to-input-directory
  *   --speed serving-speed-of-generator
  *
  */
-public class RideCleansing {
+public class RideCleansingToKafka {
+
+	private static final String LOCAL_KAFKA_BROKER = "localhost:9092";
+	public static final String CLEANSED_RIDES_TOPIC = "cleansedRides";
 
 	public static void main(String[] args) throws Exception {
 
@@ -52,8 +57,11 @@ public class RideCleansing {
 				// filter out rides that do not start or stop in NYC
 				.filter(new NYCFilter());
 
-		// print the filtered stream
-		filteredRides.print();
+		// write the filtered data to a Kafka sink
+		filteredRides.addSink(new KafkaSink<TaxiRide>(
+				LOCAL_KAFKA_BROKER,
+				CLEANSED_RIDES_TOPIC,
+				new TaxiRideSchema()));
 
 		// run the cleansing pipeline
 		env.execute("Taxi Ride Cleansing");

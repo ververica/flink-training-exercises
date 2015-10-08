@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataStreamScala.rideSpeed
+package com.dataArtisans.flinkTraining.exercises.dataStreamScala.kafkaInOut
+
+import java.util.Properties
 
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.{GeoUtils, TaxiRideGenerator }
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideSchema
 import org.apache.flink.api.common.functions.{FlatMapFunction, MapFunction}
-import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.scala._
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer082
 import org.apache.flink.util.Collector
 
 import scala.collection.mutable
@@ -29,29 +31,32 @@ import scala.collection.mutable
  * Scala reference implementation for the "Ride Speed" exercise of the Flink training (http://dataartisans.github.io/flink-training).
  * The task of the exercise is to read taxi ride records from an Apache Kafka topic and compute the average speed of completed taxi rides.
  *
- * Parameters:
- * --input path-to-input-directory
- * --speed serving-speed-of-generator
- *
  */
-object RideSpeed {
+object RideSpeedFromKafka {
+
+  private val LOCAL_ZOOKEEPER_HOST = "localhost:2181"
+  private val LOCAL_KAFKA_BROKER = "localhost:9092"
+  private val RIDE_SPEED_GROUP = "rideSpeedGroup"
 
   @throws(classOf[Exception])
   def main(args: Array[String]) {
 
-    // parse parameters
-    val params = ParameterTool.fromArgs(args)
-    val input = params.getRequired("input")
-    val speed = params.getFloat("speed", 1.0f)
-
     val env = StreamExecutionEnvironment.getExecutionEnvironment
 
-    // get the taxi ride data stream
-    val rides = env.addSource(new TaxiRideGenerator(input, speed))
+    // configure Kafka consumer
+    val kafkaProps = new Properties
+    kafkaProps.setProperty("zookeeper.connect", LOCAL_ZOOKEEPER_HOST)
+    kafkaProps.setProperty("bootstrap.servers", LOCAL_KAFKA_BROKER)
+    kafkaProps.setProperty("group.id", RIDE_SPEED_GROUP)
+
+    // create a TaxiRide data stream
+    val rides = env.addSource(
+      new FlinkKafkaConsumer082[TaxiRide](
+        RideCleansingToKafka.CLEANSED_RIDES_TOPIC,
+        new TaxiRideSchema,
+        kafkaProps))
 
     val rideSpeeds = rides
-      // filter out rides that do not start and end in NYC
-      .filter(r => GeoUtils.isInNYC(r.startLon, r.startLat) && GeoUtils.isInNYC(r.endLon, r.endLat))
       // group records by rideId
       .groupBy("rideId")
       // match ride start and end records

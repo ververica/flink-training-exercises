@@ -14,47 +14,52 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataStreamJava.rideSpeed;
+package com.dataArtisans.flinkTraining.exercises.dataStreamJava.kafkaInOut;
 
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide;
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.rideCleansing.RideCleansing;
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideGenerator;
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideSchema;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer082;
 import org.apache.flink.util.Collector;
 
 import java.util.HashMap;
+import java.util.Properties;
 
 /**
  * Java reference implementation for the "Ride Speed" exercise of the Flink training (http://dataartisans.github.io/flink-training).
- * The task of the exercise is to compute the average speed of completed taxi rides from a data stream of taxi ride records.
- *
- * Parameters:
- *   --input path-to-input-directory
- *   --speed serving-speed-of-generator
+ * The task of the exercise is to read taxi ride records from an Apache Kafka topic and compute the average speed of completed taxi rides.
  *
  */
-public class RideSpeed {
+public class RideSpeedFromKafka {
+
+	private static final String LOCAL_ZOOKEEPER_HOST = "localhost:2181";
+	private static final String LOCAL_KAFKA_BROKER = "localhost:9092";
+	private static final String RIDE_SPEED_GROUP = "rideSpeedGroup";
 
 	public static void main(String[] args) throws Exception {
-
-		ParameterTool params = ParameterTool.fromArgs(args);
-		String input = params.getRequired("input");
-		float servingSpeedFactor = params.getFloat("speed", 1.0f);
 
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		// start the data generator
-		DataStream<TaxiRide> rides = env.addSource(new TaxiRideGenerator(input, servingSpeedFactor));
+		// configure the Kafka consumer
+		Properties kafkaProps = new Properties();
+		kafkaProps.setProperty("zookeeper.connect", LOCAL_ZOOKEEPER_HOST);
+		kafkaProps.setProperty("bootstrap.servers", LOCAL_KAFKA_BROKER);
+		kafkaProps.setProperty("group.id", RIDE_SPEED_GROUP);
+
+		// create a TaxiRide data stream
+		DataStream<TaxiRide> rides =
+					env.addSource(new FlinkKafkaConsumer082<TaxiRide>(
+							RideCleansingToKafka.CLEANSED_RIDES_TOPIC,
+							new TaxiRideSchema(),
+							kafkaProps)
+					);
 
 		DataStream<Tuple2<Long, Float>> rideSpeeds = rides
-				// filter out rides that do not start or stop in NYC
-				.filter(new RideCleansing.NYCFilter())
 				// group records by rideId
 				.groupBy("rideId")
 				// match ride start and end records

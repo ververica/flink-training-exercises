@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dataArtisans.flinkTraining.exercises.dataStreamScala.rideCleansing
+package com.dataArtisans.flinkTraining.exercises.dataStreamScala.kafkaInOut
 
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.{GeoUtils, TaxiRideGenerator, TaxiRideSchema}
@@ -32,7 +32,10 @@ import org.apache.flink.streaming.connectors.kafka.KafkaSink
  * --speed serving-speed-of-generator
  *
  */
-object RideCleansing {
+object RideCleansingToKafka {
+
+  val LOCAL_KAFKA_BROKER = "localhost:9092"
+  val CLEANSED_RIDES_TOPIC: String = "cleansedRides"
 
   def main(args: Array[String]) {
 
@@ -51,8 +54,9 @@ object RideCleansing {
       // filter out rides that do not start and end in NYC
       .filter(r => GeoUtils.isInNYC(r.startLon, r.startLat) && GeoUtils.isInNYC(r.endLon, r.endLat))
 
-    // print the filtered stream
-    filteredRides.print()
+    // write the filtered data to a Kafka sink
+    filteredRides.addSink(
+      new KafkaSink[TaxiRide](LOCAL_KAFKA_BROKER, CLEANSED_RIDES_TOPIC, new TaxiRideSchema))
 
     // run the cleansing pipeline
     env.execute("Taxi Ride Cleansing")
