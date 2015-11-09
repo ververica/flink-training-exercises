@@ -17,7 +17,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	
-	<groupId>com.dataArtisans</groupId>
+	<groupId>com.dataartisans</groupId>
 	<artifactId>flink-training-exercises</artifactId>
 	<version>0.2</version>
 	<packaging>jar</packaging>
@@ -28,7 +28,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.12</slf4j.version>
-		<flink.version>0.10.0</flink.version>
+		<flink.version>0.10.1</flink.version>
 	</properties>
 
 	<dependencies>
@@ -86,8 +86,7 @@
 			<artifactId>joda-time</artifactId>
 			<version>2.7</version>
 		</dependency>
-
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>
@@ -158,7 +157,7 @@
 
 							<archive>
 								<manifestEntries>
-									<main-class>com.dataArtisans.flinkTraining.dataSetPreparation.MBoxParser</main-class>
+									<main-class>com.dataartisans.flinktraining.dataset_preparation.MBoxParser</main-class>
 								</manifestEntries>
 							</archive>
 
