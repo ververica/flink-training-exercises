@@ -35,7 +35,7 @@ public class GeoUtils {
 	public static double LON_WIDTH = 74.05 - 73.7;
 	public static double LAT_HEIGHT = 41.0 - 40.5;
 
-	// delta step to create artificial gird overlay of NYC
+	// delta step to create artificial grid overlay of NYC
 	public static double DELTA_LON = 0.0014;
 	public static double DELTA_LAT = 0.00125;
 
@@ -174,8 +174,7 @@ public class GeoUtils {
 
 		int xIndex = gridCellId % NUMBER_OF_GRID_X;
 
-		float lon = (float)(Math.abs(LON_WEST) - (xIndex * DELTA_LON) - (DELTA_LON / 2)) * -1.0f;
-		return lon;
+		return (float)(Math.abs(LON_WEST) - (xIndex * DELTA_LON) - (DELTA_LON / 2)) * -1.0f;
 	}
 
 	/**
@@ -190,8 +189,7 @@ public class GeoUtils {
 		int xIndex = gridCellId % NUMBER_OF_GRID_X;
 		int yIndex = (gridCellId - xIndex) / NUMBER_OF_GRID_X;
 
-		float lat = (float)(LAT_NORTH - (yIndex * DELTA_LAT) - (DELTA_LAT / 2));
-		return lat;
+		return (float)(LAT_NORTH - (yIndex * DELTA_LAT) - (DELTA_LAT / 2));
 	}
 
 	/**

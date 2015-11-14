@@ -16,11 +16,9 @@
 
 package com.dataArtisans.flinkTraining.exercises.dataStreamScala.rideCleansing
 
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide
-import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.{GeoUtils, TaxiRideGenerator, TaxiRideSchema}
+import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.{GeoUtils, TaxiRideGenerator}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.connectors.kafka.KafkaSink
 
 /**
  * Scala reference implementation for the "Ride Cleansing" exercise of the Flink training (http://dataartisans.github.io/flink-training).

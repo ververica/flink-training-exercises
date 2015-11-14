@@ -92,7 +92,7 @@ public class MBoxParser {
 
 		String newMailPrefix;
 
-		public MBoxMailFormat() {};
+		public MBoxMailFormat() {}
 
 		public MBoxMailFormat(String mailDaemonPrefix) {
 			// set the record delimiter
@@ -124,7 +124,7 @@ public class MBoxParser {
 		private transient DateTimeFormatter inDF;
 		private transient DateTimeFormatter outDF;
 
-		public MBoxMailParser() {};
+		public MBoxMailParser() {}
 
 		public MBoxMailParser(String mailDaemonPrefix) {
 			this.newMailPrefix = "From "+mailDaemonPrefix;
@@ -152,9 +152,7 @@ public class MBoxParser {
 			// split mail String line-wise
 			String[] lines = mail.split("\\n");
 
-			for(int i=0; i<lines.length; i++) {
-				String line = lines[i];
-
+			for (String line : lines) {
 				// body starts with first empty line
 				if(!bodyStarted && line.trim().length() == 0) {
 					bodyStarted = true;

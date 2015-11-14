@@ -21,10 +21,13 @@ import java.util.concurrent.TimeUnit
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.{GeoUtils, TaxiRideGenerator}
 import org.apache.flink.api.common.functions.MapFunction
+import org.apache.flink.api.java.tuple.Tuple
 import org.apache.flink.api.java.utils.ParameterTool
-import org.apache.flink.streaming.api.functions.WindowMapFunction
+import org.apache.flink.streaming.api.functions.windowing.WindowFunction
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.api.scala.windowing.Time
+import org.apache.flink.streaming.api.windowing.assigners.SlidingTimeWindows
+import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.util.Collector
 
 import scala.collection.JavaConverters._
@@ -68,13 +71,11 @@ object PopularPlaces {
       // match ride to grid cell and event type (start or end)
       .map(new GridCellMatcher)
       // partition by cell id and event type
-      .groupBy(0, 1)
+      .keyBy(0, 1)
       // build sliding window
-      .window(Time.of(windowSize, TimeUnit.MILLISECONDS))
-        .every(Time.of(evictionInterval, TimeUnit.MILLISECONDS))
+      .window(SlidingTimeWindows.of(Time.of(windowSize, TimeUnit.MILLISECONDS), Time.of(evictionInterval, TimeUnit.MILLISECONDS)))
       // count events in window
-      .mapWindow(new PopularityCounter(popThreashold))
-      .flatten()
+      .apply(new PopularityCounter(popThreashold))
       // map grid cell to coordinates
       .map(new GridToCoordinates)
 
@@ -108,9 +109,11 @@ object PopularPlaces {
    * Count window events for grid cell and event type.
    * Only emits records if the count is equal or larger than the popularity threshold.
    */
-  class PopularityCounter(popThreshold: Int) extends WindowMapFunction[(Int, Boolean), (Int, Boolean, Int)] {
+  class PopularityCounter(popThreshold: Int) extends WindowFunction[(Int, Boolean), (Int, Boolean, Int),
+    Tuple, TimeWindow] {
 
-    def mapWindow(values: java.lang.Iterable[(Int, Boolean)], out: Collector[(Int, Boolean, Int)]) {
+    def apply(tuple: Tuple, window: TimeWindow, values: java.lang.Iterable[(Int, Boolean)],
+              out: Collector[(Int, Boolean, Int)]) {
 
       // count records in window and build output record
       val result = values.asScala.foldLeft((0, false, 0)) { (l, r) => (r._1, r._2, l._3 + 1) }

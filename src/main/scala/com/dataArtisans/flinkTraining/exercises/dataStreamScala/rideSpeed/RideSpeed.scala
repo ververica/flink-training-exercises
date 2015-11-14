@@ -53,7 +53,7 @@ object RideSpeed {
       // filter out rides that do not start and end in NYC
       .filter(r => GeoUtils.isInNYC(r.startLon, r.startLat) && GeoUtils.isInNYC(r.endLon, r.endLat))
       // group records by rideId
-      .groupBy("rideId")
+      .keyBy("rideId")
       // match ride start and end records
       .flatMap(new RideEventJoiner)
       // compute the average speed of a ride

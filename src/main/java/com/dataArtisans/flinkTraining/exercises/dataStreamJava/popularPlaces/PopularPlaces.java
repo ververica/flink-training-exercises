@@ -21,14 +21,17 @@ import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.GeoUtils;
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide;
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideGenerator;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.WindowMapFunction;
-import org.apache.flink.streaming.api.windowing.helper.Time;
+import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingTimeWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 
 import java.util.concurrent.TimeUnit;
@@ -73,12 +76,12 @@ public class PopularPlaces {
 				// match ride to grid cell and event type (start or end)
 				.map(new GridCellMatcher())
 				// partition by cell id and event type
-				.groupBy(0, 1)
+				.keyBy(0, 1)
 				// build sliding window
-				.window(Time.of(windowSize, TimeUnit.MILLISECONDS)).every(Time.of(evictionInterval, TimeUnit.MILLISECONDS))
+				.window(SlidingTimeWindows.of(Time.of(windowSize, TimeUnit.MILLISECONDS),
+						Time.of(evictionInterval, TimeUnit.MILLISECONDS)))
 				// count events in window
-				.mapWindow(new PopularityCounter(popThreshold))
-				.flatten()
+				.apply(new PopularityCounter(popThreshold))
 				// map grid cell to coordinates
 				.map(new GridToCoordinates());
 
@@ -113,7 +116,8 @@ public class PopularPlaces {
 	 * Count window events for grid cell and event type.
 	 * Only emits records if the count is equal or larger than the popularity threshold.
 	 */
-	public static class PopularityCounter implements WindowMapFunction<Tuple2<Integer, Boolean>, Tuple3<Integer, Boolean, Integer>> {
+	public static class PopularityCounter implements
+			WindowFunction<Tuple2<Integer, Boolean>, Tuple3<Integer, Boolean, Integer>, Tuple, TimeWindow> {
 
 		private int popThreshold;
 
@@ -122,7 +126,8 @@ public class PopularPlaces {
 		}
 
 		@Override
-		public void mapWindow(Iterable<Tuple2<Integer, Boolean>> values, Collector<Tuple3<Integer, Boolean, Integer>> out) {
+		public void apply(Tuple tuple, TimeWindow window, Iterable<Tuple2<Integer, Boolean>> values,
+											Collector<Tuple3<Integer, Boolean, Integer>> out) {
 
 			Tuple3<Integer, Boolean, Integer> cellCount = new Tuple3<Integer, Boolean, Integer>();
 
@@ -142,13 +147,13 @@ public class PopularPlaces {
 				out.collect(cellCount);
 			}
 		}
-
 	}
 
 	/**
 	 * Maps the grid cell id back to longitude and latitude coordinates.
 	 */
-	public static class GridToCoordinates implements MapFunction<Tuple3<Integer, Boolean, Integer>, Tuple4<Float, Float, Boolean, Integer>> {
+	public static class GridToCoordinates implements
+			MapFunction<Tuple3<Integer, Boolean, Integer>, Tuple4<Float, Float, Boolean, Integer>> {
 
 		@Override
 		public Tuple4<Float, Float, Boolean, Integer> map(Tuple3<Integer, Boolean, Integer> cellCount) throws Exception {

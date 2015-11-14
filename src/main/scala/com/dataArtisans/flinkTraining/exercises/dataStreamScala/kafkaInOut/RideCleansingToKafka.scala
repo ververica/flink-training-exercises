@@ -20,7 +20,7 @@ import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRid
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.{GeoUtils, TaxiRideGenerator, TaxiRideSchema}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.connectors.kafka.KafkaSink
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer
 
 /**
  * Scala reference implementation for the "Ride Cleansing" exercise of the Flink training (http://dataartisans.github.io/flink-training).
@@ -56,7 +56,7 @@ object RideCleansingToKafka {
 
     // write the filtered data to a Kafka sink
     filteredRides.addSink(
-      new KafkaSink[TaxiRide](LOCAL_KAFKA_BROKER, CLEANSED_RIDES_TOPIC, new TaxiRideSchema))
+      new FlinkKafkaProducer[TaxiRide](LOCAL_KAFKA_BROKER, CLEANSED_RIDES_TOPIC, new TaxiRideSchema))
 
     // run the cleansing pipeline
     env.execute("Taxi Ride Cleansing")

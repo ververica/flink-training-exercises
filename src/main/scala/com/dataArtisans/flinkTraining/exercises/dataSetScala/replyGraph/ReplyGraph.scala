@@ -32,8 +32,8 @@ object ReplyGraph {
   def main(args: Array[String]) {
 
     // parse parameters
-    val params = ParameterTool.fromArgs(args);
-    val input = params.getRequired("input");
+    val params = ParameterTool.fromArgs(args)
+    val input = params.getRequired("input")
 
     // set up the execution environment
     val env = ExecutionEnvironment.getExecutionEnvironment

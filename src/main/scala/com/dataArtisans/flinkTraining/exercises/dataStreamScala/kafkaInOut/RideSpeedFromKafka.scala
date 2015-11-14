@@ -20,7 +20,7 @@ import java.util.Properties
 
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.dataTypes.TaxiRide
 import com.dataArtisans.flinkTraining.exercises.dataStreamJava.utils.TaxiRideSchema
-import org.apache.flink.api.common.functions.{FlatMapFunction, MapFunction}
+import org.apache.flink.api.common.functions.{MapFunction, FlatMapFunction}
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer082
 import org.apache.flink.util.Collector
@@ -58,7 +58,7 @@ object RideSpeedFromKafka {
 
     val rideSpeeds = rides
       // group records by rideId
-      .groupBy("rideId")
+      .keyBy("rideId")
       // match ride start and end records
       .flatMap(new RideEventJoiner)
       // compute the average speed of a ride

@@ -56,7 +56,7 @@ public class RideSpeed {
 				// filter out rides that do not start or stop in NYC
 				.filter(new RideCleansing.NYCFilter())
 				// group records by rideId
-				.groupBy("rideId")
+				.keyBy("rideId")
 				// match ride start and end records
 				.flatMap(new RideEventJoiner())
 				// compute the average speed of a ride

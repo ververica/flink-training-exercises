@@ -61,7 +61,7 @@ public class RideSpeedFromKafka {
 
 		DataStream<Tuple2<Long, Float>> rideSpeeds = rides
 				// group records by rideId
-				.groupBy("rideId")
+				.keyBy("rideId")
 				// match ride start and end records
 				.flatMap(new RideEventJoiner())
 				// compute the average speed of a ride
@@ -135,6 +135,5 @@ public class RideSpeedFromKafka {
 			return outT;
 		}
 	}
-
 
 }

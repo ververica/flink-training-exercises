@@ -68,13 +68,13 @@ public class AccidentDelays {
 				// map accident to grid cell
 				.map(new AccidentCellMapper())
 				// group by accident cell id
-				.groupBy(0);
+				.keyBy(0);
 
 		DataStream<Tuple2<Integer, TaxiRide>> rideAccidents = rides
 				// map taxi ride to all grid cells on its way
 				.flatMap(new RouteCellMapper())
 				// group by route cell id
-				.groupBy(0)
+				.keyBy(0)
 				// connect streams and match rides and accidents on the same grid cell
 				.connect(accidents)
 				.flatMap(new AccidentsPerRideCounter());

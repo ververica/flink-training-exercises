@@ -22,10 +22,11 @@ import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.graph.Edge;
 import org.apache.flink.graph.EdgeDirection;
+import org.apache.flink.graph.EdgeJoinFunction;
 import org.apache.flink.graph.Graph;
 import org.apache.flink.graph.ReduceEdgesFunction;
 import org.apache.flink.graph.Vertex;
-import org.apache.flink.graph.library.PageRankAlgorithm;
+import org.apache.flink.graph.library.PageRank;
 import org.apache.flink.graph.utils.Tuple3ToEdgeMap;
 
 /**
@@ -44,20 +45,18 @@ import org.apache.flink.graph.utils.Tuple3ToEdgeMap;
 
 
 public class PageRankWithEdgeWeights{
-	
-	private static boolean fileOutput = false;
-	private static final double DAMPENING_FACTOR = 0.85;
-	private static String edgeInputPath = null;
-	private static String outputPath = null;
-	private static int maxIterations = 10;
 
-	
+	private static final double DAMPENING_FACTOR = 0.85;
+
 	@SuppressWarnings("serial")
 	public static void main(String[] args) throws Exception {
-	
+
+		String edgeInputPath;
+		int maxIterations;
+		String outputPath;
+
 		if (args.length == 3) {
 			
-			fileOutput = true;
 			edgeInputPath = args[0];
 			outputPath = args[1];
 			maxIterations = Integer.parseInt(args[2]);
@@ -95,31 +94,25 @@ public class PageRankWithEdgeWeights{
 		//divide edge weight by the total weight of outgoing edges for that source 
 		Graph<String, Double, Double> networkWithWeights = network
 				.joinWithEdgesOnSource(sumEdgeWeights,
-						new MapFunction<Tuple2<Double, Double>, Double>() {
-							public Double map(Tuple2<Double, Double> value) {
-								return value.f0 / value.f1;
+						new EdgeJoinFunction<Double, Double>() {
+							@Override
+							public Double edgeJoin(Double double1, Double double2) throws Exception {
+								return double1 / double2;
 							}
 						});
 								
 
 		//Now run the Page Rank algorithm over the weighted graph
 		DataSet<Vertex<String, Double>> pageRanks = networkWithWeights.run(
-				new PageRankAlgorithm<String>(DAMPENING_FACTOR, maxIterations))
-				.getVertices();
+				new PageRank<String>(DAMPENING_FACTOR, maxIterations));
 
-		
-		if (fileOutput) {
-			pageRanks.writeAsCsv(outputPath, "\n", "\t");
-			// since file sinks are lazy,trigger the execution explicitly
-			env.execute();
-		} 
-		else {
-			pageRanks.print();
-		}
+		pageRanks.writeAsCsv(outputPath, "\n", "\t");
+
+		// since file sinks are lazy,trigger the execution explicitly
+		env.execute("Run PageRank with Edge Weights");
 
 	}
 
-	
 	//function to calculate the total weight of outgoing edges from a node
 	@SuppressWarnings("serial")
 	static final class SumWeight implements ReduceEdgesFunction<Double> {

@@ -19,7 +19,7 @@
 	
 	<groupId>com.dataArtisans</groupId>
 	<artifactId>flink-training-exercises</artifactId>
-	<version>0.1</version>
+	<version>0.2</version>
 	<packaging>jar</packaging>
 
 	<name>Flink Exercises</name>
@@ -27,6 +27,8 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<slf4j.version>1.7.12</slf4j.version>
+		<flink.version>0.10.0</flink.version>
 	</properties>
 
 	<dependencies>
@@ -34,37 +36,49 @@
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-java</artifactId>
-			<version>0.9.1</version>
+			<version>${flink.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-scala</artifactId>
-			<version>0.9.1</version>
+			<version>${flink.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-streaming-core</artifactId>
-			<version>0.9.1</version>
+			<artifactId>flink-streaming-java</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-streaming-scala</artifactId>
+			<version>${flink.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-gelly</artifactId>
-			<version>0.9.1</version>
+			<version>${flink.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-table</artifactId>
-			<version>0.9.1</version>
+			<version>${flink.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-gelly-scala</artifactId>
+			<version>${flink.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-connector-kafka</artifactId>
-			<version>0.9.1</version>
+			<version>${flink.version}</version>
 		</dependency>
 
 		<dependency>
