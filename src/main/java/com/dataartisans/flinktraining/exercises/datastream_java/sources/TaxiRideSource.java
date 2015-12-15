@@ -201,7 +201,8 @@ public class TaxiRideSource implements EventTimeSourceFunction<TaxiRide> {
 		long dataStartTime;
 
 		Random rand = new Random(7452);
-		PriorityQueue<Tuple2<Long, Object>> emitSchedule = new PriorityQueue<Tuple2<Long, Object>>(
+		PriorityQueue<Tuple2<Long, Object>> emitSchedule = new PriorityQueue<>(
+				32,
 				new Comparator<Tuple2<Long, Object>>() {
 					@Override
 					public int compare(Tuple2<Long, Object> o1, Tuple2<Long, Object> o2) {
