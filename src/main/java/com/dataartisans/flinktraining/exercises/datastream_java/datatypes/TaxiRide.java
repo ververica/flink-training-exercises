@@ -103,14 +103,15 @@ public class TaxiRide {
 			ride.passengerCnt = Short.parseShort(tokens[7]);
 			ride.travelDistance = tokens[8].length() > 0 ? Float.parseFloat(tokens[8]) : 0.0f;
 
-			if(tokens[2].equals("START")) {
-				ride.isStart = true;
-			}
-			else if(tokens[2].equals("END")) {
-				ride.isStart = false;
-			}
-			else {
-				throw new RuntimeException("Invalid record: "+ line);
+			switch (tokens[2]) {
+				case "START":
+					ride.isStart = true;
+					break;
+				case "END":
+					ride.isStart = false;
+					break;
+				default:
+					throw new RuntimeException("Invalid record: " + line);
 			}
 
 		} catch (NumberFormatException nfe) {
@@ -122,12 +123,8 @@ public class TaxiRide {
 
 	@Override
 	public boolean equals(Object other) {
-		if(other instanceof TaxiRide) {
-			return this.rideId == ((TaxiRide)other).rideId;
-		}
-		else {
-			return false;
-		}
+		return other instanceof TaxiRide &&
+				this.rideId == ((TaxiRide) other).rideId;
 	}
 
 	@Override

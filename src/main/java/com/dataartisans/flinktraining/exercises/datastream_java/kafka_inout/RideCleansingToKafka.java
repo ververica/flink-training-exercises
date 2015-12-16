@@ -64,7 +64,7 @@ public class RideCleansingToKafka {
 				.filter(new NYCFilter());
 
 		// write the filtered data to a Kafka sink
-		filteredRides.addSink(new FlinkKafkaProducer<TaxiRide>(
+		filteredRides.addSink(new FlinkKafkaProducer<>(
 				LOCAL_KAFKA_BROKER,
 				CLEANSED_RIDES_TOPIC,
 				new TaxiRideSchema()));

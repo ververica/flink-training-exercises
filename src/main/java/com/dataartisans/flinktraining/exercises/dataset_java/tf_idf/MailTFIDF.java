@@ -27,6 +27,7 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -109,21 +110,19 @@ public class MailTFIDF {
 		private transient Pattern wordPattern;
 
 		public UniqueWordExtractor() {
-			this.stopWords = new HashSet<String>();
+			this.stopWords = new HashSet<>();
 		}
 
 		public UniqueWordExtractor(String[] stopWords) {
 			// setup stop words set
-			this.stopWords = new HashSet<String>();
-			for(String s : stopWords) {
-				this.stopWords.add(s);
-			}
+			this.stopWords = new HashSet<>();
+			Collections.addAll(this.stopWords, stopWords);
 		}
 
 		@Override
 		public void open(Configuration config) {
 			// init set and word pattern
-			this.emittedWords = new HashSet<String>();
+			this.emittedWords = new HashSet<>();
 			this.wordPattern = Pattern.compile("(\\p{Alpha})+");
 		}
 
@@ -142,7 +141,7 @@ public class MailTFIDF {
 				Matcher m = this.wordPattern.matcher(word);
 				if(m.matches() && !this.stopWords.contains(word) && !this.emittedWords.contains(word)) {
 					// candidate matches word pattern, is not a stop word, and was not emitted before
-					out.collect(new Tuple2<String, Integer>(word, 1));
+					out.collect(new Tuple2<>(word, 1));
 					this.emittedWords.add(word);
 				}
 			}
@@ -163,22 +162,20 @@ public class MailTFIDF {
 		private transient Pattern wordPattern;
 
 		public TFComputer() {
-			this.stopWords = new HashSet<String>();
+			this.stopWords = new HashSet<>();
 		}
 
 		public TFComputer(String[] stopWords) {
 			// initialize stop words
-			this.stopWords = new HashSet<String>();
-			for(String s : stopWords) {
-				this.stopWords.add(s);
-			}
+			this.stopWords = new HashSet<>();
+			Collections.addAll(this.stopWords, stopWords);
 		}
 
 		@Override
 		public void open(Configuration config) {
 			// initialized map and pattern
 			this.wordPattern = Pattern.compile("(\\p{Alpha})+");
-			this.wordCounts = new HashMap<String, Integer>();
+			this.wordCounts = new HashMap<>();
 		}
 
 		@Override
@@ -206,7 +203,7 @@ public class MailTFIDF {
 
 			// emit all counted words
 			for(String word : this.wordCounts.keySet()) {
-				out.collect(new Tuple3<String, String, Integer>(mail.f0, word, this.wordCounts.get(word)));
+				out.collect(new Tuple3<>(mail.f0, word, this.wordCounts.get(word)));
 			}
 		}
 	}
@@ -227,7 +224,7 @@ public class MailTFIDF {
 		@Override
 		public Tuple3<String, String, Double> join(Tuple2<String, Integer> docFreq, Tuple3<String, String, Integer> termFreq) throws Exception {
 			// compute TF-IDF
-			return new Tuple3<String, String, Double>(
+			return new Tuple3<>(
 					termFreq.f0, // messageID
 					termFreq.f1, // word
 					termFreq.f2 * (mailCount / docFreq.f1) // TF-IDF

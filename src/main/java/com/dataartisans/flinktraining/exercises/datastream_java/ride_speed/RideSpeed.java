@@ -110,7 +110,7 @@ public class RideSpeed {
 					avgSpeed = -1f;
 				}
 				// emit average speed
-				out.collect(new Tuple2<Long, Float>(startEvent.rideId, avgSpeed));
+				out.collect(new Tuple2<>(startEvent.rideId, avgSpeed));
 
 				// clear state to free memory
 				state.update(null);

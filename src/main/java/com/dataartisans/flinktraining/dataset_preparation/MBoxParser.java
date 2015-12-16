@@ -220,10 +220,7 @@ public class MBoxParser {
 					return;
 				}
 
-				out.collect(new Tuple6<String, String, String, String, String, String>(
-						messageId, time, from, subject, body, replyTo
-				));
-
+				out.collect(new Tuple6<>(messageId, time, from, subject, body, replyTo));
 			}
 
 		}

@@ -55,13 +55,8 @@ public class GeoUtils {
 	 */
 	public static boolean isInNYC(float lon, float lat) {
 
-		if (lon > LON_EAST || lon < LON_WEST) {
-			return false;
-		} else if(lat > LAT_NORTH || lat < LAT_SOUTH) {
-			return false;
-		} else {
-			return true;
-		}
+		return !(lon > LON_EAST || lon < LON_WEST) &&
+				!(lat > LAT_NORTH || lat < LAT_SOUTH);
 	}
 
 	/**
@@ -122,7 +117,7 @@ public class GeoUtils {
 		int curX = startX;
 		int curY = startY;
 
-		ArrayList<Integer> cellIds = new ArrayList<Integer>(64);
+		ArrayList<Integer> cellIds = new ArrayList<>(64);
 		cellIds.add(curX + (curY * NUMBER_OF_GRID_X));
 
 		while(curX < endX || curY != endY) {

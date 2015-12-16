@@ -79,8 +79,7 @@ public class ReplyGraph {
 
 		@Override
 		public Tuple3<String, String, String> map(Tuple3<String, String, String> mail) throws Exception {
-			String email = mail.f1.substring(mail.f1.lastIndexOf("<") + 1, mail.f1.length() - 1);
-			mail.f1 = email;
+			mail.f1 = mail.f1.substring(mail.f1.lastIndexOf("<") + 1, mail.f1.length() - 1);
 			return mail;
 		}
 	}
@@ -109,7 +108,7 @@ public class ReplyGraph {
 	 */
 	public static class ConnectionCounter implements GroupReduceFunction<Tuple2<String,String>, Tuple3<String, String, Integer>> {
 
-		Tuple3<String, String, Integer> outT = new Tuple3<String, String, Integer>();
+		Tuple3<String, String, Integer> outT = new Tuple3<>();
 
 		@Override
 		public void reduce(Iterable<Tuple2<String, String>> cs, Collector<Tuple3<String, String, Integer>> out) {

@@ -61,7 +61,7 @@ public class RideSpeedFromKafka {
 
 		// create a TaxiRide data stream
 		DataStream<TaxiRide> rides = env
-				.addSource(new FlinkKafkaConsumer082<TaxiRide>(
+				.addSource(new FlinkKafkaConsumer082<>(
 						RideCleansingToKafka.CLEANSED_RIDES_TOPIC,
 						new TaxiRideSchema(),
 						kafkaProps)
@@ -138,7 +138,7 @@ public class RideSpeedFromKafka {
 					avgSpeed = -1f;
 				}
 				// emit average speed
-				out.collect(new Tuple2<Long, Float>(startEvent.rideId, avgSpeed));
+				out.collect(new Tuple2<>(startEvent.rideId, avgSpeed));
 
 				// clear state to free memory
 				state.update(null);

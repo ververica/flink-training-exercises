@@ -107,11 +107,11 @@ public class PopularPlaces {
 			if(taxiRide.isStart) {
 				// get grid cell id for start location
 				int gridId = GeoUtils.mapToGridCell(taxiRide.startLon, taxiRide.startLat);
-				return new Tuple2<Integer, Boolean>(gridId, true);
+				return new Tuple2<>(gridId, true);
 			} else {
 				// get grid cell id for end location
 				int gridId = GeoUtils.mapToGridCell(taxiRide.endLon, taxiRide.endLat);
-				return new Tuple2<Integer, Boolean>(gridId, false);
+				return new Tuple2<>(gridId, false);
 			}
 		}
 	}
@@ -143,9 +143,7 @@ public class PopularPlaces {
 				cnt += 1;
 			}
 
-			out.collect(new Tuple4<Integer, Long, Boolean, Integer>(
-					cellId, windowTime, isStart, cnt));
-
+			out.collect(new Tuple4<>(cellId, windowTime, isStart, cnt));
 		}
 	}
 
@@ -159,7 +157,7 @@ public class PopularPlaces {
 		public Tuple5<Float, Float, Long, Boolean, Integer> map(
 				Tuple4<Integer, Long, Boolean, Integer> cellCount) throws Exception {
 
-			return new Tuple5<Float, Float, Long, Boolean, Integer>(
+			return new Tuple5<>(
 					GeoUtils.getGridCellCenterLon(cellCount.f0),
 					GeoUtils.getGridCellCenterLat(cellCount.f0),
 					cellCount.f1,

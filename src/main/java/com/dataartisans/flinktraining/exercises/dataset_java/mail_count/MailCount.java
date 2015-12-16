@@ -102,7 +102,7 @@ public class MailCount {
 			}
 
 			// emit month, email address, and count
-			out.collect(new Tuple3<String, String, Integer>(month, email, cnt));
+			out.collect(new Tuple3<>(month, email, cnt));
 		}
 	}
 
