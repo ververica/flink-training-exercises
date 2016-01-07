@@ -19,12 +19,12 @@ package com.dataartisans.flinktraining.exercises.dataset_scala.tf_idf
 import java.util.StringTokenizer
 import java.util.regex.Pattern
 import com.dataartisans.flinktraining.dataset_preparation.MBoxParser
-import org.apache.flink.api.common.functions.{FlatMapFunction}
+import org.apache.flink.api.common.functions.FlatMapFunction
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.api.scala._
 import org.apache.flink.util.Collector
 
-import scala.collection.mutable.{HashMap, HashSet}
+import scala.collection.mutable
 
 /**
  * Scala reference implementation for the "TF-IDF" exercise of the Flink training.
@@ -45,15 +45,15 @@ object MailTFIDF {
    def main(args: Array[String]) {
 
      // parse paramters
-     val params = ParameterTool.fromArgs(args);
-     val input = params.getRequired("input");
+     val params = ParameterTool.fromArgs(args)
+     val input = params.getRequired("input")
 
      // set up the execution environment
      val env = ExecutionEnvironment.getExecutionEnvironment
 
      // read messageId and body field of the input data
      val mails = env.readCsvFile[(String, String)](
-       "/users/fhueske/data/flinkdevlistparsed/",
+       input,
        lineDelimiter = MBoxParser.MAIL_RECORD_DELIM,
        fieldDelimiter = MBoxParser.MAIL_FIELD_DELIM,
        includedFields = Array(0,4)
@@ -92,8 +92,8 @@ object MailTFIDF {
   class TFComputer(stopWordsA: Array[String])
     extends FlatMapFunction[(String, String), (String, String, Int)] {
 
-    val stopWords: HashSet[String] = new HashSet[String]
-    val wordCounts: HashMap[String, Int] = new HashMap[String, Int]
+    val stopWords = new mutable.HashSet[String]
+    val wordCounts = new mutable.HashMap[String, Int]
     // initialize word pattern match for sequences of alphabetical characters
     val wordPattern: Pattern = Pattern.compile("(\\p{Alpha})+")
 
@@ -135,8 +135,8 @@ object MailTFIDF {
   class UniqueWordExtractor(stopWordsA: Array[String])
     extends FlatMapFunction[(String, String), (String, Int) ] {
 
-    val stopWords: HashSet[String] = new HashSet[String]
-    val uniqueWords: HashSet[String] = new HashSet[String]
+    val stopWords = new mutable.HashSet[String]
+    val uniqueWords = new mutable.HashSet[String]
     // initalize pattern to match words
     val wordPattern: Pattern = Pattern.compile("(\\p{Alpha})+")
 
