@@ -18,9 +18,10 @@ package com.dataartisans.flinktraining.exercises.gelly_scala
 
 import org.apache.flink.api.common.functions.MapFunction
 import org.apache.flink.api.scala._
-import org.apache.flink.graph.scala._
+import org.apache.flink.graph.library.PageRank
 import org.apache.flink.graph.scala.utils.Tuple3ToEdgeMap
-import org.apache.flink.graph.{EdgeDirection, EdgeJoinFunction, ReduceEdgesFunction}
+import org.apache.flink.graph._
+import java.lang.{Double => JDouble}
 
 /**
   *
@@ -53,12 +54,13 @@ object PageRankWithEdgeWeights {
     val env = ExecutionEnvironment.getExecutionEnvironment
 
     //read the Edge DataSet from the input file
-    val links = env.readCsvFile[(String, String, Double)](edgesInputPath,
-      fieldDelimiter = "\t", lineDelimiter = "\n").map(new Tuple3ToEdgeMap[String, Double]())
+    val links = env.readCsvFile[(String, String, JDouble)](edgesInputPath,
+      fieldDelimiter = "\t", lineDelimiter = "\n").map(new Tuple3ToEdgeMap[String, JDouble]())
 
     //create a Graph with vertex values initialized to 1.0
-    val network = Graph.fromDataSet(links, new MapFunction[String, Double]() {
-      def map(value: String): Double = { 1.0 }
+    val network = org.apache.flink.graph.scala.Graph
+      .fromDataSet(links, new MapFunction[String, JDouble]() {
+      def map(value: String): JDouble = { 1.0 }
     }, env)
 
     //for each vertex calculate the total weight of its outgoing edges
@@ -67,16 +69,17 @@ object PageRankWithEdgeWeights {
     // assign the transition probabilities as edge weights:
     // divide edge weight by the total weight of outgoing edges for that source
     val networkWithWeights = network.joinWithEdgesOnSource(sumEdgeWeights,
-      new EdgeJoinFunction[Double, Double]() {
-        def edgeJoin(d1: Double, d2: Double) = {
+      new EdgeJoinFunction[JDouble, JDouble]() {
+        def edgeJoin(d1: JDouble, d2: JDouble) = {
           d1 / d2
         }
       })
 
     //Now run the Page Rank algorithm over the weighted graph
-//    val pageRanks = networkWithWeights.run[String](new PageRank[String, Double, Double, String](DAMPENING_FACTOR, maxIterations))
+    val pageRanks = networkWithWeights
+      .run(new PageRank[String](DAMPENING_FACTOR, maxIterations))
 
-//    pageRanks.writeAsCsv(outputPath, fieldDelimiter = "\t", lineDelimiter = "\n")
+    pageRanks.writeAsCsv(outputPath, "\n", "\t")
 
     env.execute("Run PageRank with Edge Weights")
 
@@ -97,7 +100,7 @@ object PageRankWithEdgeWeights {
 }
 
 //function to calculate the total weight of outgoing edges from a node
-class SumWeight extends ReduceEdgesFunction[Double] {
-  override def reduceEdges(firstEdgeValue: Double, secondEdgeValue: Double): Double = firstEdgeValue
+class SumWeight extends ReduceEdgesFunction[JDouble] {
+  override def reduceEdges(firstEdgeValue: JDouble, secondEdgeValue: JDouble): JDouble = firstEdgeValue
 }
 
