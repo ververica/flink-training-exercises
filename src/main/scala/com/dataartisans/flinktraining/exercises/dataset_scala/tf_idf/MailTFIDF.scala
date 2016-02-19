@@ -16,15 +16,10 @@
 
 package com.dataartisans.flinktraining.exercises.dataset_scala.tf_idf
 
-import java.util.StringTokenizer
-import java.util.regex.Pattern
-import com.dataartisans.flinktraining.dataset_preparation.MBoxParser
-import org.apache.flink.api.common.functions.FlatMapFunction
-import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.api.scala._
-import org.apache.flink.util.Collector
+import org.apache.flink.api.java.utils.ParameterTool
 
-import scala.collection.mutable
+import com.dataartisans.flinktraining.dataset_preparation.MBoxParser
 
 /**
  * Scala reference implementation for the "TF-IDF" exercise of the Flink training.
@@ -37,137 +32,61 @@ import scala.collection.mutable
  */
 object MailTFIDF {
 
-  val STOP_WORDS: Array[String] = Array (
+  // stop words
+  private val STOP_WORDS = Set (
     "the", "i", "a", "an", "at", "are", "am", "for", "and", "or", "is", "there", "it", "this",
     "that", "on", "was", "by", "of", "to", "in", "to", "message", "not", "be", "with", "you",
     "have", "as", "can")
 
-   def main(args: Array[String]) {
+  // word pattern regular expression
+  private val WORD_PATTERN = "(\\p{Alpha})+".r
 
-     // parse paramters
-     val params = ParameterTool.fromArgs(args)
-     val input = params.getRequired("input")
+  def main(args: Array[String]) {
 
-     // set up the execution environment
-     val env = ExecutionEnvironment.getExecutionEnvironment
+    // parse parameters
+    val params = ParameterTool.fromArgs(args)
+    val input = params.getRequired("input")
 
-     // read messageId and body field of the input data
-     val mails = env.readCsvFile[(String, String)](
-       input,
-       lineDelimiter = MBoxParser.MAIL_RECORD_DELIM,
-       fieldDelimiter = MBoxParser.MAIL_FIELD_DELIM,
-       includedFields = Array(0,4)
-     )
+    // set up the execution environment
+    val env = ExecutionEnvironment.getExecutionEnvironment
 
-     // count mails in data set
-     val mailCnt = mails.count
+    // function returns true if string is not a stop word and matches the word pattern regex
+    val isWord : String => Boolean = s => !STOP_WORDS.contains(s) && WORD_PATTERN.unapplySeq(s).isDefined
 
-     // compute term-frequency (TF)
-     val tf = mails
-       .flatMap(new TFComputer(STOP_WORDS))
+    // read messageId and body field of the input data
+    val mails : DataSet[(String,Array[String])] = env.readCsvFile[(String, String)](
+      input,
+      lineDelimiter = MBoxParser.MAIL_RECORD_DELIM,
+      fieldDelimiter = MBoxParser.MAIL_FIELD_DELIM,
+      includedFields = Array(0,4)
+    ).map (m => (m._1, m._2.toLowerCase.split("\\s")  // convert message to lower case and tokenize (split on space)
+     .filter(s => isWord(s)))) // retain only those strings that are words
 
-     // compute document frequency (number of mails that contain a word at least once)
-     val df = mails
-       // extract unique words from mails
-       .flatMap(new UniqueWordExtractor(STOP_WORDS))
-       // count number of mails for each word
-       .groupBy(0).reduce { (l,r) => (l._1, l._2 + r._2) }
+    // count mails in data set
+    val cnt = mails.count.toDouble
 
-     // compute TF-IDF score from TF, DF, and total number of mails
-     val tfidf = tf.join(df).where(1).equalTo(0)
-                      { (l, r) => (l._1, l._2, l._3 * (mailCnt.toDouble / r._2) ) }
+    // For each mail, compute the frequency of words in a document
+    val tfs : DataSet[(String, String, Int)] =
+      mails flatMap (m => m._2.groupBy(w => w)  // For each word in a document, create a Map where
+                                                // the key is the word and the value is an Array containing all
+                                                // occurrences of that word.
+                              .map(e => (m._1, e._1, e._2.length))) // for each entry in the Map, create a tuple consisting
+                                                                    // e._1 is the word in the document
+                                                                    // e._2 is the Array of occurrences. Thus, e._2.length
+                                                                    // is the number of occurrences of the word in the document
 
-     // print the result
-     tfidf
-       .print
+    // compute document frequency (number of mails that contain a word at least once)
+    val dfs : DataSet[(String, Int)] =
+      (mails flatMap (m => m._2.toSet)) // Extract unique words of each mail converting Array[String] to a Set[String]
+        .map (m => (m, 1))  // Create the (word, 1) initial record for each unique string
+        .groupBy(0)         // group by the word
+        .sum(1)             // sum the 1's; computes the count the number of mails for each word
 
-   }
+    // compute TF-IDF score from TF, DF, and total number of mails
+    val tfidfs : DataSet[(String, String, Double)] =
+      tfs.join(dfs).where(1).equalTo(0) { (l, r) => (l._1, l._2, l._3 * (cnt / r._2) ) }
 
-  /**
-   * Computes the frequency of each word in a mail.
-   * Words consist only of alphabetical characters. Frequent words (stop words) are filtered out.
-   *
-   * @param stopWordsA  Array of words that are filtered out.
-   */
-  class TFComputer(stopWordsA: Array[String])
-    extends FlatMapFunction[(String, String), (String, String, Int)] {
-
-    val stopWords = new mutable.HashSet[String]
-    val wordCounts = new mutable.HashMap[String, Int]
-    // initialize word pattern match for sequences of alphabetical characters
-    val wordPattern: Pattern = Pattern.compile("(\\p{Alpha})+")
-
-    // initialize set of stop words
-    for(sw <- stopWordsA) {
-      this.stopWords.add(sw)
-    }
-
-    override def flatMap(t: (String, String), out: Collector[(String, String, Int)]): Unit = {
-      // clear word counts
-      wordCounts.clear
-
-      // split mail along whitespaces
-      val tokens = new StringTokenizer(t._2)
-      // for each word candidate
-      while (tokens.hasMoreTokens) {
-        // normalize word to lower case
-        val word = tokens.nextToken.toLowerCase
-        if (!stopWords.contains(word) && wordPattern.matcher(word).matches) {
-          // word candidate is not a stop word and matches the word pattern
-          // increase word count
-          val cnt = wordCounts.getOrElse(word, 0)
-          wordCounts.put(word, cnt+1)
-        }
-      }
-      // emit all word counts per document and word
-      for (wc <- wordCounts.iterator) {
-        out.collect( (t._1, wc._1, wc._2) )
-      }
-    }
+    tfidfs.print
   }
-
-  /**
-   * Extracts the unique words in a mail.
-   * Words consist only of alphabetical characters. Frequent words (stop words) are filtered out.
-   *
-   * @param stopWordsA  Array of words that are filtered out.
-   */
-  class UniqueWordExtractor(stopWordsA: Array[String])
-    extends FlatMapFunction[(String, String), (String, Int) ] {
-
-    val stopWords = new mutable.HashSet[String]
-    val uniqueWords = new mutable.HashSet[String]
-    // initalize pattern to match words
-    val wordPattern: Pattern = Pattern.compile("(\\p{Alpha})+")
-
-    // initialize set of stop words
-    for(sw <- stopWordsA) {
-      this.stopWords.add(sw)
-    }
-
-    override def flatMap(t: (String, String), out: Collector[(String, Int)]): Unit = {
-      // clear unique words
-      uniqueWords.clear()
-
-      // split mail along whitespaces
-      val tokens = new StringTokenizer(t._2)
-      // for each word candidate
-      while(tokens.hasMoreTokens) {
-        // normalize word to lower case
-        val word = tokens.nextToken.toLowerCase
-        if (!stopWords.contains(word) && wordPattern.matcher(word).matches) {
-          // word candiate is not a stop word and matches the word pattern
-          uniqueWords.add(word)
-        }
-      }
-
-      // emit all words that occurred at least once
-      for(w <- uniqueWords) {
-        out.collect( (w, 1) )
-      }
-    }
-  }
-
- }
-
+}
 
