@@ -54,33 +54,37 @@ object MailTFIDF {
     val isWord = (s : String) => !STOP_WORDS.contains(s) && WORD_PATTERN.findFirstIn(s).isDefined
 
     // read messageId and body field of the input data
-    val mails = env.readCsvFile[(String, String)](
+    val mails : DataSet[(String,Array[String])] = env.readCsvFile[(String, String)](
       input,
       lineDelimiter = MBoxParser.MAIL_RECORD_DELIM,
       fieldDelimiter = MBoxParser.MAIL_FIELD_DELIM,
       includedFields = Array(0,4)
-    ) map (m => (m._1, m._2.toLowerCase.split("\\W+")  // convert message to lower case and split on word boundary
-      .filter(s => isWord(s)))) // retain only those strings that are words
+    ).map (m => (m._1, m._2.toLowerCase.split("\\W+")  // convert message to lower case and split on word boundary
+     .filter(s => isWord(s)))) // retain only those strings that are words
 
     // count mails in data set
     val cnt = mails.count
 
-    // mails is a DataSet[String, Array[String]]
-    // for each mail, use Array.groupBy(w => w) to create a Map[(String, Array[String])]
-    //    where the key is a string and the value an Array containing all strings.
-    //    Then use map on the entries of the Map to pick out:
-    //       e._1: the key and
-    //       e._2.size: the size of each Array[String] (number of times a string occurred)
-    val tfs = mails flatMap (m => m._2.groupBy(w => w).map(e => (m._1, e._1, e._2.length)))
+    // For each mail, compute the frequency of words in a document
+    val tfs : DataSet[(String, String, Int)] =
+      mails flatMap (m => m._2.groupBy(w => w)  // For each word in a document, create a Map where
+                                                // the key is the word and the value is an Array containing all
+                                                // occurrences of that word.
+                              .map(e => (m._1, e._1, e._2.length))) // for each entry in the Map, create a tuple consisting
+                                                                    // e._1 is the word in the document
+                                                                    // e._2 is the Array of occurrences. e._2.length is the number of occurrences
+                                                                    // of the document id, word, and number of times that word appeared
 
     // Extract unique words by creating a set out of the Array[String] of each mail
     // create a (m, 1) tuple for each string
-    val dfs = (mails flatMap (m => m._2.toSet)) // Extract unique words of each mail converting Array[String] to a Set[String]
-      .map (m => (m, 1))  // Create the (string, 1) initial record for each unique string
-      .groupBy(0).reduce ((l, r) => (l._1, l._2 + r._2)) // count the number of mails for each word
+    val dfs : DataSet[(String, Int)] =
+      (mails flatMap (m => m._2.toSet)) // Extract unique words of each mail converting Array[String] to a Set[String]
+        .map (m => (m, 1))  // Create the (word, 1) initial record for each unique string
+        .groupBy(0)         // group by the word
+        .sum(1)             // sum the 1's; computes the count the number of mails for each word
 
     // compute TF-IDF score from TF, DF, and total number of mails
-    val tfidfs = tfs.join(dfs).where(1).equalTo(0) { (l, r) => (l._1, l._2, l._3 * (cnt.toDouble / r._2) ) }
+    val tfidfs : DataSet[(String, String, Double)] = tfs.join(dfs).where(1).equalTo(0) { (l, r) => (l._1, l._2, l._3 * (cnt.toDouble / r._2) ) }
 
     tfidfs.print
   }
