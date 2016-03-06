@@ -51,7 +51,7 @@ object MailTFIDF {
     val env = ExecutionEnvironment.getExecutionEnvironment
 
     // function returns true if string is not a stop word and matches the word pattern regex
-    val isWord = (s : String) => !STOP_WORDS.contains(s) && WORD_PATTERN.findFirstIn(s).isDefined
+    val isWord : String => Boolean = s => !STOP_WORDS.contains(s) && WORD_PATTERN.unapplySeq(s).isDefined
 
     // read messageId and body field of the input data
     val mails : DataSet[(String,Array[String])] = env.readCsvFile[(String, String)](
@@ -59,7 +59,7 @@ object MailTFIDF {
       lineDelimiter = MBoxParser.MAIL_RECORD_DELIM,
       fieldDelimiter = MBoxParser.MAIL_FIELD_DELIM,
       includedFields = Array(0,4)
-    ).map (m => (m._1, m._2.toLowerCase.split("\\W+")  // convert message to lower case and split on word boundary
+    ).map (m => (m._1, m._2.toLowerCase.split("\\s")  // \\W+ convert message to lower case and split on word boundary
      .filter(s => isWord(s)))) // retain only those strings that are words
 
     // count mails in data set
@@ -88,5 +88,5 @@ object MailTFIDF {
 
     tfidfs.print
   }
- }
+}
 
