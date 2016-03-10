@@ -51,40 +51,53 @@ object MailTFIDF {
     val env = ExecutionEnvironment.getExecutionEnvironment
 
     // function returns true if string is not a stop word and matches the word pattern regex
-    val isWord : String => Boolean = s => !STOP_WORDS.contains(s) && WORD_PATTERN.unapplySeq(s).isDefined
+    val isRelevantWord: (String => Boolean) = {
+      s => !STOP_WORDS.contains(s) && WORD_PATTERN.unapplySeq(s).isDefined
+    }
 
     // read messageId and body field of the input data
-    val mails : DataSet[(String,Array[String])] = env.readCsvFile[(String, String)](
-      input,
-      lineDelimiter = MBoxParser.MAIL_RECORD_DELIM,
-      fieldDelimiter = MBoxParser.MAIL_FIELD_DELIM,
-      includedFields = Array(0,4)
-    ).map (m => (m._1, m._2.toLowerCase.split("\\s")  // convert message to lower case and tokenize (split on space)
-     .filter(s => isWord(s)))) // retain only those strings that are words
+    val mails : DataSet[(String,Array[String])] = env
+      .readCsvFile[(String, String)](
+        input,
+        lineDelimiter = MBoxParser.MAIL_RECORD_DELIM,
+        fieldDelimiter = MBoxParser.MAIL_FIELD_DELIM,
+        includedFields = Array(0,4)
+      )
+      // convert message to lower case and split on word boundary
+      .map (m => (m._1, m._2.toLowerCase.split("\\s")
+      // retain only relevant words
+      .filter(s => isRelevantWord(s))))
 
     // count mails in data set
-    val cnt = mails.count.toDouble
+    val cnt = mails.count
 
-    // For each mail, compute the frequency of words in a document
-    val tfs : DataSet[(String, String, Int)] =
-      mails flatMap (m => m._2.groupBy(w => w)  // For each word in a document, create a Map where
-                                                // the key is the word and the value is an Array containing all
-                                                // occurrences of that word.
-                              .map(e => (m._1, e._1, e._2.length))) // for each entry in the Map, create a tuple consisting
-                                                                    // e._1 is the word in the document
-                                                                    // e._2 is the Array of occurrences. Thus, e._2.length
-                                                                    // is the number of occurrences of the word in the document
+    // For each mail, compute the frequency of words in the mail
+    val tfs : DataSet[(String, String, Int)] = mails
+      .flatMap { m =>
+        m._2
+          // For each word in a mail, create a Map where the key is the word and the value is an
+          // Array containing all occurrences of that word.
+          .groupBy(w => w)
+          // for each entry in the Map, create a tuple of messageId, the word in the mail,
+          // and the number of occurrences of the word in the mail.
+          .map(e => (m._1, e._1, e._2.length))
+      }
 
-    // compute document frequency (number of mails that contain a word at least once)
-    val dfs : DataSet[(String, Int)] =
-      (mails flatMap (m => m._2.toSet)) // Extract unique words of each mail converting Array[String] to a Set[String]
-        .map (m => (m, 1))  // Create the (word, 1) initial record for each unique string
-        .groupBy(0)         // group by the word
-        .sum(1)             // sum the 1's; computes the count the number of mails for each word
+    // For each unique word, compute the number of mails it is contained in
+    val dfs : DataSet[(String, Int)] = mails
+      // Extract unique words of each mail converting Array[String] to a Set[String]
+      .flatMap (m => m._2.toSet)
+      // Emit (word, 1) for each unique word in a mail
+      .map (m => (m, 1))
+      // group by words
+      .groupBy(0)
+      // count the number of mails for each word by summing the ones.
+      .sum(1)
 
     // compute TF-IDF score from TF, DF, and total number of mails
-    val tfidfs : DataSet[(String, String, Double)] =
-      tfs.join(dfs).where(1).equalTo(0) { (l, r) => (l._1, l._2, l._3 * (cnt / r._2) ) }
+    val tfidfs : DataSet[(String, String, Double)] = tfs.join(dfs).where(1).equalTo(0) {
+      (l, r) => (l._1, l._2, l._3 * (cnt.toDouble / r._2) )
+    }
 
     tfidfs.print
   }
