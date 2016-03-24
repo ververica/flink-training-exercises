@@ -20,7 +20,8 @@ import com.dataartisans.flinktraining.exercises.datastream_java.ride_cleansing.R
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.api.common.state.OperatorState;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
@@ -79,11 +80,11 @@ public class RideSpeed {
 	 */
 	public static class SpeedComputer extends RichFlatMapFunction<TaxiRide, Tuple2<Long, Float>> {
 
-		private OperatorState<TaxiRide> state;
+		private ValueState<TaxiRide> state;
 
 		@Override
 		public void open(Configuration parameters) throws Exception {
-			state = this.getRuntimeContext().getKeyValueState("ride", TaxiRide.class, null);
+			state = this.getRuntimeContext().getState(new ValueStateDescriptor<>("ride", TaxiRide.class, null));
 		}
 
 		@Override

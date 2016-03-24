@@ -63,7 +63,7 @@ public class ReplyGraph {
 
 		// construct reply connections by joining on messageId and reply-To
 		DataSet<Tuple2<String, String>> replyConnections = addressMails
-				.join(addressMails).where(2).equalTo(0).projectFirst(1).<Tuple2<String, String>>projectSecond(1);
+				.join(addressMails).where(2).equalTo(0).projectFirst(1).projectSecond(1);
 
 		// count reply connections for each pair of email addresses
 		replyConnections
