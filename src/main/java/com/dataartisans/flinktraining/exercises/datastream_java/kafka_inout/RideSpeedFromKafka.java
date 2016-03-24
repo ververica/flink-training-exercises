@@ -19,14 +19,16 @@ package com.dataartisans.flinktraining.exercises.datastream_java.kafka_inout;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.TaxiRideSchema;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.api.common.state.OperatorState;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.TimestampExtractor;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer082;
+import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
+import org.apache.flink.streaming.api.watermark.Watermark;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer09;
 import org.apache.flink.util.Collector;
 
 import java.util.Properties;
@@ -61,30 +63,27 @@ public class RideSpeedFromKafka {
 
 		// create a TaxiRide data stream
 		DataStream<TaxiRide> rides = env
-				.addSource(new FlinkKafkaConsumer082<>(
+				.addSource(new FlinkKafkaConsumer09<>(
 						RideCleansingToKafka.CLEANSED_RIDES_TOPIC,
 						new TaxiRideSchema(),
 						kafkaProps)
 				)
-				.assignTimestamps(new TimestampExtractor<TaxiRide>() {
+				.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<TaxiRide>() {
 
-					long curWatermark;
+					private long currentMaxTimestamp;
 
 					@Override
-					public long extractTimestamp(TaxiRide ride, long currentTimestamp) {
-						return ride.time.getMillis();
+					public long extractTimestamp(TaxiRide ride, long previousTimestamp) {
+						long timestamp = ride.time.getMillis();
+						currentMaxTimestamp = Math.max(timestamp, previousTimestamp);
+						return timestamp;
 					}
 
 					@Override
-					public long extractWatermark(TaxiRide ride, long currentTimestamp) {
-						curWatermark = currentTimestamp - (maxEventDelay * 1000);
-						return -1;
+					public Watermark getCurrentWatermark() {
+						return new Watermark(currentMaxTimestamp - (maxEventDelay * 1000));
 					}
 
-					@Override
-					public long getCurrentWatermark() {
-						return curWatermark;
-					}
 				});
 
 		DataStream<Tuple2<Long, Float>> rideSpeeds = rides
@@ -107,11 +106,11 @@ public class RideSpeedFromKafka {
 	 */
 	public static class SpeedComputer extends RichFlatMapFunction<TaxiRide, Tuple2<Long, Float>> {
 
-		private OperatorState<TaxiRide> state;
+		private ValueState<TaxiRide> state;
 
 		@Override
 		public void open(Configuration parameters) throws Exception {
-			state = this.getRuntimeContext().getKeyValueState("ride", TaxiRide.class, null);
+			state = this.getRuntimeContext().getState(new ValueStateDescriptor<>("ride", TaxiRide.class, null));
 		}
 
 		@Override

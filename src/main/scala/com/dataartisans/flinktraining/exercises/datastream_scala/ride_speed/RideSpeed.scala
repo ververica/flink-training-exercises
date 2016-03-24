@@ -20,7 +20,7 @@ import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRi
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils
 import org.apache.flink.api.common.functions.RichFlatMapFunction
-import org.apache.flink.api.common.state.OperatorState
+import org.apache.flink.api.common.state.{ValueStateDescriptor, ValueState}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.TimeCharacteristic
@@ -74,10 +74,10 @@ object RideSpeed {
    */
   class SpeedComputer extends RichFlatMapFunction[TaxiRide, (Long, Float)] {
 
-    var state: OperatorState[TaxiRide] = null
+    var state: ValueState[TaxiRide] = null
 
     override def open(config: Configuration): Unit = {
-      state = getRuntimeContext.getKeyValueState("ride", classOf[TaxiRide], null)
+      state = getRuntimeContext.getState(new ValueStateDescriptor("ride", classOf[TaxiRide], null))
     }
 
     override def flatMap(ride: TaxiRide, out: Collector[(Long, Float)]): Unit = {

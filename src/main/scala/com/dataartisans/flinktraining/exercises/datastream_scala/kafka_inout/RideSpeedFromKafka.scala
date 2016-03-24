@@ -20,12 +20,13 @@ import java.util.Properties
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.TaxiRideSchema
 import org.apache.flink.api.common.functions.RichFlatMapFunction
-import org.apache.flink.api.common.state.OperatorState
+import org.apache.flink.api.common.state.{ValueStateDescriptor, ValueState}
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.functions.TimestampExtractor
+import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer082
+import org.apache.flink.streaming.api.watermark.Watermark
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer09
 import org.apache.flink.util.Collector
 
 
@@ -57,22 +58,23 @@ object RideSpeedFromKafka {
     // create a TaxiRide data stream
     val rides = env
       .addSource(
-      new FlinkKafkaConsumer082[TaxiRide](
+      new FlinkKafkaConsumer09[TaxiRide](
         RideCleansingToKafka.CLEANSED_RIDES_TOPIC,
         new TaxiRideSchema,
         kafkaProps))
-      .assignTimestamps(new TimestampExtractor[TaxiRide] {
+      .assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks[TaxiRide] {
 
-        var curWatermark = 0L
+        var currentMaxTimestamp = 0L
 
-        override def extractTimestamp(ride: TaxiRide, curTime: Long): Long = ride.time.getMillis
-
-        override def extractWatermark(ride: TaxiRide, curTime: Long): Long = {
-          curWatermark = curTime - (maxDelay * 1000)
-          -1
+        override def extractTimestamp(ride: TaxiRide, prevTime: Long): Long = {
+          val timestamp = ride.time.getMillis
+          currentMaxTimestamp = Math.max(timestamp, prevTime)
+          timestamp
         }
 
-        override def getCurrentWatermark: Long = curWatermark
+        override def getCurrentWatermark: Watermark = {
+          new Watermark(currentMaxTimestamp - (maxDelay * 1000))
+        }
     })
 
     val rideSpeeds = rides
@@ -93,10 +95,10 @@ object RideSpeedFromKafka {
    */
   class SpeedComputer extends RichFlatMapFunction[TaxiRide, (Long, Float)] {
 
-    var state: OperatorState[TaxiRide] = null
+    var state: ValueState[TaxiRide] = null
 
     override def open(config: Configuration): Unit = {
-      state = getRuntimeContext.getKeyValueState("ride", classOf[TaxiRide], null)
+      state = getRuntimeContext.getState(new ValueStateDescriptor("ride", classOf[TaxiRide], null))
     }
 
     override def flatMap(ride: TaxiRide, out: Collector[(Long, Float)]): Unit = {

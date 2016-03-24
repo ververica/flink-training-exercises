@@ -76,7 +76,7 @@ public class MailCount {
 			// extract email address from the sender
 			String email = mail.f1.substring(mail.f1.lastIndexOf("<") + 1, mail.f1.length() - 1);
 
-			return new Tuple2<String, String>(month, email);
+			return new Tuple2<>(month, email);
 		}
 	}
 

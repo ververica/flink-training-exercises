@@ -18,7 +18,7 @@ package com.dataartisans.flinktraining.exercises.datastream_java.sources;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.streaming.api.functions.source.EventTimeSourceFunction;
+import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.watermark.Watermark;
 
 import java.io.BufferedReader;
@@ -51,7 +51,7 @@ import java.util.zip.GZIPInputStream;
  *   StreamExecutionEnvironment.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
  *
  */
-public class TaxiRideSource implements EventTimeSourceFunction<TaxiRide> {
+public class TaxiRideSource implements SourceFunction<TaxiRide> {
 
 	private final int maxDelayMsecs;
 	private final int watermarkDelayMSecs;
