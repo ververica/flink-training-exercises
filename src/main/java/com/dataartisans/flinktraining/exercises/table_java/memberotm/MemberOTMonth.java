@@ -20,7 +20,7 @@ import com.dataartisans.flinktraining.dataset_preparation.MBoxParser;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.table.TableEnvironment;
+import org.apache.flink.api.java.table.BatchTableEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.api.table.Row;
@@ -46,6 +46,9 @@ public class MemberOTMonth {
 		// obtain an execution environment
 		ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
+		// obtain a Batch Table ExecutionEnvironment
+		BatchTableEnvironment tEnv = BatchTableEnvironment.getTableEnvironment(env);
+
 		// read the "time" and "sender" fields of the input data set (field 2 and 3) as Strings
 		DataSet<Tuple2<String, String>> mails =
 				env.readCsvFile(input)
@@ -57,8 +60,6 @@ public class MemberOTMonth {
 		DataSet<Tuple2<String, String>> monthSender = mails
 				// extract the month from the time field and the email address from the sender field
 				.map(new MonthEmailExtractor());
-
-		TableEnvironment tEnv = new TableEnvironment();
 
 		Table mailsPerSenderMonth = tEnv
 				// to table
@@ -81,7 +82,7 @@ public class MemberOTMonth {
 
 	}
 
-	public static class MonthEmailExtractor implements MapFunction<Tuple2<String, String>, Tuple2<String, String>> {
+	private static final class MonthEmailExtractor implements MapFunction<Tuple2<String, String>, Tuple2<String, String>> {
 
 		@Override
 		public Tuple2<String, String> map(Tuple2<String, String> mail) throws Exception {

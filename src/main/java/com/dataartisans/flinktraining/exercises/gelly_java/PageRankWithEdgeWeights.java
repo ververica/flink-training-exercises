@@ -110,8 +110,7 @@ public class PageRankWithEdgeWeights{
 	}
 
 	//function to calculate the total weight of outgoing edges from a node
-	@SuppressWarnings("serial")
-	static final class SumWeight implements ReduceEdgesFunction<Double> {
+	private static final class SumWeight implements ReduceEdgesFunction<Double> {
 			@Override
 			public Double reduceEdges(Double firstEdgeValue, Double secondEdgeValue) {
 				return firstEdgeValue+secondEdgeValue;

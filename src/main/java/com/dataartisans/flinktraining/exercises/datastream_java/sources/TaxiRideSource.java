@@ -160,7 +160,7 @@ public class TaxiRideSource implements SourceFunction<TaxiRide> {
 			return;
 		}
 
-		// emit all subsequent rides proportial to their timestamp and servingSpeed
+		// emit all subsequent rides proportional to their timestamp and servingSpeed
 		while (reader.ready() && (line = reader.readLine()) != null) {
 
 			TaxiRide ride = TaxiRide.fromString(line);
