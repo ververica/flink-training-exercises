@@ -20,11 +20,12 @@ import com.dataartisans.flinktraining.dataset_preparation.MBoxParser;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.table.TableEnvironment;
+import org.apache.flink.api.java.table.BatchTableEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.api.table.Row;
 import org.apache.flink.api.table.Table;
+import org.apache.flink.api.table.TableEnvironment;
 
 /**
  * Java reference implementation for the "Member of the Month" exercise of the Flink training.
@@ -58,11 +59,11 @@ public class MemberOTMonth {
 				// extract the month from the time field and the email address from the sender field
 				.map(new MonthEmailExtractor());
 
-		TableEnvironment tEnv = new TableEnvironment();
+		BatchTableEnvironment tEnv = TableEnvironment.getTableEnvironment(env);
 
 		Table mailsPerSenderMonth = tEnv
 				// to table
-				.fromDataSet(monthSender).as("month, sender")
+				.fromDataSet(monthSender, "month, sender")
 				// filter out bot email addresses
 				.filter("sender !== 'jira@apache.org' && " +
 						"sender !== 'no-reply@apache.org' && " +
