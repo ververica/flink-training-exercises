@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_java.ride_cleansing;
+package com.dataartisans.flinktraining.exercises.datastream_java.basics;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
@@ -42,8 +42,8 @@ public class RideCleansing {
 		ParameterTool params = ParameterTool.fromArgs(args);
 		final String input = params.getRequired("input");
 
-		final int maxEventDelay = 60; // events are out of order by max 60 seconds
-		final float servingSpeedFactor = 600; // events of 10 minutes are served in 1 second
+		final int maxEventDelay = 60;       // events are out of order by max 60 seconds
+		final int servingSpeedFactor = 600; // events of 10 minutes are served in 1 second
 
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();

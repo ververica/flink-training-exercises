@@ -40,46 +40,51 @@ import java.util.Locale;
 public class TaxiRide {
 
 	private static transient DateTimeFormatter timeFormatter =
-			DateTimeFormat.forPattern("yyyy-MM-DD HH:mm:ss").withLocale(Locale.US).withZoneUTC();
+			DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withLocale(Locale.US).withZoneUTC();
 
 	public TaxiRide() {}
 
-	public TaxiRide(long rideId, DateTime time, boolean isStart,
+	public TaxiRide(long rideId, boolean isStart, DateTime startTime, DateTime endTime,
 					float startLon, float startLat, float endLon, float endLat,
-					short passengerCnt, float travelDistance) {
+					short passengerCnt) {
 
 		this.rideId = rideId;
-		this.time = time;
 		this.isStart = isStart;
+		this.startTime = startTime;
+		this.endTime = endTime;
 		this.startLon = startLon;
 		this.startLat = startLat;
 		this.endLon = endLon;
 		this.endLat = endLat;
 		this.passengerCnt = passengerCnt;
-		this.travelDistance = travelDistance;
 	}
 
 	public long rideId;
-	public DateTime time;
 	public boolean isStart;
+	public DateTime startTime;
+	public DateTime endTime;
 	public float startLon;
 	public float startLat;
 	public float endLon;
 	public float endLat;
 	public short passengerCnt;
-	public float travelDistance;
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(rideId).append(",");
-		sb.append(time.toString(timeFormatter)).append(",");
 		sb.append(isStart ? "START" : "END").append(",");
+		if (isStart) {
+			sb.append(startTime.toString(timeFormatter)).append(",");
+			sb.append(endTime.toString(timeFormatter)).append(",");
+		} else {
+			sb.append(endTime.toString(timeFormatter)).append(",");
+			sb.append(startTime.toString(timeFormatter)).append(",");
+		}
 		sb.append(startLon).append(",");
 		sb.append(startLat).append(",");
 		sb.append(endLon).append(",");
 		sb.append(endLat).append(",");
-		sb.append(passengerCnt).append(",");
-		sb.append(travelDistance);
+		sb.append(passengerCnt);
 
 		return sb.toString();
 	}
@@ -95,24 +100,27 @@ public class TaxiRide {
 
 		try {
 			ride.rideId = Long.parseLong(tokens[0]);
-			ride.time = DateTime.parse(tokens[1], timeFormatter);
-			ride.startLon = tokens[3].length() > 0 ? Float.parseFloat(tokens[3]) : 0.0f;
-			ride.startLat = tokens[4].length() > 0 ? Float.parseFloat(tokens[4]) : 0.0f;
-			ride.endLon = tokens[5].length() > 0 ? Float.parseFloat(tokens[5]) : 0.0f;
-			ride.endLat = tokens[6].length() > 0 ? Float.parseFloat(tokens[6]) : 0.0f;
-			ride.passengerCnt = Short.parseShort(tokens[7]);
-			ride.travelDistance = tokens[8].length() > 0 ? Float.parseFloat(tokens[8]) : 0.0f;
 
-			switch (tokens[2]) {
+			switch (tokens[1]) {
 				case "START":
 					ride.isStart = true;
+					ride.startTime = DateTime.parse(tokens[2], timeFormatter);
+					ride.endTime = DateTime.parse(tokens[3], timeFormatter);
 					break;
 				case "END":
 					ride.isStart = false;
+					ride.endTime = DateTime.parse(tokens[2], timeFormatter);
+					ride.startTime = DateTime.parse(tokens[3], timeFormatter);
 					break;
 				default:
 					throw new RuntimeException("Invalid record: " + line);
 			}
+
+			ride.startLon = tokens[4].length() > 0 ? Float.parseFloat(tokens[4]) : 0.0f;
+			ride.startLat = tokens[5].length() > 0 ? Float.parseFloat(tokens[5]) : 0.0f;
+			ride.endLon = tokens[6].length() > 0 ? Float.parseFloat(tokens[6]) : 0.0f;
+			ride.endLat = tokens[7].length() > 0 ? Float.parseFloat(tokens[7]) : 0.0f;
+			ride.passengerCnt = Short.parseShort(tokens[8]);
 
 		} catch (NumberFormatException nfe) {
 			throw new RuntimeException("Invalid record: " + line, nfe);

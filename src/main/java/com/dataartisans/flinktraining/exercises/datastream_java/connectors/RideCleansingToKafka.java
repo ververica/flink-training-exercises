@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_java.kafka_inout;
+package com.dataartisans.flinktraining.exercises.datastream_java.connectors;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.TaxiRideSchema;
@@ -33,7 +33,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer09;
  *
  * The task of the exercise is to filter a data stream of taxi ride records to keep only rides that
  * start and end within New York City.
- * The resulting stream should be written to an Apache Kafka topic.
+ * The resulting stream is written to an Apache Kafka topic.
  *
  * Parameters:
  * -input path-to-input-file
@@ -49,8 +49,8 @@ public class RideCleansingToKafka {
 		ParameterTool params = ParameterTool.fromArgs(args);
 		String input = params.getRequired("input");
 
-		final int maxEventDelay = 60; // events are out of order by max 60 seconds
-		final float servingSpeedFactor = 60; // events of 1 minutes are served in 1 second
+		final int maxEventDelay = 60;       // events are out of order by max 60 seconds
+		final int servingSpeedFactor = 600; // events of 10 minute are served in 1 second
 
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();

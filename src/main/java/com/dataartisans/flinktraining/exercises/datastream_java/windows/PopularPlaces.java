@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_java.popular_places;
+package com.dataartisans.flinktraining.exercises.datastream_java.windows;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
-import com.dataartisans.flinktraining.exercises.datastream_java.ride_cleansing.RideCleansing;
+import com.dataartisans.flinktraining.exercises.datastream_java.basics.RideCleansing;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import org.apache.flink.api.common.functions.FilterFunction;
@@ -55,9 +55,9 @@ public class PopularPlaces {
 		ParameterTool params = ParameterTool.fromArgs(args);
 		String input = params.getRequired("input");
 
-		final int popThreshold = 20; // threshold for popular places
-		final int maxEventDelay = 60; // events are out of order by max 60 seconds
-		final float servingSpeedFactor = 600; // events of 10 minutes are served in 1 second
+		final int popThreshold = 20;        // threshold for popular places
+		final int maxEventDelay = 60;       // events are out of order by max 60 seconds
+		final int servingSpeedFactor = 600; // events of 10 minutes are served in 1 second
 
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -67,7 +67,7 @@ public class PopularPlaces {
 		DataStream<TaxiRide> rides = env.addSource(
 				new TaxiRideSource(input, maxEventDelay, servingSpeedFactor));
 
-		// find n most popular spots
+		// find popular places
 		DataStream<Tuple5<Float, Float, Long, Boolean, Integer>> popularSpots = rides
 				// remove all rides which are not within NYC
 				.filter(new RideCleansing.NYCFilter())

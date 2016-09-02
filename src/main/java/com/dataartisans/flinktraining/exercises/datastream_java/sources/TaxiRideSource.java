@@ -46,7 +46,7 @@ import java.util.zip.GZIPInputStream;
  * minute (60 seconds) are served in 1 second.
  *
  * This SourceFunction is an EventSourceFunction and does continuously emit watermarks.
- * Hence it can only operate in event time mode which is configured as follows:
+ * Hence it is able to operate in event time mode which is configured as follows:
  *
  *   StreamExecutionEnvironment.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
  *
@@ -57,7 +57,7 @@ public class TaxiRideSource implements SourceFunction<TaxiRide> {
 	private final int watermarkDelayMSecs;
 
 	private final String dataFilePath;
-	private final float servingSpeed;
+	private final int servingSpeed;
 
 	private transient BufferedReader reader;
 	private transient InputStream gzipStream;
@@ -70,19 +70,7 @@ public class TaxiRideSource implements SourceFunction<TaxiRide> {
 	 * @param dataFilePath The gzipped input file from which the TaxiRide records are read.
 	 */
 	public TaxiRideSource(String dataFilePath) {
-		this(dataFilePath, 0, 1.0f);
-	}
-
-	/**
-	 * Serves the TaxiRide records from the specified and ordered gzipped input file.
-	 * Rides are served out of their time stamp order with specified maximum random delay
-	 * at the speed at which they were originally generated.
-	 *
-	 * @param dataFilePath The gzipped input file from which the TaxiRide records are read.
-	 * @param maxEventDelaySecs The max time in seconds by which events are delayed.
-	 */
-	public TaxiRideSource(String dataFilePath, int maxEventDelaySecs) {
-		this(dataFilePath, maxEventDelaySecs, 1.0f);
+		this(dataFilePath, 0, 1);
 	}
 
 	/**
@@ -93,7 +81,7 @@ public class TaxiRideSource implements SourceFunction<TaxiRide> {
 	 * @param dataFilePath The gzipped input file from which the TaxiRide records are read.
 	 * @param servingSpeedFactor The serving speed factor by which the logical serving time is adjusted.
 	 */
-	public TaxiRideSource(String dataFilePath, float servingSpeedFactor) {
+	public TaxiRideSource(String dataFilePath, int servingSpeedFactor) {
 		this(dataFilePath, 0, servingSpeedFactor);
 	}
 
@@ -106,7 +94,7 @@ public class TaxiRideSource implements SourceFunction<TaxiRide> {
 	 * @param maxEventDelaySecs The max time in seconds by which events are delayed.
 	 * @param servingSpeedFactor The serving speed factor by which the logical serving time is adjusted.
 	 */
-	public TaxiRideSource(String dataFilePath, int maxEventDelaySecs, float servingSpeedFactor) {
+	public TaxiRideSource(String dataFilePath, int maxEventDelaySecs, int servingSpeedFactor) {
 		if(maxEventDelaySecs < 0) {
 			throw new IllegalArgumentException("Max event delay must be positive");
 		}
@@ -122,76 +110,12 @@ public class TaxiRideSource implements SourceFunction<TaxiRide> {
 		gzipStream = new GZIPInputStream(new FileInputStream(dataFilePath));
 		reader = new BufferedReader(new InputStreamReader(gzipStream, "UTF-8"));
 
-		if(this.maxDelayMsecs == 0) {
-			// simple case
-			generateOrderedStream(sourceContext);
-		}
-		else {
-			generateUnorderedStream(sourceContext);
-		}
+		generateUnorderedStream(sourceContext);
 
 		this.reader.close();
 		this.reader = null;
 		this.gzipStream.close();
 		this.gzipStream = null;
-
-	}
-
-	private void generateOrderedStream(SourceContext<TaxiRide> sourceContext) throws Exception {
-
-		long servingStartTime = Calendar.getInstance().getTimeInMillis();
-		long dataStartTime;
-
-		long nextWatermark;
-		long nextWatermarkServingTime;
-
-		String line;
-		if (reader.ready() && (line = reader.readLine()) != null) {
-			// read first ride
-			TaxiRide ride = TaxiRide.fromString(line);
-			// extract starting timestamp
-			dataStartTime = ride.time.getMillis();
-			// schedule next watermark
-			nextWatermark = dataStartTime + (watermarkDelayMSecs);
-			nextWatermarkServingTime = toServingTime(servingStartTime, dataStartTime, nextWatermark);
-			// emit first ride
-			sourceContext.collectWithTimestamp(ride, ride.time.getMillis());
-		} else {
-			return;
-		}
-
-		// emit all subsequent rides proportial to their timestamp and servingSpeed
-		while (reader.ready() && (line = reader.readLine()) != null) {
-
-			TaxiRide ride = TaxiRide.fromString(line);
-			long eventTime = ride.time.getMillis();
-
-			long now = Calendar.getInstance().getTimeInMillis();
-			long eventServingTime = toServingTime(servingStartTime, dataStartTime, eventTime);
-			long eventWait = eventServingTime - now;
-			long watermarkWait = nextWatermarkServingTime - now;
-
-			if(eventWait < watermarkWait) {
-				Thread.sleep(eventWait > 0 ? eventWait : 0);
-			}
-			else if(eventWait > watermarkWait) {
-				Thread.sleep(watermarkWait > 0 ? watermarkWait : 0);
-				sourceContext.emitWatermark(new Watermark(nextWatermark));
-				nextWatermark = nextWatermark + (watermarkDelayMSecs);
-				nextWatermarkServingTime = toServingTime(servingStartTime, dataStartTime, nextWatermark);
-				long remainWait = eventWait - watermarkWait;
-				Thread.sleep(remainWait > 0 ? remainWait : 0);
-			}
-			else if(eventWait == watermarkWait) {
-				Thread.sleep(watermarkWait > 0 ? watermarkWait : 0);
-				// -1 to ensure that no following events have the same timestamp
-				sourceContext.emitWatermark(new Watermark(nextWatermark - 1));
-				nextWatermark = nextWatermark + (watermarkDelayMSecs);
-				nextWatermarkServingTime = toServingTime(servingStartTime, dataStartTime, nextWatermark);
-			}
-
-			sourceContext.collectWithTimestamp(ride, ride.time.getMillis());
-		}
 
 	}
 
@@ -217,9 +141,10 @@ public class TaxiRideSource implements SourceFunction<TaxiRide> {
 			// read first ride
 			ride = TaxiRide.fromString(line);
 			// extract starting timestamp
-			dataStartTime = ride.time.getMillis();
+			dataStartTime = getEventTime(ride);
 			// get delayed time
 			long delayedEventTime = dataStartTime + getNormalDelayMsecs(rand);
+
 			emitSchedule.add(new Tuple2<Long, Object>(delayedEventTime, ride));
 			// schedule next watermark
 			long watermarkTime = dataStartTime + watermarkDelayMSecs;
@@ -240,7 +165,7 @@ public class TaxiRideSource implements SourceFunction<TaxiRide> {
 
 			// insert all events into schedule that might be emitted next
 			long curNextDelayedEventTime = !emitSchedule.isEmpty() ? emitSchedule.peek().f0 : -1;
-			long rideEventTime = ride != null ? ride.time.getMillis() : -1;
+			long rideEventTime = ride != null ? getEventTime(ride) : -1;
 			while(
 					ride != null && ( // while there is a ride AND
 						emitSchedule.isEmpty() || // and no ride in schedule OR
@@ -254,7 +179,7 @@ public class TaxiRideSource implements SourceFunction<TaxiRide> {
 				// read next ride
 				if (reader.ready() && (line = reader.readLine()) != null) {
 					ride = TaxiRide.fromString(line);
-					rideEventTime = ride.time.getMillis();
+					rideEventTime = getEventTime(ride);
 				}
 				else {
 					ride = null;
@@ -275,7 +200,7 @@ public class TaxiRideSource implements SourceFunction<TaxiRide> {
 			if(head.f1 instanceof TaxiRide) {
 				TaxiRide emitRide = (TaxiRide)head.f1;
 				// emit ride
-				sourceContext.collectWithTimestamp(emitRide, emitRide.time.getMillis());
+				sourceContext.collectWithTimestamp(emitRide, getEventTime(emitRide));
 			}
 			else if(head.f1 instanceof Watermark) {
 				Watermark emitWatermark = (Watermark)head.f1;
@@ -291,7 +216,16 @@ public class TaxiRideSource implements SourceFunction<TaxiRide> {
 
 	public long toServingTime(long servingStartTime, long dataStartTime, long eventTime) {
 		long dataDiff = eventTime - dataStartTime;
-		return servingStartTime + (long)(dataDiff / this.servingSpeed);
+		return servingStartTime + (dataDiff / this.servingSpeed);
+	}
+
+	public long getEventTime(TaxiRide ride) {
+		if (ride.isStart) {
+			return ride.startTime.getMillis();
+		}
+		else {
+			return ride.endTime.getMillis();
+		}
 	}
 
 	public long getNormalDelayMsecs(Random rand) {

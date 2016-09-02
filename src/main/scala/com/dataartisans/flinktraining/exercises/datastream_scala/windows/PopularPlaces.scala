@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_scala.popular_places
+package com.dataartisans.flinktraining.exercises.datastream_scala.windows
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource
@@ -46,8 +46,8 @@ object PopularPlaces {
     val input = params.getRequired("input")
 
     val popThreshold = 20 // threshold for popular places
-    val maxDelay = 60 // events are out of order by max 60 seconds
-    val speed = 600 // events of 10 minutes are served in 1 second
+    val maxDelay = 60     // events are out of order by max 60 seconds
+    val speed = 600       // events of 10 minutes are served in 1 second
 
     // set up streaming execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
@@ -56,8 +56,8 @@ object PopularPlaces {
     // start the data generator
     val rides = env.addSource(new TaxiRideSource(input, maxDelay, speed))
 
-//    // find n most popular spots
-    val popularSpots = rides
+    // find n most popular spots
+    val popularPlaces = rides
       // remove all rides which are not within NYC
       .filter { r => GeoUtils.isInNYC(r.startLon, r.startLat) && GeoUtils.isInNYC(r.endLon, r.endLat) }
       // match ride to grid cell and event type (start or end)
@@ -76,7 +76,7 @@ object PopularPlaces {
       .map(new GridToCoordinates)
 
     // print result on stdout
-    popularSpots.print()
+    popularPlaces.print()
 
     // execute the transformation pipeline
     env.execute("Popular Places")

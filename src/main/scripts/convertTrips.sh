@@ -16,4 +16,4 @@
 
 # usage: just pipe raw data into script
 
-tr -d '\r' | awk -F "," '{print NR "," $6 ",START," $11 "," $12 "," $13 "," $14 "," $8 ",-1"}{print NR "," $7 ",END," $11 "," $12 "," $13 "," $14 "," $8 "," $10}' | sort -t ',' -k 2 -S "4G" < /dev/stdin
+tr -d '\r' | awk -F "," '{print NR ",START," $2 ",1970-01-01 00:00:00," $6 "," $7 "," $10 "," $11 "," $4}{print NR ",END," $3 "," $2 "," $6 "," $7 "," $10 "," $11 "," $4}' | sort -t ',' -k 3 -S "4G" < /dev/stdin

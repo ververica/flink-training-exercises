@@ -44,6 +44,8 @@ public class GeoUtils {
 	// ( LAT_NORTH - LAT_SOUTH ) / DELTA_LON
 	public static int NUMBER_OF_GRID_Y = 400;
 
+	public static float DEG_LEN = 110.25f;
+
 	/**
 	 * Checks if a location specified by longitude and latitude values is
 	 * within the geo boundaries of New York City.
@@ -185,6 +187,7 @@ public class GeoUtils {
 		int yIndex = (gridCellId - xIndex) / NUMBER_OF_GRID_X;
 
 		return (float)(LAT_NORTH - (yIndex * DELTA_LAT) - (DELTA_LAT / 2));
+
 	}
 
 	/**
@@ -205,6 +208,44 @@ public class GeoUtils {
 	 */
 	public static float getRandomNYCLat(Random rand) {
 		return (float)(LAT_SOUTH + (LAT_HEIGHT * rand.nextFloat()));
+	}
+
+	/**
+	 * Returns the Euclidean distance between two locations specified as lon/lat pairs.
+	 *
+	 * @param lon1 Longitude of first location
+	 * @param lat1 Latitude of first location
+	 * @param lon2 Longitude of second location
+	 * @param lat2 Latitude of second location
+	 * @return The Euclidean distance between the specified locations.
+	 */
+	public static double getEuclideanDistance(float lon1, float lat1, float lon2, float lat2) {
+		double x = lat1 - lat2;
+		double y = (lon1 - lon2) * Math.cos(lat2);
+		return (DEG_LEN * Math.sqrt(x*x + y*y));
+	}
+
+	/**
+	 * Returns the angle in degrees between the vector from the start to the destination
+	 * and the x-axis on which the start is located.
+	 *
+	 * The angle describes in which direction the destination is located from the start, i.e.,
+	 * 0° -> East, 90° -> South, 180° -> West, 270° -> North
+	 *
+	 * @param startLon longitude of start location
+	 * @param startLat latitude of start location
+	 * @param destLon longitude of destination
+	 * @param destLat latitude of destination
+	 * @return The direction from start to destination location
+	 */
+	public static int getDirectionAngle(
+			float startLon, float startLat, float destLon, float destLat) {
+
+		double x = destLat - startLat;
+		double y = (destLon - startLon) * Math.cos(startLat);
+		int degrees = (int)Math.toDegrees(Math.atan2(x, y)) + 179;
+
+		return degrees;
 	}
 
 }
