@@ -19,7 +19,7 @@
 	
 	<groupId>com.dataartisans</groupId>
 	<artifactId>flink-training-exercises</artifactId>
-	<version>0.4</version>
+	<version>0.5</version>
 	<packaging>jar</packaging>
 
 	<name>Flink Exercises</name>
@@ -27,8 +27,8 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<slf4j.version>1.7.19</slf4j.version>
-		<flink.version>1.0.3</flink.version>
+		<slf4j.version>1.7.21</slf4j.version>
+		<flink.version>1.1.1</flink.version>
 	</properties>
 
 	<dependencies>
@@ -84,7 +84,7 @@
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
-			<version>2.7</version>
+			<version>2.9.3</version>
 		</dependency>
     </dependencies>
 
@@ -95,7 +95,7 @@
 			<plugin>
 				<groupId>net.alchim31.maven</groupId>
 				<artifactId>scala-maven-plugin</artifactId>
-				<version>3.1.4</version>
+				<version>3.2.2</version>
 				<executions>
 					<!-- Run scala compiler in the process-resources phase, so that dependencies on
 						scala classes can be resolved later in the (Java) compile phase -->
@@ -128,7 +128,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.2.1</version><!--$NO-MVN-MAN-VER$-->
+				<version>2.4</version><!--$NO-MVN-MAN-VER$-->
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -175,7 +175,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.5.1</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -185,7 +185,7 @@
 			<plugin>
 				<groupId>org.apache.rat</groupId>
 				<artifactId>apache-rat-plugin</artifactId>
-				<version>0.10</version><!--$NO-MVN-MAN-VER$-->
+				<version>0.12</version><!--$NO-MVN-MAN-VER$-->
 				<inherited>false</inherited>
 				<executions>
 					<execution>
@@ -251,7 +251,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>2.12.1</version>
+				<version>2.17</version>
 				<executions>
 					<execution>
 						<id>validate</id>

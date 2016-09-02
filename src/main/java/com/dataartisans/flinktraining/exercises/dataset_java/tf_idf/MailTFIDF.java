@@ -47,7 +47,7 @@ import java.util.regex.Pattern;
  */
 public class MailTFIDF {
 
-	public final static String[] STOP_WORDS = {
+	private final static String[] STOP_WORDS = {
 			"the", "i", "a", "an", "at", "are", "am", "for", "and", "or", "is",
 			"there", "it", "this", "that", "on", "was", "by", "of", "to", "in",
 			"to", "message", "not", "be", "with", "you", "have", "as", "can"

@@ -20,7 +20,7 @@ import com.dataartisans.flinktraining.dataset_preparation.MBoxParser
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.api.scala._
 import org.apache.flink.api.scala.table._
-import org.apache.flink.api.table.Row
+import org.apache.flink.api.table.{Row, TableEnvironment}
 
 /**
  * Scala reference implementation for the "Member of the Month" exercise of the Flink training.
@@ -40,6 +40,8 @@ object MemberOTMonth {
 
     // set up the execution environment
     val env = ExecutionEnvironment.getExecutionEnvironment
+    // set up the BatchTableEnvironment
+    val tEnv = TableEnvironment.getTableEnvironment(env)
 
     // read the "time" and "sender" fields of the input data set as Strings
     val mails = env.readCsvFile[(String, String)](
@@ -56,7 +58,7 @@ object MemberOTMonth {
                     // extract email address from sender
                     m._2.substring(m._2.lastIndexOf("<") + 1, m._2.length - 1) ) }
       // convert to table
-      .toTable.as('month, 'sender)
+      .toTable(tEnv,'month, 'sender)
       // filter out bot mails
       .filter(('sender !== "jira@apache.org") &&
               ('sender !== "git@git.apache.org") &&

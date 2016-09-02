@@ -95,7 +95,7 @@ object RideSpeedFromKafka {
    */
   class SpeedComputer extends RichFlatMapFunction[TaxiRide, (Long, Float)] {
 
-    var state: ValueState[TaxiRide] = null
+    var state: ValueState[TaxiRide] = _
 
     override def open(config: Configuration): Unit = {
       state = getRuntimeContext.getState(new ValueStateDescriptor("ride", classOf[TaxiRide], null))
