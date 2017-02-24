@@ -19,8 +19,9 @@ package com.dataartisans.flinktraining.exercises.table_scala.memberotm
 import com.dataartisans.flinktraining.dataset_preparation.MBoxParser
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.api.scala._
-import org.apache.flink.api.scala.table._
-import org.apache.flink.api.table.{TableEnvironment, Row}
+import org.apache.flink.table.api.TableEnvironment
+import org.apache.flink.table.api.scala._
+import org.apache.flink.types.Row
 
 /**
  * Scala reference implementation for the "Member of the Month" exercise of the Flink training.

@@ -32,7 +32,7 @@ import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrderness
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer09;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.util.Collector;
 
 import java.util.Properties;
@@ -71,7 +71,7 @@ public class PopularPlacesFromKafka {
 		kafkaProps.setProperty("auto.offset.reset", "earliest");
 
 		// create a Kafka consumer
-		FlinkKafkaConsumer09<TaxiRide> consumer = new FlinkKafkaConsumer09<>(
+		FlinkKafkaConsumer010<TaxiRide> consumer = new FlinkKafkaConsumer010<>(
 				"cleansedRides",
 				new TaxiRideSchema(),
 				kafkaProps);

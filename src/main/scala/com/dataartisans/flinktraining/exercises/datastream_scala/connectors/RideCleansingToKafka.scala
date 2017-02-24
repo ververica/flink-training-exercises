@@ -21,7 +21,7 @@ import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRide
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.{TaxiRideSchema, GeoUtils}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer09
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010
 import org.apache.flink.streaming.api.scala._
 
 /**
@@ -39,7 +39,7 @@ import org.apache.flink.streaming.api.scala._
 object RideCleansingToKafka {
 
   val LOCAL_KAFKA_BROKER = "localhost:9092"
-  val CLEANSED_RIDES_TOPIC: String = "cleansedRides"
+  val CLEANSED_RIDES_TOPIC: String = "cleansedRidesScala"
 
   def main(args: Array[String]) {
 
@@ -63,7 +63,7 @@ object RideCleansingToKafka {
 
     // write the filtered data to a Kafka sink
     filteredRides.addSink(
-      new FlinkKafkaProducer09[TaxiRide](
+      new FlinkKafkaProducer010[TaxiRide](
         LOCAL_KAFKA_BROKER,
         CLEANSED_RIDES_TOPIC,
         new TaxiRideSchema))
