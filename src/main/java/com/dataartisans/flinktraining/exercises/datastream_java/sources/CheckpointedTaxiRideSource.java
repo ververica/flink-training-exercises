@@ -17,7 +17,7 @@
 package com.dataartisans.flinktraining.exercises.datastream_java.sources;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
-import org.apache.flink.streaming.api.checkpoint.Checkpointed;
+import org.apache.flink.streaming.api.checkpoint.ListCheckpointed;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.watermark.Watermark;
 
@@ -26,6 +26,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -51,7 +53,7 @@ import java.util.zip.GZIPInputStream;
  *   StreamExecutionEnvironment.enableCheckpointing(Long)
  *
  */
-public class CheckpointedTaxiRideSource implements SourceFunction<TaxiRide>, Checkpointed<Long> {
+public class CheckpointedTaxiRideSource implements SourceFunction<TaxiRide>, ListCheckpointed<Long> {
 
 	private final String dataFilePath;
 	private final int servingSpeed;
@@ -159,13 +161,13 @@ public class CheckpointedTaxiRideSource implements SourceFunction<TaxiRide>, Che
 	}
 
 	@Override
-	public Long snapshotState(long checkpointId, long checkpointTimestamp) throws Exception {
-		return eventCnt;
+	public List<Long> snapshotState(long checkpointId, long checkpointTimestamp) throws Exception {
+		return Collections.singletonList(eventCnt);
 	}
 
 	@Override
-	public void restoreState(Long state) throws Exception {
-		this.eventCnt = state;
+	public void restoreState(List<Long> state) throws Exception {
+		for (Long s : state)
+			this.eventCnt = s;
 	}
 }
-
