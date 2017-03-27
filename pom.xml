@@ -19,7 +19,7 @@
 	
 	<groupId>com.data-artisans</groupId>
 	<artifactId>flink-training-exercises</artifactId>
-	<version>0.7</version>
+	<version>0.8</version>
 	<packaging>jar</packaging>
 
 	<name>Apache Flink Training Exercises</name>
