@@ -45,42 +45,42 @@ import org.apache.flink.util.Collector;
 
 public class DrivingSessions {
 
-    public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {
 
-        // read parameters
-        ParameterTool params = ParameterTool.fromArgs(args);
-        String input = params.getRequired("input");
+		// read parameters
+		ParameterTool params = ParameterTool.fromArgs(args);
+		String input = params.getRequired("input");
 
-        // set up streaming execution environment
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+		// set up streaming execution environment
+		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
-        // connect to the data file
-        DataStream<String> carData = env.readTextFile(input);
+		// connect to the data file
+		DataStream<String> carData = env.readTextFile(input);
 
-        // find segments
-        DataStream<ConnectedCarEvent> events = carData
-                .map(new MapFunction<String, ConnectedCarEvent>() {
-                    @Override
-                    public ConnectedCarEvent map(String line) throws Exception {
-                        return ConnectedCarEvent.fromString(line);
-                    }
-                })
-                .assignTimestampsAndWatermarks(new ConnectedCarAssigner());
+		// find segments
+		DataStream<ConnectedCarEvent> events = carData
+				.map(new MapFunction<String, ConnectedCarEvent>() {
+					@Override
+					public ConnectedCarEvent map(String line) throws Exception {
+						return ConnectedCarEvent.fromString(line);
+					}
+				})
+				.assignTimestampsAndWatermarks(new ConnectedCarAssigner());
 
-        events.keyBy("carId")
-                .window(EventTimeSessionWindows.withGap(Time.seconds(15)))
-                .apply(new CreateGapSegment())
-                .print();
+		events.keyBy("carId")
+				.window(EventTimeSessionWindows.withGap(Time.seconds(15)))
+				.apply(new CreateGapSegment())
+				.print();
 
-        env.execute("Driving Sessions");
-    }
+		env.execute("Driving Sessions");
+	}
 
-    public static class CreateGapSegment implements WindowFunction<ConnectedCarEvent, GapSegment, Tuple, TimeWindow> {
-        @Override
-        public void apply(Tuple key, TimeWindow window, Iterable<ConnectedCarEvent> events, Collector<GapSegment> out) {
-            out.collect(new GapSegment(events));
-        }
+	public static class CreateGapSegment implements WindowFunction<ConnectedCarEvent, GapSegment, Tuple, TimeWindow> {
+		@Override
+		public void apply(Tuple key, TimeWindow window, Iterable<ConnectedCarEvent> events, Collector<GapSegment> out) {
+			out.collect(new GapSegment(events));
+		}
 
-    }
+	}
 }

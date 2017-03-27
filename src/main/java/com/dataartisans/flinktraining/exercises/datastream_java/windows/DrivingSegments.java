@@ -48,127 +48,123 @@ import java.util.Iterator;
  */
 public class DrivingSegments {
 
-    public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {
 
-        // read parameters
-        ParameterTool params = ParameterTool.fromArgs(args);
-        String input = params.getRequired("input");
+		// read parameters
+		ParameterTool params = ParameterTool.fromArgs(args);
+		String input = params.getRequired("input");
 
-        // set up streaming execution environment
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+		// set up streaming execution environment
+		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
-        // connect to the data file
-        DataStream<String> carData = env.readTextFile(input);
+		// connect to the data file
+		DataStream<String> carData = env.readTextFile(input);
 
-        // map to events
-        DataStream<ConnectedCarEvent> events = carData
-                .map(new MapFunction<String, ConnectedCarEvent>() {
-                    @Override
-                    public ConnectedCarEvent map(String line) throws Exception {
-                        return ConnectedCarEvent.fromString(line);
-                    }
-                })
-                .assignTimestampsAndWatermarks(new ConnectedCarAssigner());
+		// map to events
+		DataStream<ConnectedCarEvent> events = carData
+				.map(new MapFunction<String, ConnectedCarEvent>() {
+					@Override
+					public ConnectedCarEvent map(String line) throws Exception {
+						return ConnectedCarEvent.fromString(line);
+					}
+				})
+				.assignTimestampsAndWatermarks(new ConnectedCarAssigner());
 
-        // find segments
-        events.keyBy("carId")
-                .window(GlobalWindows.create())
-                .trigger(new SegmentingOutOfOrderTrigger())
-                .evictor(new SegmentingEvictor())
-                .apply(new CreateStoppedSegment())
-                .print();
+		// find segments
+		events.keyBy("carId")
+				.window(GlobalWindows.create())
+				.trigger(new SegmentingOutOfOrderTrigger())
+				.evictor(new SegmentingEvictor())
+				.apply(new CreateStoppedSegment())
+				.print();
 
-        env.execute("Driving Segments");
-    }
+		env.execute("Driving Segments");
+	}
 
-    // triggering would be much simpler if we didn't have to worry about out-of-order events
-    public static class SegmentingInOrderTrigger extends Trigger<ConnectedCarEvent, GlobalWindow> {
-        @Override
-        public TriggerResult onElement(ConnectedCarEvent event, long timestamp, GlobalWindow window, TriggerContext ctx) throws Exception {
-            if (event.speed == 0.0) {
-                return TriggerResult.FIRE;
-            }
-            return TriggerResult.CONTINUE;
-        }
+	// triggering would be much simpler if we didn't have to worry about out-of-order events
+	public static class SegmentingInOrderTrigger extends Trigger<ConnectedCarEvent, GlobalWindow> {
+		@Override
+		public TriggerResult onElement(ConnectedCarEvent event, long timestamp, GlobalWindow window, TriggerContext ctx) throws Exception {
+			if (event.speed == 0.0) {
+				return TriggerResult.FIRE;
+			}
+			return TriggerResult.CONTINUE;
+		}
 
-        @Override
-        public TriggerResult onEventTime(long time, GlobalWindow window, TriggerContext ctx) {
-            return TriggerResult.CONTINUE;
-        }
+		@Override
+		public TriggerResult onEventTime(long time, GlobalWindow window, TriggerContext ctx) {
+			return TriggerResult.CONTINUE;
+		}
 
-        @Override
-        public TriggerResult onProcessingTime(long time, GlobalWindow window, TriggerContext ctx) {
-            return TriggerResult.CONTINUE;
-        }
+		@Override
+		public TriggerResult onProcessingTime(long time, GlobalWindow window, TriggerContext ctx) {
+			return TriggerResult.CONTINUE;
+		}
 
-        @Override
-        public void clear(GlobalWindow window, TriggerContext ctx) {
-        }
-    }
+		@Override
+		public void clear(GlobalWindow window, TriggerContext ctx) {
+		}
+	}
 
-    public static class SegmentingOutOfOrderTrigger extends Trigger<ConnectedCarEvent, GlobalWindow> {
+	public static class SegmentingOutOfOrderTrigger extends Trigger<ConnectedCarEvent, GlobalWindow> {
 
-        @Override
-        public TriggerResult onElement(ConnectedCarEvent event,
-                                       long timestamp,
-                                       GlobalWindow window,
-                                       TriggerContext context) throws Exception {
+		@Override
+		public TriggerResult onElement(ConnectedCarEvent event, long timestamp, GlobalWindow window, TriggerContext context) throws Exception {
 
-            // if this is a stop event, set a timer
-            if (event.speed == 0.0) {
-                context.registerEventTimeTimer(event.timestamp);
-            }
+			// if this is a stop event, set a timer
+			if (event.speed == 0.0) {
+				context.registerEventTimeTimer(event.timestamp);
+			}
 
-            return TriggerResult.CONTINUE;
-        }
+			return TriggerResult.CONTINUE;
+		}
 
-        @Override
-        public TriggerResult onEventTime(long time, GlobalWindow window, TriggerContext ctx) {
-            return TriggerResult.FIRE;
-        }
+		@Override
+		public TriggerResult onEventTime(long time, GlobalWindow window, TriggerContext ctx) {
+			return TriggerResult.FIRE;
+		}
 
-        @Override
-        public TriggerResult onProcessingTime(long time, GlobalWindow window, TriggerContext ctx) {
-            return TriggerResult.CONTINUE;
-        }
+		@Override
+		public TriggerResult onProcessingTime(long time, GlobalWindow window, TriggerContext ctx) {
+			return TriggerResult.CONTINUE;
+		}
 
-        @Override
-        public void clear(GlobalWindow window, TriggerContext ctx) {
-        }
-    }
+		@Override
+		public void clear(GlobalWindow window, TriggerContext ctx) {
+		}
+	}
 
-    public static class SegmentingEvictor implements Evictor<ConnectedCarEvent, GlobalWindow> {
+	public static class SegmentingEvictor implements Evictor<ConnectedCarEvent, GlobalWindow> {
 
-        @Override
-        public void evictBefore(Iterable<TimestampedValue<ConnectedCarEvent>> events,
-                                int size, GlobalWindow window, EvictorContext ctx) {
-        }
+		@Override
+		public void evictBefore(Iterable<TimestampedValue<ConnectedCarEvent>> events,
+								int size, GlobalWindow window, EvictorContext ctx) {
+		}
 
-        @Override
-        public void evictAfter(Iterable<TimestampedValue<ConnectedCarEvent>> elements,
-                               int size, GlobalWindow window, EvictorContext ctx) {
-            long firstStop = ConnectedCarEvent.earliestStopElement(elements);
+		@Override
+		public void evictAfter(Iterable<TimestampedValue<ConnectedCarEvent>> elements, int size, GlobalWindow window, EvictorContext ctx) {
+			long firstStop = ConnectedCarEvent.earliestStopElement(elements);
 
-            // remove all events up to the first stop event (which is the event that triggered the window)
-            for (Iterator<TimestampedValue<ConnectedCarEvent>> iterator = elements.iterator(); iterator.hasNext(); ) {
-                TimestampedValue<ConnectedCarEvent> element = iterator.next();
-                if (element.getTimestamp() <= firstStop) {
-                    iterator.remove();
-                }
-            }
-        }
-    }
+			// remove all events up to the first stop event (which is the event that triggered the window)
+			for (Iterator<TimestampedValue<ConnectedCarEvent>> iterator = elements.iterator(); iterator.hasNext(); ) {
+				TimestampedValue<ConnectedCarEvent> element = iterator.next();
+				if (element.getTimestamp() <= firstStop) {
+					iterator.remove();
+				}
+			}
+		}
+	}
 
-    public static class CreateStoppedSegment implements WindowFunction<ConnectedCarEvent, StoppedSegment, Tuple, GlobalWindow> {
-        @Override
-        public void apply(Tuple key, GlobalWindow window, Iterable<ConnectedCarEvent> events, Collector<StoppedSegment> out) {
-            StoppedSegment seg = new StoppedSegment(events);
-            if (seg.length > 0) {
-                out.collect(seg);
-            }
-        }
+	public static class CreateStoppedSegment implements WindowFunction<ConnectedCarEvent, StoppedSegment, Tuple, GlobalWindow> {
+		@Override
+		public void apply(Tuple key, GlobalWindow window, Iterable<ConnectedCarEvent> events, Collector<StoppedSegment> out) {
+			StoppedSegment seg = new StoppedSegment(events);
+			if (seg.length > 0) {
+				out.collect(seg);
+			}
+		}
 
-    }
+	}
 
 }

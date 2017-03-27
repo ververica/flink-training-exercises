@@ -17,16 +17,19 @@
 package com.dataartisans.flinktraining.exercises.datastream_java.utils;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.ConnectedCarEvent;
+
 import java.util.Comparator;
 
 public class CompareByTimestampAscending implements Comparator<ConnectedCarEvent> {
 
-    @Override
-    public int compare (ConnectedCarEvent a, ConnectedCarEvent b) {
-        if (a.timestamp > b.timestamp)
-            return 1;
-        if (a.timestamp == b.timestamp)
-            return 0;
-        return -1;
-    }
+	@Override
+	public int compare(ConnectedCarEvent a, ConnectedCarEvent b) {
+		if (a.timestamp > b.timestamp) {
+			return 1;
+		}
+		if (a.timestamp == b.timestamp) {
+			return 0;
+		}
+		return -1;
+	}
 }

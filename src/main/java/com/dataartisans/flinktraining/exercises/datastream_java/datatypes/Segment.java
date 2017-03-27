@@ -16,99 +16,104 @@
 
 package com.dataartisans.flinktraining.exercises.datastream_java.datatypes;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * A Segment contains data about a continuous stretch of driving.
- *
  */
 public class Segment {
-    public Long startTime;
-    public int length;
-    public int maxSpeed;
-    public float erraticness;
+	public Long startTime;
+	public int length;
+	public int maxSpeed;
+	public float erraticness;
 
-    public Segment() {
-    }
+	public Segment() {
+	}
 
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(startTime).append(",")
-                .append(length).append(" events,")
-                .append(maxSpeed).append(" kph,")
-                .append(erraticnessDesc());
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(startTime).append(",")
+				.append(length).append(" events,")
+				.append(maxSpeed).append(" kph,")
+				.append(erraticnessDesc());
 
-        return sb.toString();
-    }
+		return sb.toString();
+	}
 
-    public String erraticnessDesc() {
-        switch ((int) (erraticness / 2.5)) {
-            case 0:
-                return "calm";
-            case 1:
-                return "busy";
-            default:
-                return "crazy";
-        }
-    }
+	public String erraticnessDesc() {
+		switch ((int) (erraticness / 2.5)) {
+			case 0:
+				return "calm";
+			case 1:
+				return "busy";
+			default:
+				return "crazy";
+		}
+	}
 
-    @Override
-    public boolean equals(Object other) {
-        return other instanceof Segment &&
-                this.startTime == ((Segment) other).startTime;
-    }
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof Segment &&
+				this.startTime == ((Segment) other).startTime;
+	}
 
-    @Override
-    public int hashCode() {
-        return (int) this.startTime.hashCode();
-    }
+	@Override
+	public int hashCode() {
+		return (int) this.startTime.hashCode();
+	}
 
-    protected static float maxSpeed(ArrayList<ConnectedCarEvent> events) {
-        ConnectedCarEvent fastest = Collections.max(events, new CompareBySpeedMax());
-        return fastest.speed;
-    }
+	protected static float maxSpeed(ArrayList<ConnectedCarEvent> events) {
+		ConnectedCarEvent fastest = Collections.max(events, new CompareBySpeedMax());
+		return fastest.speed;
+	}
 
-    protected static long minTimestamp(ArrayList<ConnectedCarEvent> events) {
-        ConnectedCarEvent first = Collections.min(events, new CompareByTimestampMin());
-        return first.timestamp;
-    }
+	protected static long minTimestamp(ArrayList<ConnectedCarEvent> events) {
+		ConnectedCarEvent first = Collections.min(events, new CompareByTimestampMin());
+		return first.timestamp;
+	}
 
-    protected static float stddevThrottle(ArrayList<ConnectedCarEvent> array) {
-        float sum = 0.0f;
-        float mean;
-        float sum_of_sq_diffs = 0;
+	protected static float stddevThrottle(ArrayList<ConnectedCarEvent> array) {
+		float sum = 0.0f;
+		float mean;
+		float sum_of_sq_diffs = 0;
 
-        for (ConnectedCarEvent event : array) {
-            sum += event.throttle;
-        }
+		for (ConnectedCarEvent event : array) {
+			sum += event.throttle;
+		}
 
-        mean = sum / array.size();
-        for (ConnectedCarEvent event : array) {
-            sum_of_sq_diffs += (event.throttle - mean) * (event.throttle - mean);
-        }
+		mean = sum / array.size();
+		for (ConnectedCarEvent event : array) {
+			sum_of_sq_diffs += (event.throttle - mean) * (event.throttle - mean);
+		}
 
-        return (float) Math.sqrt(sum_of_sq_diffs / array.size());
-    }
+		return (float) Math.sqrt(sum_of_sq_diffs / array.size());
+	}
 
-    private static class CompareBySpeedMax implements Comparator<ConnectedCarEvent> {
-        public int compare(ConnectedCarEvent a, ConnectedCarEvent b) {
-            if (a.speed > b.speed)
-                return 1;
-            if (a.speed == b.speed)
-                return 0;
-            return -1;
-        }
-    }
+	private static class CompareBySpeedMax implements Comparator<ConnectedCarEvent> {
+		public int compare(ConnectedCarEvent a, ConnectedCarEvent b) {
+			if (a.speed > b.speed) {
+				return 1;
+			}
+			if (a.speed == b.speed) {
+				return 0;
+			}
+			return -1;
+		}
+	}
 
-    private static class CompareByTimestampMin implements Comparator<ConnectedCarEvent> {
+	private static class CompareByTimestampMin implements Comparator<ConnectedCarEvent> {
 
-        @Override
-        public int compare (ConnectedCarEvent a, ConnectedCarEvent b) {
-            if (a.timestamp < b.timestamp)
-                return 1;
-            if (a.timestamp == b.timestamp)
-                return 0;
-            return -1;
-        }
-    }
+		@Override
+		public int compare(ConnectedCarEvent a, ConnectedCarEvent b) {
+			if (a.timestamp < b.timestamp) {
+				return 1;
+			}
+			if (a.timestamp == b.timestamp) {
+				return 0;
+			}
+			return -1;
+		}
+	}
 }

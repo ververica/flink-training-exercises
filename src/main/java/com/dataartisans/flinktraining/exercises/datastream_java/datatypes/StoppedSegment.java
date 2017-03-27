@@ -21,41 +21,40 @@ import java.util.Iterator;
 
 /**
  * A StoppedSegment is punctuated by the car stopping.
- *
  */
 public class StoppedSegment extends Segment {
 
-    public StoppedSegment(Iterable<ConnectedCarEvent> events) {
-        long finishTime = StoppedSegment.earliestStopEvent(events);
+	public StoppedSegment(Iterable<ConnectedCarEvent> events) {
+		long finishTime = StoppedSegment.earliestStopEvent(events);
 
-        ArrayList<ConnectedCarEvent> list = new ArrayList<ConnectedCarEvent>();
-        for (Iterator<ConnectedCarEvent	> iterator = events.iterator(); iterator.hasNext(); ) {
-            ConnectedCarEvent event = iterator.next();
-            if (event.timestamp < finishTime) {
-                list.add(event);
-            }
-        }
+		ArrayList<ConnectedCarEvent> list = new ArrayList<ConnectedCarEvent>();
+		for (Iterator<ConnectedCarEvent> iterator = events.iterator(); iterator.hasNext(); ) {
+			ConnectedCarEvent event = iterator.next();
+			if (event.timestamp < finishTime) {
+				list.add(event);
+			}
+		}
 
-        this.length = list.size();
+		this.length = list.size();
 
-        if (this.length > 0) {
-            this.startTime = Segment.minTimestamp(list);
-            this.maxSpeed = (int) Segment.maxSpeed(list);
-            this.erraticness = Segment.stddevThrottle(list);
-        }
-    }
+		if (this.length > 0) {
+			this.startTime = Segment.minTimestamp(list);
+			this.maxSpeed = (int) Segment.maxSpeed(list);
+			this.erraticness = Segment.stddevThrottle(list);
+		}
+	}
 
-    private static Long earliestStopEvent(Iterable<ConnectedCarEvent> events) {
-        long earliestTime = Long.MAX_VALUE;
+	private static Long earliestStopEvent(Iterable<ConnectedCarEvent> events) {
+		long earliestTime = Long.MAX_VALUE;
 
-        for (Iterator<ConnectedCarEvent	> iterator = events.iterator(); iterator.hasNext(); ) {
-            ConnectedCarEvent event = iterator.next();
-            if (event.timestamp < earliestTime && event.speed == 0.0) {
-                earliestTime = event.timestamp;
-            }
-        }
+		for (Iterator<ConnectedCarEvent> iterator = events.iterator(); iterator.hasNext(); ) {
+			ConnectedCarEvent event = iterator.next();
+			if (event.timestamp < earliestTime && event.speed == 0.0) {
+				earliestTime = event.timestamp;
+			}
+		}
 
-        return earliestTime;
-    }
+		return earliestTime;
+	}
 
 }

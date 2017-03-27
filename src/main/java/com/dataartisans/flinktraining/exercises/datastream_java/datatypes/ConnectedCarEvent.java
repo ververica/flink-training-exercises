@@ -105,10 +105,12 @@ public class ConnectedCarEvent implements Comparable<ConnectedCarEvent> {
 	}
 
 	public int compareTo(ConnectedCarEvent other) {
-		if (this.timestamp < other.timestamp)
+		if (this.timestamp < other.timestamp) {
 			return -1;
-		if (this.timestamp == other.timestamp)
+		}
+		if (this.timestamp == other.timestamp) {
 			return 0;
+		}
 		return 1;
 	}
 

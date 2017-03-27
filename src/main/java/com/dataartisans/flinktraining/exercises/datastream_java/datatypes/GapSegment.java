@@ -21,24 +21,23 @@ import java.util.Iterator;
 
 /**
  * A GapSegment is punctuated by an interval of more than 5 seconds without data.
- *
  */
 public class GapSegment extends Segment {
-    public GapSegment(Iterable<ConnectedCarEvent> events) {
+	public GapSegment(Iterable<ConnectedCarEvent> events) {
 
-        ArrayList<ConnectedCarEvent> list = new ArrayList<ConnectedCarEvent>();
-        for (Iterator<ConnectedCarEvent	> iterator = events.iterator(); iterator.hasNext(); ) {
-            ConnectedCarEvent event = iterator.next();
-            list.add(event);
-        }
+		ArrayList<ConnectedCarEvent> list = new ArrayList<ConnectedCarEvent>();
+		for (Iterator<ConnectedCarEvent> iterator = events.iterator(); iterator.hasNext(); ) {
+			ConnectedCarEvent event = iterator.next();
+			list.add(event);
+		}
 
-        this.length = list.size();
+		this.length = list.size();
 
-        if (this.length > 0) {
-            this.startTime = GapSegment.minTimestamp(list);
-            this.maxSpeed = (int) GapSegment.maxSpeed(list);
-            this.erraticness = GapSegment.stddevThrottle(list);
-        }
-    }
+		if (this.length > 0) {
+			this.startTime = GapSegment.minTimestamp(list);
+			this.maxSpeed = (int) GapSegment.maxSpeed(list);
+			this.erraticness = GapSegment.stddevThrottle(list);
+		}
+	}
 
 }
