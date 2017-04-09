@@ -14,6 +14,25 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_scala.lowlatencyjoin
+package com.dataartisans.flinktraining.exercises.datastream_java.datatypes;
 
-case class Customer(timestamp: Long, customerId: Long, customerInfo: String)
+public class EnrichedTrade {
+
+	public EnrichedTrade() {}
+
+	public EnrichedTrade(Trade trade, String customerInfo) {
+
+		this.trade = trade;
+		this.customerInfo = customerInfo;
+	}
+
+	public Trade trade;
+	public String customerInfo;
+
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("EnrichedTrade(").append(trade.timestamp).append(") ");
+		sb.append(customerInfo);
+		return sb.toString();
+	}
+}
