@@ -24,14 +24,14 @@ import org.apache.flink.streaming.api.watermark.Watermark
 
 object FinSources {
   /**
-    * This source generates a stream of customer events (CDC info)
+    * This source generates a stream of customer events
     *
     * @param env
     * @return
     */
 
   def customerSource(env: StreamExecutionEnvironment): DataStream[Customer] = {
-    // TODO: This is a bit of a hack to use Thread.sleep() for sequencing but it works for our test purposes
+    // This is a bit of a hack to use Thread.sleep() for sequencing but it works for our test purposes
      env.addSource((sc: SourceContext[Customer]) => {
        sc.collectWithTimestamp(new Customer(0L, 0L, "Customer data @ 0"), 0)
        sc.emitWatermark(new Watermark(0))

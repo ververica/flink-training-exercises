@@ -29,7 +29,7 @@ public class FinSources {
 	 *
 	 * */
 	public static DataStream<Customer> customerSource(StreamExecutionEnvironment env) {
-		// TODO: This is a bit of a hack to use Thread.sleep() for sequencing but it works for our test purposes
+		// This is a bit of a hack to use Thread.sleep() for sequencing but it works for our test purposes
 		DataStream<Customer> customers = env.addSource(new SourceFunction<Customer>() {
 			@Override
 			public void run(SourceContext<Customer> sc) throws Exception {
@@ -66,7 +66,7 @@ public class FinSources {
 	 *
 	 * */
 	public static DataStream<Trade> tradeSource(StreamExecutionEnvironment env) {
-		// TODO: This is a bit of a hack to use Thread.sleep() for sequencing but it works for our test purposes
+		// This is a bit of a hack to use Thread.sleep() for sequencing but it works for our test purposes
 		DataStream<Trade> trades = env.addSource(new SourceFunction<Trade>() {
 			@Override
 			public void run(SourceContext<Trade> sc) throws Exception {

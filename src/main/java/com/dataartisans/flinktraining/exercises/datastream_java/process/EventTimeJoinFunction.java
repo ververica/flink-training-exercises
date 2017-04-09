@@ -48,7 +48,7 @@ import org.apache.flink.util.Collector;
 public class EventTimeJoinFunction extends EventTimeJoinHelper {
 	@Override
 	public void processElement1(Trade trade, Context context, Collector<EnrichedTrade> collector) {
-		System.out.println("Received " + trade.toString());
+		System.out.println("Java Received " + trade.toString());
 		TimerService timerService = context.timerService();
 		EnrichedTrade joinedData = join(trade);
 		collector.collect(joinedData);
@@ -63,7 +63,7 @@ public class EventTimeJoinFunction extends EventTimeJoinHelper {
 
 	@Override
 	public void processElement2(Customer customer, Context context, Collector<EnrichedTrade> collector) {
-		System.out.println("Received " + customer.toString());
+		System.out.println("Java Received " + customer.toString());
 		enqueueCustomer(customer);
 	}
 

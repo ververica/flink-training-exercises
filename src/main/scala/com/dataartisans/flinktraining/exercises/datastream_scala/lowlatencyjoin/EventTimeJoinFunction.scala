@@ -46,7 +46,7 @@ import org.apache.flink.util.Collector
 class EventTimeJoinFunction extends EventTimeJoinHelper {
 
   override def processElement1(trade: Trade, context: Context, collector: Collector[EnrichedTrade]): Unit = {
-    println(s"Received: $trade")
+    println(s"Scala Received: $trade")
 
     val timerService = context.timerService()
     val joinedData = join(trade)
@@ -60,7 +60,7 @@ class EventTimeJoinFunction extends EventTimeJoinHelper {
   }
 
   override def processElement2(customer: Customer, context: Context, collector: Collector[EnrichedTrade]): Unit = {
-    println(s"Received $customer")
+    println(s"Scala Received $customer")
     enqueueCustomer(customer)
   }
 

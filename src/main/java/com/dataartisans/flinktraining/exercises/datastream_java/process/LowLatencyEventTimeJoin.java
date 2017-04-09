@@ -19,7 +19,6 @@ package com.dataartisans.flinktraining.exercises.datastream_java.process;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.Customer;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.EnrichedTrade;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.Trade;
-import com.dataartisans.flinktraining.exercises.datastream_scala.lowlatencyjoin.EventTimeJoinFunction;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.FinSources;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
