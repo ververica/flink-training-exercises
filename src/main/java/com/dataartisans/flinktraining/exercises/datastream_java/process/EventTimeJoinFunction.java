@@ -22,6 +22,7 @@ import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.Trade;
 import com.dataartisans.flinktraining.exercises.datastream_scala.lowlatencyjoin.EventTimeJoinHelper;
 import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.util.Collector;
+import scala.collection.Iterator;
 
 /**
  * This is a homegrown join function using the new Flink 1.2 ProcessFunction.
@@ -84,8 +85,10 @@ public class EventTimeJoinFunction extends EventTimeJoinHelper {
 	}
 
 	private String getCustomerInfo(Trade trade) {
-		while(customerIterator().hasNext()) {
-			Customer customer = customerIterator().next();
+		Iterator<Customer> it = customerIterator();
+		while (it.hasNext()) {
+			Customer customer = it.next();
+
 			if (customer.timestamp <= trade.timestamp) {
 				return customer.customerInfo;
 			}
