@@ -146,7 +146,7 @@ public class DrivingSegments {
 		public void evictAfter(Iterable<TimestampedValue<ConnectedCarEvent>> elements, int size, GlobalWindow window, EvictorContext ctx) {
 			long firstStop = ConnectedCarEvent.earliestStopElement(elements);
 
-			// remove all events up to the first stop event (which is the event that triggered the window)
+			// remove all events up to (and including) the first stop event (which is the event that triggered the window)
 			for (Iterator<TimestampedValue<ConnectedCarEvent>> iterator = elements.iterator(); iterator.hasNext(); ) {
 				TimestampedValue<ConnectedCarEvent> element = iterator.next();
 				if (element.getTimestamp() <= firstStop) {
