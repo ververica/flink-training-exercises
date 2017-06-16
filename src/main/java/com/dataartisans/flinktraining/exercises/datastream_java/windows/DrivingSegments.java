@@ -82,31 +82,6 @@ public class DrivingSegments {
 		env.execute("Driving Segments");
 	}
 
-	// triggering would be much simpler if we didn't have to worry about out-of-order events
-	public static class SegmentingInOrderTrigger extends Trigger<ConnectedCarEvent, GlobalWindow> {
-		@Override
-		public TriggerResult onElement(ConnectedCarEvent event, long timestamp, GlobalWindow window, TriggerContext ctx) throws Exception {
-			if (event.speed == 0.0) {
-				return TriggerResult.FIRE;
-			}
-			return TriggerResult.CONTINUE;
-		}
-
-		@Override
-		public TriggerResult onEventTime(long time, GlobalWindow window, TriggerContext ctx) {
-			return TriggerResult.CONTINUE;
-		}
-
-		@Override
-		public TriggerResult onProcessingTime(long time, GlobalWindow window, TriggerContext ctx) {
-			return TriggerResult.CONTINUE;
-		}
-
-		@Override
-		public void clear(GlobalWindow window, TriggerContext ctx) {
-		}
-	}
-
 	public static class SegmentingOutOfOrderTrigger extends Trigger<ConnectedCarEvent, GlobalWindow> {
 
 		@Override

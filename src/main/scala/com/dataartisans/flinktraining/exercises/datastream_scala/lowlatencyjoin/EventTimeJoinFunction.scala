@@ -40,12 +40,11 @@ package com.dataartisans.flinktraining.exercises.datastream_scala.lowlatencyjoin
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.{Customer, EnrichedTrade, Trade}
 import org.apache.flink.api.scala._
-import org.apache.flink.streaming.api.functions.co.CoProcessFunction.{Context, OnTimerContext}
+import org.apache.flink.streaming.api.functions.co.CoProcessFunction
 import org.apache.flink.util.Collector
 
 class EventTimeJoinFunction extends EventTimeJoinHelper {
-
-  override def processElement1(trade: Trade, context: Context, collector: Collector[EnrichedTrade]): Unit = {
+  override def processElement1(trade: Trade, context: CoProcessFunction[Trade, Customer, EnrichedTrade]#Context, collector: Collector[EnrichedTrade]): Unit = {
     println(s"Scala Received: $trade")
 
     val timerService = context.timerService()
@@ -59,12 +58,12 @@ class EventTimeJoinFunction extends EventTimeJoinHelper {
     }
   }
 
-  override def processElement2(customer: Customer, context: Context, collector: Collector[EnrichedTrade]): Unit = {
+  override def processElement2(customer: Customer, context: CoProcessFunction[Trade, Customer, EnrichedTrade]#Context, collector: Collector[EnrichedTrade]): Unit = {
     println(s"Scala Received $customer")
     enqueueCustomer(customer)
   }
 
-  override def onTimer(l: Long, context: OnTimerContext, collector: Collector[EnrichedTrade]): Unit = {
+  override def onTimer(timestamp: Long, context: CoProcessFunction[Trade, Customer, EnrichedTrade]#OnTimerContext, collector: Collector[EnrichedTrade]): Unit = {
     // look for trades that can now be completed, do the join, and remove from the tradebuffer
     val watermark: Long = context.timerService().currentWatermark()
     while (timestampOfFirstTrade() <= watermark) {

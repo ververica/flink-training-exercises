@@ -26,7 +26,7 @@ import org.apache.flink.graph.EdgeJoinFunction;
 import org.apache.flink.graph.Graph;
 import org.apache.flink.graph.ReduceEdgesFunction;
 import org.apache.flink.graph.Vertex;
-import org.apache.flink.graph.library.PageRank;
+import org.apache.flink.graph.examples.PageRank;
 import org.apache.flink.graph.utils.Tuple3ToEdgeMap;
 
 /**
@@ -54,7 +54,6 @@ public class PageRankWithEdgeWeights{
 		String outputPath;
 
 		if (args.length == 3) {
-			
 			edgeInputPath = args[0];
 			outputPath = args[1];
 			maxIterations = Integer.parseInt(args[2]);

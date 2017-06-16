@@ -20,11 +20,12 @@ import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.{Custo
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
-import org.apache.flink.streaming.api.functions.co.RichCoProcessFunction
+import org.apache.flink.streaming.api.functions.co.CoProcessFunction
+import org.apache.flink.util.Collector
 
 import scala.collection.mutable
 
-abstract class EventTimeJoinHelper extends RichCoProcessFunction[Trade, Customer, EnrichedTrade] {
+abstract class EventTimeJoinHelper extends CoProcessFunction[Trade, Customer, EnrichedTrade] {
 
   protected var tradeBufferState: ValueState[mutable.PriorityQueue[EnrichedTrade]] = null
   protected var customerBufferState: ValueState[mutable.PriorityQueue[Customer]] = null

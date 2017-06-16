@@ -18,7 +18,7 @@ package com.dataartisans.flinktraining.exercises.gelly_scala
 
 import org.apache.flink.api.common.functions.MapFunction
 import org.apache.flink.api.scala._
-import org.apache.flink.graph.library.PageRank
+import org.apache.flink.graph.examples.PageRank
 import org.apache.flink.graph.scala.utils.Tuple3ToEdgeMap
 import org.apache.flink.graph._
 import java.lang.{Double => JDouble}
