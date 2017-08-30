@@ -16,6 +16,12 @@
 
 package com.dataartisans.flinktraining.exercises.datastream_java.utils;
 
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.typeutils.TupleTypeInfo;
+import org.apache.flink.table.functions.ScalarFunction;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -246,6 +252,42 @@ public class GeoUtils {
 		int degrees = (int)Math.toDegrees(Math.atan2(x, y)) + 179;
 
 		return degrees;
+	}
+
+	/**
+	 * Table API / SQL Scalar UDF to check if a coordinate is in NYC.
+	 */
+	public static class IsInNYC extends ScalarFunction {
+		public boolean eval(float lon, float lat) {
+			return isInNYC(lon, lat);
+		}
+	}
+
+	/**
+	 * Table API / SQL Scalar UDF to convert a lon/lat pair into a cell ID.
+	 */
+	public static class ToCellId extends ScalarFunction {
+		public int eval(float lon, float lat) {
+			return GeoUtils.mapToGridCell(lon, lat);
+		}
+	}
+
+	/**
+	 * Table API / SQL Scalar UDF to convert a cell ID into a lon/lat pair.
+	 */
+	public static class ToCoords extends ScalarFunction {
+		public Tuple2<Float, Float> eval(int cellId) {
+			return Tuple2.of(
+					GeoUtils.getGridCellCenterLon(cellId),
+					GeoUtils.getGridCellCenterLat(cellId)
+			);
+		}
+
+		@Override
+		public TypeInformation getResultType(Class[] signature) {
+			return new TupleTypeInfo<>(Types.FLOAT, Types.FLOAT);
+		}
+
 	}
 
 }

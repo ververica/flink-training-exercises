@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.table_scala.memberotm
+package com.dataartisans.flinktraining.exercises.table_scala.batch.memberotm
 
 import com.dataartisans.flinktraining.dataset_preparation.MBoxParser
 import org.apache.flink.api.java.utils.ParameterTool
