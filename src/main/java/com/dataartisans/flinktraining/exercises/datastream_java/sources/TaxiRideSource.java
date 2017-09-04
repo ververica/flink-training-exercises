@@ -220,12 +220,7 @@ public class TaxiRideSource implements SourceFunction<TaxiRide> {
 	}
 
 	public long getEventTime(TaxiRide ride) {
-		if (ride.isStart) {
-			return ride.startTime.getMillis();
-		}
-		else {
-			return ride.endTime.getMillis();
-		}
+		return ride.getEventTime();
 	}
 
 	public long getNormalDelayMsecs(Random rand) {

@@ -135,12 +135,7 @@ public class CheckpointedTaxiRideSource implements SourceFunction<TaxiRide>, Lis
 	}
 
 	public long getEventTime(TaxiRide ride) {
-		if (ride.isStart) {
-			return ride.startTime.getMillis();
-		}
-		else {
-			return ride.endTime.getMillis();
-		}
+		return ride.getEventTime();
 	}
 
 	@Override

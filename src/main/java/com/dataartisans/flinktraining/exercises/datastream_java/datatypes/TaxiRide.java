@@ -73,13 +73,8 @@ public class TaxiRide {
 		StringBuilder sb = new StringBuilder();
 		sb.append(rideId).append(",");
 		sb.append(isStart ? "START" : "END").append(",");
-		if (isStart) {
-			sb.append(startTime.toString(timeFormatter)).append(",");
-			sb.append(endTime.toString(timeFormatter)).append(",");
-		} else {
-			sb.append(endTime.toString(timeFormatter)).append(",");
-			sb.append(startTime.toString(timeFormatter)).append(",");
-		}
+		sb.append(startTime.toString(timeFormatter)).append(",");
+		sb.append(endTime.toString(timeFormatter)).append(",");
 		sb.append(startLon).append(",");
 		sb.append(startLat).append(",");
 		sb.append(endLon).append(",");
@@ -140,4 +135,12 @@ public class TaxiRide {
 		return (int)this.rideId;
 	}
 
+	public long getEventTime() {
+		if (isStart) {
+			return startTime.getMillis();
+		}
+		else {
+			return endTime.getMillis();
+		}
+	}
 }
