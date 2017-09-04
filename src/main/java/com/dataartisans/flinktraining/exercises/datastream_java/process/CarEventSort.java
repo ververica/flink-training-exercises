@@ -45,6 +45,7 @@ public class CarEventSort {
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+		env.setParallelism(1);
 
 		// connect to the data file
 		DataStream<String> carData = env.readTextFile(input);

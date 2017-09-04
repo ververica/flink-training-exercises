@@ -19,7 +19,7 @@
 	
 	<groupId>com.data-artisans</groupId>
 	<artifactId>flink-training-exercises</artifactId>
-	<version>0.10.0</version>
+	<version>0.11.0</version>
 	<packaging>jar</packaging>
 
 	<name>Apache Flink Training Exercises</name>
@@ -88,6 +88,18 @@
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-streaming-scala_2.10</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-cep_2.10</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-cep-scala_2.10</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 
