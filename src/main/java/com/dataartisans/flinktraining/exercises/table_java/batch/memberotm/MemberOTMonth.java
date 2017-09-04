@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.table_java.memberotm;
+package com.dataartisans.flinktraining.exercises.table_java.batch.memberotm;
 
 import com.dataartisans.flinktraining.dataset_preparation.MBoxParser;
 import org.apache.flink.api.common.functions.MapFunction;
