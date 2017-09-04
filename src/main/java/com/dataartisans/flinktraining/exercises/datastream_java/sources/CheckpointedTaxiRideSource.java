@@ -97,13 +97,13 @@ public class CheckpointedTaxiRideSource implements SourceFunction<TaxiRide>, Lis
 		gzipStream = new GZIPInputStream(new FileInputStream(dataFilePath));
 		reader = new BufferedReader(new InputStreamReader(gzipStream, "UTF-8"));
 
-		long prevRideTime = 0;
+		Long prevRideTime = null;
 
 		String line;
 		long cnt = 0;
 
 		// skip emitted events
-		while (reader.ready() && (line = reader.readLine()) != null && cnt <= eventCnt) {
+		while (cnt < eventCnt && reader.ready() && (line = reader.readLine()) != null) {
 			cnt++;
 			TaxiRide ride = TaxiRide.fromString(line);
 			prevRideTime = getEventTime(ride);
@@ -114,9 +114,11 @@ public class CheckpointedTaxiRideSource implements SourceFunction<TaxiRide>, Lis
 
 			TaxiRide ride = TaxiRide.fromString(line);
 			long rideTime = getEventTime(ride);
-			long diff = (rideTime - prevRideTime) / servingSpeed;
 
-			Thread.sleep(diff);
+			if (prevRideTime != null) {
+				long diff = (rideTime - prevRideTime) / servingSpeed;
+				Thread.sleep(diff);
+			}
 
 			synchronized (lock) {
 				eventCnt++;
