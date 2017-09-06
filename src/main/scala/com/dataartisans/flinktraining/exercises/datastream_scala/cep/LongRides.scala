@@ -30,6 +30,17 @@ import org.apache.flink.cep.{PatternFlatSelectFunction, PatternFlatTimeoutFuncti
 import org.apache.flink.util.Collector
 import org.apache.flink.streaming.api.scala._
 
+/**
+  * Scala/CEP reference implementation for the "Long Ride Alerts" exercise of the Flink training
+  * (http://training.data-artisans.com).
+  *
+  * The goal for this exercise is to emit START events for taxi rides that have not been matched
+  * by an END event during the first 2 hours of the ride.
+  *
+  * Parameters:
+  * -input path-to-input-file
+  *
+  */
 object LongRides {
   def main(args: Array[String]) {
     // parse parameters
@@ -65,7 +76,7 @@ object LongRides {
 
   class TaxiRideTimedOut[TaxiRide] extends PatternFlatTimeoutFunction[TaxiRide, TaxiRide] {
     override def timeout(map: JMap[String, JList[TaxiRide]], l: Long, collector: Collector[TaxiRide]): Unit = {
-      val rideStarted: TaxiRide = map.get("start").get(0)
+      val rideStarted = map.get("start").get(0)
       collector.collect(rideStarted)
     }
   }

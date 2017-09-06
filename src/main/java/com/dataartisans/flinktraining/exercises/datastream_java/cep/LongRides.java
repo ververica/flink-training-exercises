@@ -35,6 +35,17 @@ import org.apache.flink.util.Collector;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Java/CEP reference implementation for the "Long Ride Alerts" exercise of the Flink training
+ * (http://training.data-artisans.com).
+ *
+ * The goal for this exercise is to emit START events for taxi rides that have not been matched
+ * by an END event during the first 2 hours of the ride.
+ *
+ * Parameters:
+ * -input path-to-input-file
+ *
+ */
 public class LongRides {
 	public static void main(String[] args) throws Exception {
 
@@ -53,18 +64,21 @@ public class LongRides {
 			.keyBy("rideId");
 
 		// A complete taxi ride has a START event followed by an END event
-		Pattern<TaxiRide, TaxiRide> completedRides = Pattern.<TaxiRide>begin("start")
-			.where(new SimpleCondition<TaxiRide>() {
-				@Override
-				public boolean filter(TaxiRide ride) throws Exception {
-					return ride.isStart;
-				}
-			}).next("end").where(new SimpleCondition<TaxiRide>() {
-				@Override
-				public boolean filter(TaxiRide ride) throws Exception {
-					return !ride.isStart;
-				}
-			});
+		Pattern<TaxiRide, TaxiRide> completedRides =
+				Pattern.<TaxiRide>begin("start")
+						.where(new SimpleCondition<TaxiRide>() {
+							@Override
+							public boolean filter(TaxiRide ride) throws Exception {
+								return ride.isStart;
+							}
+						})
+						.next("end")
+						.where(new SimpleCondition<TaxiRide>() {
+							@Override
+							public boolean filter(TaxiRide ride) throws Exception {
+								return !ride.isStart;
+							}
+						});
 
 		// We want to find rides that have NOT been completed within 120 minutes
 		PatternStream<TaxiRide> patternStream = CEP.pattern(keyedRides, completedRides.within(Time.minutes(120)));

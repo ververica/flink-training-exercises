@@ -20,8 +20,6 @@ import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRi
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
-import org.apache.flink.api.common.typeinfo.TypeHint;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -31,6 +29,17 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 
+/**
+ * Java reference implementation for the "Long Ride Alerts" exercise of the Flink training
+ * (http://training.data-artisans.com).
+ *
+ * The goal for this exercise is to emit START events for taxi rides that have not been matched
+ * by an END event during the first 2 hours of the ride.
+ *
+ * Parameters:
+ * -input path-to-input-file
+ *
+ */
 public class LongRides {
 	public static void main(String[] args) throws Exception {
 
@@ -63,16 +72,13 @@ public class LongRides {
 
 		@Override
 		public void open(Configuration config) {
-			ValueStateDescriptor<TaxiRide> startDescriptor = new ValueStateDescriptor<>(
-					"started-ride",
-					TypeInformation.of(new TypeHint<TaxiRide>() {
-			}));
+			ValueStateDescriptor<TaxiRide> startDescriptor =
+					new ValueStateDescriptor<>("started-ride", TaxiRide.class);
 			rideStartedState = getRuntimeContext().getState(startDescriptor);
 
-			ValueStateDescriptor<TaxiRide> endDescriptor = new ValueStateDescriptor<>(
-					"ended-ride",
-					TypeInformation.of(new TypeHint<TaxiRide>() {
-			}));
+			ValueStateDescriptor<TaxiRide> endDescriptor =
+					new ValueStateDescriptor<>("ended-ride", TaxiRide.class);
+
 			rideEndedState = getRuntimeContext().getState(endDescriptor);
 		}
 
@@ -91,8 +97,6 @@ public class LongRides {
 					// There either was no matching START event, or
 					// this is a long ride and the START has already been reported and cleared.
 					// In either case, we should not create any state, since it will never get cleared.
-
-					// out.collect(ride);
 				}
 			}
 		}

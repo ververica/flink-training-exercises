@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Java reference implementation for the "Travel Time Prediction" exercise of the Flink training
- * (http://dataartisans.github.io/flink-training).
+ * (http://training.data-artisans.com).
  *
  * The task of the exercise is to continuously train a regression model that predicts
  * the travel time of a taxi based on the information of taxi ride end events.

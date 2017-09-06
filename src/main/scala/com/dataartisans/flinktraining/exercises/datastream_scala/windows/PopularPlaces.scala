@@ -28,7 +28,7 @@ import org.apache.flink.util.Collector
 
 /**
  * Scala reference implementation for the "Popular Places" exercise of the Flink training
- * (http://dataartisans.github.io/flink-training).
+ * (http://training.data-artisans.com).
  *
  * The task of the exercise is to identify every five minutes popular areas where many taxi rides
  * arrived or departed in the last 15 minutes.

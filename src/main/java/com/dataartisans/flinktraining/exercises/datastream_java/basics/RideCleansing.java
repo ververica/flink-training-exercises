@@ -27,7 +27,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
  * Java reference implementation for the "Ride Cleansing" exercise of the Flink training
- * (http://dataartisans.github.io/flink-training).
+ * (http://training.data-artisans.com).
  * The task of the exercise is to filter a data stream of taxi ride records to keep only rides that
  * start and end within New York City. The resulting stream should be printed.
  *

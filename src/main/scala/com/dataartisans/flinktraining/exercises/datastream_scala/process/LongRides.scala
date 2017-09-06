@@ -28,6 +28,17 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.util.Collector
 
+/**
+  * Scala reference implementation for the "Long Ride Alerts" exercise of the Flink training
+  * (http://training.data-artisans.com).
+  *
+  * The goal for this exercise is to emit START events for taxi rides that have not been matched
+  * by an END event during the first 2 hours of the ride.
+  *
+  * Parameters:
+  * -input path-to-input-file
+  *
+  */
 object LongRides {
   def main(args: Array[String]) {
 
@@ -57,11 +68,13 @@ object LongRides {
   class MatchFunction extends ProcessFunction[TaxiRide, TaxiRide] {
     // keyed, managed state -- matching START and END taxi ride events
     lazy val rideStartedState: ValueState[TaxiRide] = getRuntimeContext.getState(
-      new ValueStateDescriptor[TaxiRide]("started-ride", TypeInformation.of(new TypeHint[TaxiRide]() {})))
+      new ValueStateDescriptor[TaxiRide]("started-ride", classOf[TaxiRide]))
     lazy val rideEndedState: ValueState[TaxiRide] = getRuntimeContext.getState(
-      new ValueStateDescriptor[TaxiRide]("ended-ride", TypeInformation.of(new TypeHint[TaxiRide]() {})))
+      new ValueStateDescriptor[TaxiRide]("ended-ride", classOf[TaxiRide]))
 
-    override def processElement(ride: TaxiRide, context: ProcessFunction[TaxiRide, TaxiRide]#Context, out: Collector[TaxiRide]): Unit = {
+    override def processElement(ride: TaxiRide,
+                                context: ProcessFunction[TaxiRide, TaxiRide]#Context,
+                                out: Collector[TaxiRide]): Unit = {
       val timerService = context.timerService
 
       if (ride.isStart) {
@@ -77,13 +90,13 @@ object LongRides {
           // There either was no matching START event, or
           // this is a long ride and the START has already been reported and cleared.
           // In either case, we should not create any state, since it will never get cleared.
-
-          // out.collect(ride)
         }
       }
     }
 
-    override def onTimer(timestamp: Long, ctx: ProcessFunction[TaxiRide, TaxiRide]#OnTimerContext, out: Collector[TaxiRide]): Unit = {
+    override def onTimer(timestamp: Long,
+                         ctx: ProcessFunction[TaxiRide, TaxiRide]#OnTimerContext,
+                         out: Collector[TaxiRide]): Unit = {
       val rideStarted = rideStartedState.value
       val rideEnded = rideEndedState.value
 

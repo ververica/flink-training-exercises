@@ -38,7 +38,7 @@ import java.util.Iterator;
 
 /**
  * Java reference implementation for the "Driving Segments" exercise of the Flink training
- * (http://dataartisans.github.io/flink-training).
+ * (http://training.data-artisans.com).
  *
  * The task of the exercise is to divide the input stream of ConnectedCarEvents into segments,
  * where the car is being continuously driven without stopping.
