@@ -16,12 +16,15 @@
 
 package com.dataartisans.flinktraining.exercises.datastream_scala.process
 
+import java.util.concurrent.TimeUnit
+
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource
-
+import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
-import org.apache.flink.api.common.typeinfo.{TypeHint, TypeInformation}
+import org.apache.flink.api.common.time.Time
 import org.apache.flink.api.java.utils.ParameterTool
+import org.apache.flink.runtime.state.filesystem.FsStateBackend
 import org.apache.flink.streaming.api.{TimeCharacteristic, TimerService}
 import org.apache.flink.streaming.api.functions.ProcessFunction
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
@@ -52,6 +55,11 @@ object LongRides {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     // operate in Event-time
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+
+    // set up checkpointing
+    env.setStateBackend(new FsStateBackend("file:///tmp/checkpoints"))
+    env.enableCheckpointing(1000)
+    env.setRestartStrategy(RestartStrategies.fixedDelayRestart(60, Time.of(10, TimeUnit.SECONDS)))
 
     // get the taxi ride data stream, in order
     val rides = env.addSource(new CheckpointedTaxiRideSource(input, speed))
