@@ -135,7 +135,7 @@ public class TravelTimePrediction {
 			double distance = GeoUtils.getEuclideanDistance(ride.startLon, ride.startLat, ride.endLon, ride.endLat);
 			int direction = GeoUtils.getDirectionAngle(ride.endLon, ride.endLat, ride.startLon, ride.startLat);
 
-			if(ride.isStart) {
+			if (ride.isStart) {
 				// we have a start event: Predict travel time
 				int predictedTime = model.predictTravelTime(direction, distance);
 				// emit prediction
