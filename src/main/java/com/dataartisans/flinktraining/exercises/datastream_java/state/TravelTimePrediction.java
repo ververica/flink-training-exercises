@@ -159,7 +159,7 @@ public class TravelTimePrediction {
 							// state name
 							"regressionModel",
 							// type information of state
-							TypeInformation.of(new TypeHint<TravelTimePredictionModel>() {}));
+							TypeInformation.of(TravelTimePredictionModel.class));
 			modelState = getRuntimeContext().getState(descriptor);
 		}
 	}
