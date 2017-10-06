@@ -36,7 +36,7 @@ import org.apache.flink.util.Collector;
  * (http://training.data-artisans.com).
  * <p>
  * The task of the exercise is to divide the input stream of ConnectedCarEvents into
- * session windows, defined by a gap of 5 seconds. Each window should then be mapped onto
+ * session windows, defined by a gap of 15 seconds. Each window should then be mapped onto
  * a GapSegment object.
  * <p>
  * Parameters:

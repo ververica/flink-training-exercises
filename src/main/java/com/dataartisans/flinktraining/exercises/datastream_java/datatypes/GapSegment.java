@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * A GapSegment is punctuated by an interval of more than 5 seconds without data.
+ * A GapSegment is punctuated by an interval of more than 15 seconds without data.
  */
 public class GapSegment extends Segment {
 	public GapSegment(Iterable<ConnectedCarEvent> events) {
