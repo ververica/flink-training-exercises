@@ -126,6 +126,9 @@ public class TravelTimePrediction {
 
 			// fetch operator state
 			TravelTimePredictionModel model = modelState.value();
+			if (model == null) {
+				model = new TravelTimePredictionModel();
+			}
 
 			TaxiRide ride = val.f1;
 			// compute distance and direction
@@ -156,9 +159,7 @@ public class TravelTimePrediction {
 							// state name
 							"regressionModel",
 							// type information of state
-							TypeInformation.of(new TypeHint<TravelTimePredictionModel>() {}),
-							// default value of state
-							new TravelTimePredictionModel());
+							TypeInformation.of(new TypeHint<TravelTimePredictionModel>() {}));
 			modelState = getRuntimeContext().getState(descriptor);
 		}
 	}
