@@ -105,13 +105,7 @@ public class ConnectedCarEvent implements Comparable<ConnectedCarEvent> {
 	}
 
 	public int compareTo(ConnectedCarEvent other) {
-		if (this.timestamp < other.timestamp) {
-			return -1;
-		}
-		if (this.timestamp == other.timestamp) {
-			return 0;
-		}
-		return 1;
+		return Long.compare(this.timestamp, other.timestamp);
 	}
 
 	public static Long earliestStopElement(Iterable<TimestampedValue<ConnectedCarEvent>> elements) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_scala.lowlatencyjoin
+package com.dataartisans.flinktraining.exercises.datastream_scala.process
 
 import com.dataartisans.flinktraining.exercises.datastream_scala.sources.FinSources
 import org.apache.flink.api.scala._

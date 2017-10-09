@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_scala.lowlatencyjoin
+package com.dataartisans.flinktraining.exercises.datastream_scala.process
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.{Customer, EnrichedTrade, Trade}
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.co.CoProcessFunction
-import org.apache.flink.util.Collector
 
 import scala.collection.mutable
 
@@ -38,6 +37,14 @@ abstract class EventTimeJoinHelper extends CoProcessFunction[Trade, Customer, En
   protected def timestampOfFirstTrade(): Long = {
     val tradeBuffer = tradeBufferState.value()
     tradeBuffer.headOption.map(_.trade.timestamp.toLong).getOrElse(Long.MaxValue)
+  }
+
+  protected def getCustomerInfo(trade: Trade): String = {
+    customerBufferState.value()
+      .filter(_.timestamp <= trade.timestamp)
+      .headOption
+      .map(_.customerInfo)
+      .getOrElse("No customer info available")
   }
 
   protected def cleanupEligibleCustomerData(watermark: Long): Unit = {
@@ -57,7 +64,8 @@ abstract class EventTimeJoinHelper extends CoProcessFunction[Trade, Customer, En
   }
 
   protected def enqueueEnrichedTrade(joinedData: EnrichedTrade) = {
-    implicit val tradeOrdering = Ordering.by((t: EnrichedTrade) => t.trade.timestamp)
+    // order trades from earliest to latest
+    implicit val tradeOrdering = Ordering.by((t: EnrichedTrade) => t.trade.timestamp).reverse
     var tradeBuffer = tradeBufferState.value()
     if (tradeBuffer == null) {
       tradeBuffer = new mutable.PriorityQueue[EnrichedTrade]
@@ -67,6 +75,7 @@ abstract class EventTimeJoinHelper extends CoProcessFunction[Trade, Customer, En
   }
 
   protected def enqueueCustomer(customer: Customer) = {
+    // order customers from latest to earliest
     implicit val customerOrdering = Ordering.by((c: Customer) => c.timestamp)
     var customerBuffer = customerBufferState.value()
     if (customerBuffer == null) {
@@ -74,9 +83,5 @@ abstract class EventTimeJoinHelper extends CoProcessFunction[Trade, Customer, En
     }
     customerBuffer.enqueue(customer)
     customerBufferState.update(customerBuffer)
-  }
-
-  protected def customerIterator(): Iterator[Customer] = {
-    customerBufferState.value().iterator
   }
 }

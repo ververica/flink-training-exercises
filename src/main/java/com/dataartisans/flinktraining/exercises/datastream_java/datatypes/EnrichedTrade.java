@@ -16,7 +16,7 @@
 
 package com.dataartisans.flinktraining.exercises.datastream_java.datatypes;
 
-public class EnrichedTrade {
+public class EnrichedTrade implements Comparable<EnrichedTrade> {
 
 	public EnrichedTrade() {}
 
@@ -34,5 +34,9 @@ public class EnrichedTrade {
 		sb.append("EnrichedTrade(").append(trade.timestamp).append(") ");
 		sb.append(customerInfo);
 		return sb.toString();
+	}
+
+	public int compareTo(EnrichedTrade other) {
+		return Long.compare(this.trade.timestamp, other.trade.timestamp);
 	}
 }

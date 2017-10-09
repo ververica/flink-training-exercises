@@ -17,7 +17,6 @@
 package com.dataartisans.flinktraining.exercises.datastream_java.process;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.ConnectedCarEvent;
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.CompareByTimestampAscending;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ConnectedCarAssigner;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.state.ValueState;
@@ -89,7 +88,7 @@ public class CarEventSort {
 			if (context.timestamp() > timerService.currentWatermark()) {
 				PriorityQueue<ConnectedCarEvent> queue = queueState.value();
 				if (queue == null) {
-					queue = new PriorityQueue<>(10, new CompareByTimestampAscending());
+					queue = new PriorityQueue<>(10);
 				}
 				queue.add(event);
 				queueState.update(queue);

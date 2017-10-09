@@ -19,14 +19,14 @@
 	
 	<groupId>com.data-artisans</groupId>
 	<artifactId>flink-training-exercises</artifactId>
-	<version>0.11.0</version>
+	<version>0.12.0</version>
 	<packaging>jar</packaging>
 
 	<name>Apache Flink Training Exercises</name>
 	<url>dataartisans.github.io/flink-training/</url>
 
 	<inceptionYear>2015</inceptionYear>
-	<description>Utilities and material for an Apache Flink Training provided by data Artisans.</description>
+	<description>Utilities and material for Apache Flink Training, provided by data Artisans.</description>
 
 	<scm>
 		<url>https://github.com/dataArtisans/cascading-flink</url>

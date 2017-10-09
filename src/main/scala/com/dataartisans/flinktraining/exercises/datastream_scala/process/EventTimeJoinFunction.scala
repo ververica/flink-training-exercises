@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_scala.lowlatencyjoin
+package com.dataartisans.flinktraining.exercises.datastream_scala.process
 
 /**
   * This is a homegrown join function using the new Flink 1.2 ProcessFunction.
@@ -39,9 +39,9 @@ package com.dataartisans.flinktraining.exercises.datastream_scala.lowlatencyjoin
   */
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.{Customer, EnrichedTrade, Trade}
-import org.apache.flink.api.scala._
 import org.apache.flink.streaming.api.functions.co.CoProcessFunction
 import org.apache.flink.util.Collector
+import org.apache.flink.api.scala._
 
 class EventTimeJoinFunction extends EventTimeJoinHelper {
   override def processElement1(trade: Trade, context: CoProcessFunction[Trade, Customer, EnrichedTrade]#Context, collector: Collector[EnrichedTrade]): Unit = {
@@ -82,15 +82,7 @@ class EventTimeJoinFunction extends EventTimeJoinHelper {
     new EnrichedTrade(trade, getCustomerInfo(trade))
   }
 
-  private def getCustomerInfo(trade: Trade): String = {
-    customerBufferState.value()
-      .filter(_.timestamp <= trade.timestamp)
-      .headOption
-      .map(_.customerInfo)
-      .getOrElse("No customer info available")
-  }
-
-  protected def dequeueAndPerhapsEmit(collector: Collector[EnrichedTrade]): Unit = {
+  private def dequeueAndPerhapsEmit(collector: Collector[EnrichedTrade]): Unit = {
     val enrichedTrade = dequeueEnrichedTrade()
 
     val joinedData = join(enrichedTrade.trade)

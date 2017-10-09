@@ -19,10 +19,10 @@ package com.dataartisans.flinktraining.exercises.datastream_java.process;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.Customer;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.EnrichedTrade;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.Trade;
-import com.dataartisans.flinktraining.exercises.datastream_scala.lowlatencyjoin.EventTimeJoinHelper;
 import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.util.Collector;
-import scala.collection.Iterator;
+
+import java.util.Iterator;
 
 /**
  * This is a homegrown join function using the new Flink 1.2 ProcessFunction.
@@ -48,7 +48,7 @@ import scala.collection.Iterator;
 
 public class EventTimeJoinFunction extends EventTimeJoinHelper {
 	@Override
-	public void processElement1(Trade trade, Context context, Collector<EnrichedTrade> collector) {
+	public void processElement1(Trade trade, Context context, Collector<EnrichedTrade> collector) throws Exception {
 		System.out.println("Java Received " + trade.toString());
 		TimerService timerService = context.timerService();
 		EnrichedTrade joinedData = join(trade);
@@ -63,13 +63,13 @@ public class EventTimeJoinFunction extends EventTimeJoinHelper {
 	}
 
 	@Override
-	public void processElement2(Customer customer, Context context, Collector<EnrichedTrade> collector) {
+	public void processElement2(Customer customer, Context context, Collector<EnrichedTrade> collector) throws Exception {
 		System.out.println("Java Received " + customer.toString());
 		enqueueCustomer(customer);
 	}
 
 	@Override
-	public void onTimer(long l, OnTimerContext context, Collector<EnrichedTrade> collector) {
+	public void onTimer(long l, OnTimerContext context, Collector<EnrichedTrade> collector) throws Exception {
 		// look for trades that can now be completed, do the join, and remove from the tradebuffer
 		Long watermark = context.timerService().currentWatermark();
 		while (timestampOfFirstTrade() <= watermark) {
@@ -80,23 +80,11 @@ public class EventTimeJoinFunction extends EventTimeJoinHelper {
 		cleanupEligibleCustomerData(watermark);
 	}
 
-	private EnrichedTrade join(Trade trade) {
+	private EnrichedTrade join(Trade trade) throws Exception {
 		return new EnrichedTrade(trade, getCustomerInfo(trade));
 	}
 
-	private String getCustomerInfo(Trade trade) {
-		Iterator<Customer> it = customerIterator();
-		while (it.hasNext()) {
-			Customer customer = it.next();
-
-			if (customer.timestamp <= trade.timestamp) {
-				return customer.customerInfo;
-			}
-		}
-		return "No customer info available";
-	}
-
-	private void dequeueAndPerhapsEmit(Collector<EnrichedTrade> collector) {
+	private void dequeueAndPerhapsEmit(Collector<EnrichedTrade> collector) throws Exception {
 		EnrichedTrade enrichedTrade = dequeueEnrichedTrade();
 
 		EnrichedTrade joinedData = join(enrichedTrade.trade);

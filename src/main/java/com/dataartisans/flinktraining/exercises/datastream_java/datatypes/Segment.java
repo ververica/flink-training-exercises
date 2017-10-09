@@ -65,12 +65,12 @@ public class Segment {
 	}
 
 	protected static float maxSpeed(ArrayList<ConnectedCarEvent> events) {
-		ConnectedCarEvent fastest = Collections.max(events, new CompareBySpeedMax());
+		ConnectedCarEvent fastest = Collections.max(events, new CompareBySpeed());
 		return fastest.speed;
 	}
 
 	protected static long minTimestamp(ArrayList<ConnectedCarEvent> events) {
-		ConnectedCarEvent first = Collections.min(events, new CompareByTimestampMin());
+		ConnectedCarEvent first = Collections.min(events, new CompareByTimestamp());
 		return first.timestamp;
 	}
 
@@ -91,29 +91,17 @@ public class Segment {
 		return (float) Math.sqrt(sum_of_sq_diffs / array.size());
 	}
 
-	private static class CompareBySpeedMax implements Comparator<ConnectedCarEvent> {
+	private static class CompareBySpeed implements Comparator<ConnectedCarEvent> {
 		public int compare(ConnectedCarEvent a, ConnectedCarEvent b) {
-			if (a.speed > b.speed) {
-				return 1;
-			}
-			if (a.speed == b.speed) {
-				return 0;
-			}
-			return -1;
+			return Float.compare(a.speed, b.speed);
 		}
 	}
 
-	private static class CompareByTimestampMin implements Comparator<ConnectedCarEvent> {
+	private static class CompareByTimestamp implements Comparator<ConnectedCarEvent> {
 
 		@Override
 		public int compare(ConnectedCarEvent a, ConnectedCarEvent b) {
-			if (a.timestamp < b.timestamp) {
-				return 1;
-			}
-			if (a.timestamp == b.timestamp) {
-				return 0;
-			}
-			return -1;
+			return Long.compare(a.timestamp, b.timestamp);
 		}
 	}
 }
