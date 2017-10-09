@@ -22,8 +22,6 @@ import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.Trade;
 import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.util.Collector;
 
-import java.util.Iterator;
-
 /**
  * This is a homegrown join function using the new Flink 1.2 ProcessFunction.
  * Basically, what we do is the following:
