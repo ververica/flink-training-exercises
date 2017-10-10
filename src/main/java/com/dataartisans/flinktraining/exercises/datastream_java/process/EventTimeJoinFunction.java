@@ -46,7 +46,10 @@ import org.apache.flink.util.Collector;
 
 public class EventTimeJoinFunction extends EventTimeJoinHelper {
 	@Override
-	public void processElement1(Trade trade, Context context, Collector<EnrichedTrade> collector) throws Exception {
+	public void processElement1(Trade trade,
+								Context context,
+								Collector<EnrichedTrade> collector)
+			throws Exception {
 		System.out.println("Java Received " + trade.toString());
 		TimerService timerService = context.timerService();
 		EnrichedTrade joinedData = join(trade);
@@ -61,20 +64,26 @@ public class EventTimeJoinFunction extends EventTimeJoinHelper {
 	}
 
 	@Override
-	public void processElement2(Customer customer, Context context, Collector<EnrichedTrade> collector) throws Exception {
+	public void processElement2(Customer customer,
+								Context context,
+								Collector<EnrichedTrade> collector)
+			throws Exception {
 		System.out.println("Java Received " + customer.toString());
 		enqueueCustomer(customer);
 	}
 
 	@Override
-	public void onTimer(long l, OnTimerContext context, Collector<EnrichedTrade> collector) throws Exception {
-		// look for trades that can now be completed, do the join, and remove from the tradebuffer
+	public void onTimer(long l,
+						OnTimerContext context,
+						Collector<EnrichedTrade> collector)
+			throws Exception {
+		// look for trades that can now be completed
+		// do the join, and remove from the tradebuffer
 		Long watermark = context.timerService().currentWatermark();
 		while (timestampOfFirstTrade() <= watermark) {
 			dequeueAndPerhapsEmit(collector);
 		}
 
-		// Cleanup all the customer data that is eligible
 		cleanupEligibleCustomerData(watermark);
 	}
 
@@ -82,7 +91,8 @@ public class EventTimeJoinFunction extends EventTimeJoinHelper {
 		return new EnrichedTrade(trade, getCustomerInfo(trade));
 	}
 
-	private void dequeueAndPerhapsEmit(Collector<EnrichedTrade> collector) throws Exception {
+	private void dequeueAndPerhapsEmit(Collector<EnrichedTrade> collector)
+			throws Exception {
 		EnrichedTrade enrichedTrade = dequeueEnrichedTrade();
 
 		EnrichedTrade joinedData = join(enrichedTrade.trade);
