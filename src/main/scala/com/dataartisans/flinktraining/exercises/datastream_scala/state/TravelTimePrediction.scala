@@ -25,7 +25,7 @@ import org.apache.flink.api.common.functions.RichFlatMapFunction
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.common.time.Time
-import org.apache.flink.api.common.typeinfo.{TypeHint, TypeInformation}
+import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.TimeCharacteristic
@@ -94,7 +94,7 @@ object TravelTimePrediction {
     override def flatMap(in: (Int, TaxiRide), out: Collector[(Long, Int)]): Unit = {
 
       // fetch operator state
-      val model: TravelTimePredictionModel = modelState.value
+      val model: TravelTimePredictionModel = Option(modelState.value).getOrElse(new TravelTimePredictionModel)
       val ride: TaxiRide = in._2
 
       // compute distance and direction
@@ -126,9 +126,7 @@ object TravelTimePrediction {
         // state name
         "regressionModel",
         // type info for state object
-        TypeInformation.of(new TypeHint[TravelTimePredictionModel]() {}),
-        // state default value
-        new TravelTimePredictionModel)
+        TypeInformation.of(classOf[TravelTimePredictionModel]))
 
       modelState = getRuntimeContext.getState(descriptor)
     }
