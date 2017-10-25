@@ -37,7 +37,7 @@ import java.util.Locale;
  * - the travelDistance which is -1 for start events
  *
  */
-public class TaxiRide {
+public class TaxiRide implements Comparable<TaxiRide> {
 
 	private static transient DateTimeFormatter timeFormatter =
 			DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withLocale(Locale.US).withZoneUTC();
@@ -122,6 +122,20 @@ public class TaxiRide {
 		}
 
 		return ride;
+	}
+
+	// sort by timestamp,
+	// putting START events before END events if they have the same timestamp
+	public int compareTo(TaxiRide other) {
+		int compareTimes = Long.compare(this.getEventTime(), other.getEventTime());
+		if (compareTimes == 0) {
+			if (this.isStart == other.isStart) return 0;
+			else {
+				if (this.isStart) return -1;
+				else return 1;
+			}
+		}
+		else return compareTimes;
 	}
 
 	@Override
