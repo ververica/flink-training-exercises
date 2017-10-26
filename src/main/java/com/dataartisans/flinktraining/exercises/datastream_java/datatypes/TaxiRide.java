@@ -129,13 +129,21 @@ public class TaxiRide implements Comparable<TaxiRide> {
 	public int compareTo(TaxiRide other) {
 		int compareTimes = Long.compare(this.getEventTime(), other.getEventTime());
 		if (compareTimes == 0) {
-			if (this.isStart == other.isStart) return 0;
+			if (this.isStart == other.isStart) {
+				return 0;
+			}
 			else {
-				if (this.isStart) return -1;
-				else return 1;
+				if (this.isStart) {
+					return -1;
+				}
+				else {
+					return 1;
+				}
 			}
 		}
-		else return compareTimes;
+		else {
+			return compareTimes;
+		}
 	}
 
 	@Override
