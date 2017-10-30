@@ -57,7 +57,7 @@ public class PopularPlacesSql {
 		tEnv.registerFunction("toCellId", new GeoUtils.ToCellId());
 		tEnv.registerFunction("toCoords", new GeoUtils.ToCoords());
 
-		Table popPlaces = tEnv.sql(
+		Table results = tEnv.sql(
 			"SELECT " +
 				"toCoords(cell), wstart, wend, isStart, popCnt " +
 			"FROM " +
@@ -79,7 +79,8 @@ public class PopularPlacesSql {
 			);
 
 		// convert Table into an append stream and print it
-		tEnv.toAppendStream(popPlaces, Row.class).print();
+		// (if instead we needed a retraction stream we would use tEnv.toRetractStream)
+		tEnv.toAppendStream(results, Row.class).print();
 
 		// execute query
 		env.execute();

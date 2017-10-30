@@ -52,7 +52,7 @@ object PopularPlacesSql {
     tEnv.registerFunction("toCellId", new ToCellId)
     tEnv.registerFunction("toCoords", new ToCoords)
 
-    val popPlaces: Table = tEnv.sql(
+    val results: Table = tEnv.sql(
       """
         |SELECT
         |  toCoords(cell), wstart, wend, isStart, popCnt
@@ -75,7 +75,8 @@ object PopularPlacesSql {
         |""".stripMargin)
 
     // convert Table into an append stream and print it
-    tEnv.toAppendStream[Row](popPlaces).print
+    // (if we needed a retraction stream we would use tEnv.toRetractStream)
+    tEnv.toAppendStream[Row](results).print
 
     // execute query
     env.execute
