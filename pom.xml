@@ -19,7 +19,7 @@
 	
 	<groupId>com.data-artisans</groupId>
 	<artifactId>flink-training-exercises</artifactId>
-	<version>0.12.1</version>
+	<version>0.13.0</version>
 	<packaging>jar</packaging>
 
 	<name>Apache Flink Training Exercises</name>
@@ -156,8 +156,7 @@
 			<artifactId>influxdb-java</artifactId>
 			<version>2.3</version>
 		</dependency>
-
-    </dependencies>
+	</dependencies>
 
 	<build>
 		<plugins>

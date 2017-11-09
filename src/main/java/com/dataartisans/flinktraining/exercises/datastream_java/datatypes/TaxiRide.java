@@ -127,6 +127,9 @@ public class TaxiRide implements Comparable<TaxiRide> {
 	// sort by timestamp,
 	// putting START events before END events if they have the same timestamp
 	public int compareTo(TaxiRide other) {
+		if (other == null) {
+			return 1;
+		}
 		int compareTimes = Long.compare(this.getEventTime(), other.getEventTime());
 		if (compareTimes == 0) {
 			if (this.isStart == other.isStart) {

@@ -17,8 +17,6 @@
 package com.dataartisans.flinktraining.exercises.datastream_scala.process
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide
-import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.{TimeCharacteristic, TimerService}
@@ -26,6 +24,14 @@ import org.apache.flink.streaming.api.functions.ProcessFunction
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.util.Collector
+import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource
+import org.apache.flink.api.common.restartstrategy.RestartStrategies
+import java.util.concurrent.TimeUnit
+
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils
+import org.apache.flink.api.common.time.Time
+import org.apache.flink.runtime.state.filesystem.FsStateBackend
+
 
 /**
   * Scala reference implementation for the "Long Ride Alerts" exercise of the Flink training
@@ -34,26 +40,31 @@ import org.apache.flink.util.Collector
   * The goal for this exercise is to emit START events for taxi rides that have not been matched
   * by an END event during the first 2 hours of the ride.
   *
+  * This version is setup for checkpointing and fault recovery.
+  *
   * Parameters:
   * -input path-to-input-file
   *
   */
-object LongRides {
+object CheckpointedLongRides {
   def main(args: Array[String]) {
 
     // parse parameters
     val params = ParameterTool.fromArgs(args)
     val input = params.getRequired("input")
-
-    val maxDelay = 60     // events are out of order by max 60 seconds
-    val speed = 1800      // events of 30 minutes are served every second
+    val speed = 1800       // events of 30 minutes are served every second
 
     // set up the execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     // operate in Event-time
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
-    val rides = env.addSource(new TaxiRideSource(input, maxDelay, speed))
+    // set up checkpointing
+    env.setStateBackend(new FsStateBackend("file:///tmp/checkpoints"))
+    env.enableCheckpointing(1000)
+    env.setRestartStrategy(RestartStrategies.fixedDelayRestart(60, Time.of(10, TimeUnit.SECONDS)))
+
+    val rides = env.addSource(new CheckpointedTaxiRideSource(input, speed))
 
     val longRides = rides
       // remove all rides which are not within NYC
@@ -63,7 +74,7 @@ object LongRides {
 
     longRides.print()
 
-    env.execute("Long Taxi Rides")
+    env.execute("Long Taxi Rides (checkpointed)")
   }
 
   class MatchFunction extends ProcessFunction[TaxiRide, TaxiRide] {
@@ -78,7 +89,7 @@ object LongRides {
       val timerService = context.timerService
 
       if (ride.isStart) {
-        // the matching END might have arrived first; don't overwrite it
+        // the matching END might have arrived first (out of order); don't overwrite it
         if (rideState.value() == null) {
           rideState.update(ride)
         }
