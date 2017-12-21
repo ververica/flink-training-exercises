@@ -1,29 +1,29 @@
 package com.dataartisans.flinktraining.exercises.datastream_java.basics;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.TaxiRideExerciseBase;
-import org.apache.flink.api.common.functions.FilterFunction;
-import org.apache.flink.streaming.api.datastream.DataStream;
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.TaxiRideTestBase;
+import com.google.common.collect.Lists;
+import org.apache.flink.runtime.client.JobExecutionException;
 import org.joda.time.DateTime;
+import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import static org.junit.Assert.assertEquals;
 
-public class RideCleansingTest extends TaxiRideExerciseBase<TaxiRide> {
-	TaxiRide pennStation = testRide(-73.9947F, 40.750626F, -73.9947F, 40.750626F);
-	TaxiRide northPole = testRide(0, 0, 0, 0);
-	TaxiRide toThePole = testRide(-73.9947F, 40.750626F, 0, 0);
-	TaxiRide fromThePole = testRide(0, 0, -73.9947F, 40.750626F);
+public class RideCleansingTest extends TaxiRideTestBase<TaxiRide> {
+	TestSink<TaxiRide> sink = new TestSink<TaxiRide>();
 
-	public void testSolution() throws Exception {
-		RideCleansingExercise exercise = new RideCleansingExercise();
-		exercise.test(exercise.testStream());
-	}
+	@Test
+	public void testCleansingFilter() throws Exception {
 
-	@Override
-	public DataStream<TaxiRide> perform(DataStream<TaxiRide> input) {
-		return input.filter(new NYCFilter());
+		TaxiRide atPennStation = testRide(-73.9947F, 40.750626F, -73.9947F, 40.750626F);
+		TaxiRide toThePole = testRide(-73.9947F, 40.750626F, 0, 90);
+		TaxiRide fromThePole = testRide(0, 90, -73.9947F, 40.750626F);
+		TaxiRide atNorthPole = testRide(0, 90, 0, 90);
+
+		TestSource source = new TestSource(atPennStation, toThePole, fromThePole, atNorthPole);
+		runTest(source, sink);
+		assertEquals(Lists.newArrayList(atPennStation), sink.values);
 	}
 
 	private TaxiRide testRide(float startLon, float startLat, float endLon, float endLat) {
@@ -31,22 +31,24 @@ public class RideCleansingTest extends TaxiRideExerciseBase<TaxiRide> {
 				startLon, startLat, endLon, endLat, (short)1);
 	}
 
-	public DataStream<TaxiRide> testStream() {
-		return env.fromElements(pennStation, northPole, toThePole, fromThePole);
-	}
+	private void runTest(TestSource source, TestSink<TaxiRide> sink) throws Exception {
+		sink.values.clear();
 
-	@Override
-	public ArrayList<TaxiRide> expectedResult() {
-		return new ArrayList<TaxiRide>(Collections.singleton(pennStation));
-	}
-
-	public static class NYCFilter implements FilterFunction<TaxiRide> {
-
-		@Override
-		public boolean filter(TaxiRide taxiRide) throws Exception {
-
-			return GeoUtils.isInNYC(taxiRide.startLon, taxiRide.startLat) &&
-					GeoUtils.isInNYC(taxiRide.endLon, taxiRide.endLat);
+		try {
+			RideCleansingExercise.in = source;
+			RideCleansingExercise.out = sink;
+			RideCleansingExercise.parallelism = 1;
+			RideCleansingExercise.main(new String[]{});
+		} catch (JobExecutionException | MissingSolutionException e) {
+			if (e instanceof MissingSolutionException ||
+					(e.getCause() != null && e.getCause() instanceof MissingSolutionException)) {
+				RideCleansingSolution.in = source;
+				RideCleansingSolution.out = sink;
+				RideCleansingSolution.parallelism = 1;
+				RideCleansingSolution.main(new String[]{});
+			} else {
+				throw e;
+			}
 		}
 	}
 }
