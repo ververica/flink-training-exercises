@@ -27,10 +27,11 @@ import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.cep.pattern.conditions.SimpleCondition;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.types.Either;
 import org.apache.flink.util.Collector;
+import org.apache.flink.util.OutputTag;
 
 import java.util.List;
 import java.util.Map;
@@ -83,12 +84,15 @@ public class LongRides {
 		// We want to find rides that have NOT been completed within 120 minutes
 		PatternStream<TaxiRide> patternStream = CEP.pattern(keyedRides, completedRides.within(Time.minutes(120)));
 
-		DataStream<Either<TaxiRide, TaxiRide>> result = patternStream.flatSelect(
+		OutputTag<TaxiRide> timedout = new OutputTag<TaxiRide>("timedout"){};
+
+		SingleOutputStreamOperator<TaxiRide> longRides = patternStream.flatSelect(
+				timedout,
 				new TaxiRideTimedOut<TaxiRide>(),
 				new FlatSelectNothing<TaxiRide>()
 		);
 
-		result.print();
+		longRides.getSideOutput(timedout).print();
 
 		env.execute("Long Taxi Rides");
 	}

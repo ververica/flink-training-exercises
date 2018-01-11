@@ -52,7 +52,7 @@ object PopularPlacesSql {
     tEnv.registerFunction("toCellId", new ToCellId)
     tEnv.registerFunction("toCoords", new ToCoords)
 
-    val results: Table = tEnv.sql(
+    val results: Table = tEnv.sqlQuery(
       """
         |SELECT
         |  toCoords(cell), wstart, wend, isStart, popCnt

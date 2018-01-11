@@ -17,10 +17,10 @@
 package com.dataartisans.flinktraining.exercises.datastream_java.utils;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
+import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
-import org.apache.flink.streaming.util.serialization.DeserializationSchema;
-import org.apache.flink.streaming.util.serialization.SerializationSchema;
 
 /**
  * Implements a SerializationSchema and DeserializationSchema for TaxiRide for Kafka data sources and sinks.

@@ -16,19 +16,20 @@
 
 package com.dataartisans.flinktraining.exercises.datastream_scala.cep
 
-import java.util.{List => JList, Map => JMap}
-
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.cep.scala.CEP
+import org.apache.flink.cep.scala.{CEP, PatternStream}
 import org.apache.flink.cep.scala.pattern.Pattern
 import org.apache.flink.cep.{PatternFlatSelectFunction, PatternFlatTimeoutFunction}
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator
 import org.apache.flink.util.Collector
 import org.apache.flink.streaming.api.scala._
+
+import scala.collection.Map
 
 /**
   * Scala/CEP reference implementation for the "Long Ride Alerts" exercise of the Flink training
@@ -43,7 +44,6 @@ import org.apache.flink.streaming.api.scala._
   */
 object LongRides {
   def main(args: Array[String]) {
-    // parse parameters
     val params = ParameterTool.fromArgs(args)
     val input = params.getRequired("input")
 
@@ -65,25 +65,26 @@ object LongRides {
       .next("end").where(!_.isStart)
 
     // We want to find rides that have NOT been completed within 120 minutes
-    CEP.pattern[TaxiRide](keyedRides, completedRides.within(Time.minutes(120)))
-      .flatSelect[TaxiRide, TaxiRide](
-        new TaxiRideTimedOut[TaxiRide],
-        new FlatSelectNothing[TaxiRide])
+    val pattern: PatternStream[TaxiRide] = CEP.pattern[TaxiRide](keyedRides, completedRides.within(Time.minutes(120)))
+
+    // side output tag for rides that time out
+    val timedoutTag = new OutputTag[TaxiRide]("timedout")
+
+    // collect rides that timeout
+    val timeoutFunction = (map: Map[String, Iterable[TaxiRide]], timestamp: Long, out: Collector[TaxiRide]) => {
+      val rideStarted = map.get("start").get.head
+      out.collect(rideStarted)
+    }
+
+    // ignore rides that complete on time
+    val selectFunction = (map: Map[String, Iterable[TaxiRide]], out: Collector[TaxiRide]) => {
+    }
+
+    val longRides = pattern.flatSelect(timedoutTag)(timeoutFunction)(selectFunction)
+
+    longRides.getSideOutput(timedoutTag)
       .print()
 
     env.execute("Long Taxi Rides")
   }
-
-  class TaxiRideTimedOut[TaxiRide] extends PatternFlatTimeoutFunction[TaxiRide, TaxiRide] {
-    override def timeout(map: JMap[String, JList[TaxiRide]], l: Long, collector: Collector[TaxiRide]): Unit = {
-      val rideStarted = map.get("start").get(0)
-      collector.collect(rideStarted)
-    }
-  }
-
-  class FlatSelectNothing[T] extends PatternFlatSelectFunction[T, T] {
-    override def flatSelect(pattern: JMap[String, JList[T]], collector: Collector[T]): Unit = {
-    }
-  }
-
 }

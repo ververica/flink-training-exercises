@@ -24,9 +24,16 @@ import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.typeutils.RowTypeInfo;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.sources.DefinedRowtimeAttribute;
+import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.sources.DefinedRowtimeAttributes;
+import org.apache.flink.table.sources.RowtimeAttributeDescriptor;
 import org.apache.flink.table.sources.StreamTableSource;
+import org.apache.flink.table.sources.tsextractors.StreamRecordTimestamp;
+import org.apache.flink.table.sources.wmstrategies.PreserveWatermarks;
 import org.apache.flink.types.Row;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * This TableSource generates a streaming table of taxi ride records which are
@@ -46,7 +53,7 @@ import org.apache.flink.types.Row;
  *   StreamExecutionEnvironment.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
  *
  */
-public class TaxiRideTableSource implements StreamTableSource<Row>, DefinedRowtimeAttribute {
+public class TaxiRideTableSource implements StreamTableSource<Row>, DefinedRowtimeAttributes {
 
 	private final TaxiRideSource taxiRideSource;
 
@@ -118,6 +125,33 @@ public class TaxiRideTableSource implements StreamTableSource<Row>, DefinedRowti
 	}
 
 	@Override
+	public TableSchema getTableSchema() {
+		TypeInformation<?>[] types = new TypeInformation[] {
+				Types.LONG,
+				Types.BOOLEAN,
+				Types.FLOAT,
+				Types.FLOAT,
+				Types.FLOAT,
+				Types.FLOAT,
+				Types.SHORT,
+				Types.SQL_TIMESTAMP
+		};
+
+		String[] names = new String[]{
+				"rideId",
+				"isStart",
+				"startLon",
+				"startLat",
+				"endLon",
+				"endLat",
+				"passengerCnt",
+				"eventTime"
+		};
+
+		return new TableSchema(names, types);
+	}
+
+	@Override
 	public String explainSource() {
 		return "TaxiRides";
 	}
@@ -131,8 +165,9 @@ public class TaxiRideTableSource implements StreamTableSource<Row>, DefinedRowti
 	}
 
 	@Override
-	public String getRowtimeAttribute() {
-		return "eventTime";
+	public List<RowtimeAttributeDescriptor> getRowtimeAttributeDescriptors() {
+		RowtimeAttributeDescriptor descriptor = new RowtimeAttributeDescriptor("eventTime", new StreamRecordTimestamp(), new PreserveWatermarks());
+		return Collections.singletonList(descriptor);
 	}
 
 	/**

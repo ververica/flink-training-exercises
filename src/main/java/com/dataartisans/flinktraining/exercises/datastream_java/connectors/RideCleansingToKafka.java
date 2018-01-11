@@ -25,7 +25,7 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 
 /**
  * Java reference implementation for the "Ride Cleansing" exercise of the Flink training
@@ -64,7 +64,7 @@ public class RideCleansingToKafka {
 				.filter(new NYCFilter());
 
 		// write the filtered data to a Kafka sink
-		filteredRides.addSink(new FlinkKafkaProducer010<>(
+		filteredRides.addSink(new FlinkKafkaProducer011<TaxiRide>(
 				LOCAL_KAFKA_BROKER,
 				CLEANSED_RIDES_TOPIC,
 				new TaxiRideSchema()));

@@ -19,13 +19,13 @@ package com.dataartisans.flinktraining.exercises.datastream_scala.connectors
 import java.util.Properties
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.{TaxiRideSchema, GeoUtils}
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.{GeoUtils, TaxiRideSchema}
 import org.apache.flink.api.common.functions.MapFunction
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011
 import org.apache.flink.util.Collector
 
 /**
@@ -61,7 +61,7 @@ object PopularPlacesFromKafka {
     kafkaProps.setProperty("auto.offset.reset", "earliest")
 
     // create a Kafka consumer
-    val consumer = new FlinkKafkaConsumer010[TaxiRide](
+    val consumer = new FlinkKafkaConsumer011[TaxiRide](
         RideCleansingToKafka.CLEANSED_RIDES_TOPIC,
         new TaxiRideSchema,
         kafkaProps)

@@ -57,7 +57,7 @@ public class PopularPlacesSql {
 		tEnv.registerFunction("toCellId", new GeoUtils.ToCellId());
 		tEnv.registerFunction("toCoords", new GeoUtils.ToCoords());
 
-		Table results = tEnv.sql(
+		Table results = tEnv.sqlQuery(
 			"SELECT " +
 				"toCoords(cell), wstart, wend, isStart, popCnt " +
 			"FROM " +

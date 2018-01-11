@@ -19,6 +19,7 @@ package com.dataartisans.flinktraining.exercises.datastream_java.utils.influxdb;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Point;
@@ -56,7 +57,7 @@ public class InfluxDBSink<T extends DataPoint<? extends Number>> extends RichSin
 	}
 
 	@Override
-	public void invoke(T dataPoint) throws Exception {
+	public void invoke(T dataPoint, SinkFunction.Context context) throws Exception {
 		Point.Builder builder = Point.measurement(measurement)
 				.time(dataPoint.getTimeStampMs(), TimeUnit.MILLISECONDS)
 				.addField(this.fieldName, dataPoint.getValue());
