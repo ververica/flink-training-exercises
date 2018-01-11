@@ -1,4 +1,4 @@
-package com.dataartisans.flinktraining.exercises.datastream_java.utils;
+package com.dataartisans.flinktraining.exercises.datastream_java.testing;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;

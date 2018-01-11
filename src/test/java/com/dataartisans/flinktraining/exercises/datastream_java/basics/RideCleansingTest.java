@@ -2,7 +2,7 @@ package com.dataartisans.flinktraining.exercises.datastream_java.basics;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.TaxiRideTestBase;
+import com.dataartisans.flinktraining.exercises.datastream_java.testing.TaxiRideTestBase;
 import com.google.common.collect.Lists;
 import org.apache.flink.runtime.client.JobExecutionException;
 import org.joda.time.DateTime;

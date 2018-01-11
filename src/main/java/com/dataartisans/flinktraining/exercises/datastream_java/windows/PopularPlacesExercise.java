@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 data Artisans GmbH
+ * Copyright 2015 data Artisans GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,47 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_java.process;
+package com.dataartisans.flinktraining.exercises.datastream_java.windows;
 
+import com.dataartisans.flinktraining.exercises.datastream_java.basics.RideCleansing;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
+import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.tuple.Tuple;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple4;
+import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
+import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
+import org.apache.flink.streaming.api.scala.KeyedStream;
+import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.util.Collector;
 
 /**
- * The "Long Ride Alerts" exercise of the Flink training
+ * Java reference implementation for the "Popular Places" exercise of the Flink training
  * (http://training.data-artisans.com).
  *
- * The goal for this exercise is to emit START events for taxi rides that have not been matched
- * by an END event during the first 2 hours of the ride.
+ * The task of the exercise is to identify every five minutes popular areas where many taxi rides
+ * arrived or departed in the last 15 minutes.
  *
  * Parameters:
  * -input path-to-input-file
  *
  */
-public class LongRidesExercise extends ExerciseBase {
+public class PopularPlacesExercise extends ExerciseBase {
+	// threshold for popular places; reduced during testing
+	public static int popThreshold = 20;
+
 	public static void main(String[] args) throws Exception {
+
 		final String pathToRideData = "/Users/david/stuff/flink-training/trainingData/nycTaxiRides.gz";
 
 		ParameterTool params = ParameterTool.fromArgs(args);
@@ -57,8 +73,11 @@ public class LongRidesExercise extends ExerciseBase {
 
 		throw new MissingSolutionException();
 
-//		DataStream<TaxiRide> longRides = ...
-//		longRides.addSink(printOrTest(new PrintSinkFunction<>()));
-//		env.execute("Long Taxi Rides");
+//		DataStream<Tuple5<Float, Float, Long, Boolean, Integer>> popularSpots = rides
+//				...
+
+//		popularSpots.addSink(printOrTest(new PrintSinkFunction<>()));
+//		env.execute("Popular Places");
 	}
+
 }

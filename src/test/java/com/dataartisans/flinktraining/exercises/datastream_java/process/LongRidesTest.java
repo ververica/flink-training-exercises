@@ -2,7 +2,7 @@ package com.dataartisans.flinktraining.exercises.datastream_java.process;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.TaxiRideTestBase;
+import com.dataartisans.flinktraining.exercises.datastream_java.testing.TaxiRideTestBase;
 import com.google.common.collect.Lists;
 import org.apache.flink.runtime.client.JobExecutionException;
 import org.joda.time.DateTime;
@@ -63,10 +63,10 @@ public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
 	@Test
 	public void longRide() throws Exception {
 		TaxiRide rideStarted = startRide(1, beginning);
-		Long markMoreThan2HoursLater = beginning.plusMinutes(121).getMillis();
+		Long mark2HoursLater = beginning.plusMinutes(120).getMillis();
 		TaxiRide rideEnded3HoursLater = endRide(rideStarted, beginning.plusHours(3));
 
-		TestSource source = new TestSource(rideStarted, markMoreThan2HoursLater, rideEnded3HoursLater);
+		TestSource source = new TestSource(rideStarted, mark2HoursLater, rideEnded3HoursLater);
 		runTest(source, sink);
 		assertEquals(Lists.newArrayList(rideStarted), sink.values);
 	}

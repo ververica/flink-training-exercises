@@ -39,7 +39,7 @@ public class LongRidesSolution extends ExerciseBase {
 		DataStream<TaxiRide> longRides = rides
 				.filter(new RideCleansingSolution.NYCFilter())
 				.keyBy("rideId")
-				.process(new LongRides.MatchFunction());
+				.process(new MatchFunction());
 
 		longRides.addSink(printOrTest(new PrintSinkFunction<>()));
 
