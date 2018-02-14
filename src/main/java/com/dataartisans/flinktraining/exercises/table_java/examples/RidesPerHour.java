@@ -56,7 +56,7 @@ public class RidesPerHour {
 		tEnv.registerFunction("toCellId", new GeoUtils.ToCellId());
 		tEnv.registerFunction("toCoords", new GeoUtils.ToCoords());
 
-		Table results = tEnv.sql(
+		Table results = tEnv.sqlQuery(
 				//"SELECT TUMBLE_START(eventTime, INTERVAL '1' HOUR), isStart, count(isStart) FROM TaxiRides GROUP BY isStart, TUMBLE(eventTime, INTERVAL '1' HOUR)"
 				//"SELECT avg(endTime - startTime), passengerCnt FROM TaxiRides GROUP BY passengerCnt"
 				"SELECT CAST (toCellId(endLon, endLat) AS VARCHAR), eventTime," +

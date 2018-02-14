@@ -16,7 +16,6 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.util.Collector;
-import org.mortbay.log.Log;
 
 public class LongRidesSolution extends ExerciseBase {
 	public static void main(String[] args) throws Exception {
