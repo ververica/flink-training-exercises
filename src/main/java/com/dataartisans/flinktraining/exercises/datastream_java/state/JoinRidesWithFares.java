@@ -16,19 +16,16 @@
 
 package com.dataartisans.flinktraining.exercises.datastream_java.state;
 
-//import com.dataartisans.flinktraining.exercises.datastream_java.basics.RideCleansing;
-import com.dataartisans.flinktraining.exercises.datastream_java.basics.RideCleansing;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
-import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiFareSource;
-import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource;
+import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiFareSource;
+import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.metrics.Counter;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -50,9 +47,10 @@ public class JoinRidesWithFares {
 	public static void main(String[] args) throws Exception {
 
 		ParameterTool params = ParameterTool.fromArgs(args);
-		final String tripsFile = params.getRequired("trips");
+		final String ridesFile = params.getRequired("rides");
 		final String faresFile = params.getRequired("fares");
 
+		final int delay = 60;					// at most 60 seconds of delay
 		final int servingSpeedFactor = 1800; 	// 30 minutes worth of events are served every second
 
 		// set up streaming execution environment
@@ -60,7 +58,7 @@ public class JoinRidesWithFares {
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
 		DataStream<TaxiRide> rides = env
-				.addSource(new CheckpointedTaxiRideSource(tripsFile, servingSpeedFactor))
+				.addSource(new TaxiRideSource(ridesFile, delay, servingSpeedFactor))
 				.filter(new FilterFunction<TaxiRide>() {
 					@Override
 					public boolean filter(TaxiRide ride) throws Exception {
@@ -68,8 +66,9 @@ public class JoinRidesWithFares {
 					}
 				})
 				.keyBy("rideId");
+
 		DataStream<TaxiFare> fares = env
-				.addSource(new CheckpointedTaxiFareSource(faresFile, servingSpeedFactor))
+				.addSource(new TaxiFareSource(faresFile, delay, servingSpeedFactor))
 				.keyBy("rideId");
 
 		DataStream<Tuple2<TaxiRide, TaxiFare>> enrichedRides = rides

@@ -41,7 +41,7 @@ import org.apache.flink.util.OutputTag;
  * The goal for this exercise is to enrich TaxiRides with fare information.
  *
  * Parameters:
- * -trips path-to-input-file
+ * -rides path-to-input-file
  * -fares path-to-input-file
  *
  */
@@ -52,7 +52,7 @@ public class JoinRidesWithFares {
 	public static void main(String[] args) throws Exception {
 
 		ParameterTool params = ParameterTool.fromArgs(args);
-		final String tripsFile = params.getRequired("trips");
+		final String ridesFile = params.getRequired("rides");
 		final String faresFile = params.getRequired("fares");
 
 		final int servingSpeedFactor = 1800; 	// 30 minutes worth of events are served every second
@@ -62,7 +62,7 @@ public class JoinRidesWithFares {
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
 		DataStream<TaxiRide> rides = env
-				.addSource(new CheckpointedTaxiRideSource(tripsFile, servingSpeedFactor))
+				.addSource(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor))
 				.filter(new FilterFunction<TaxiRide>() {
 					@Override
 					public boolean filter(TaxiRide ride) throws Exception {

@@ -17,11 +17,11 @@
 package com.dataartisans.flinktraining.exercises.datastream_scala.state
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.{TaxiFare, TaxiRide}
-import com.dataartisans.flinktraining.exercises.datastream_java.sources.{CheckpointedTaxiFareSource, CheckpointedTaxiRideSource}
+import com.dataartisans.flinktraining.exercises.datastream_java.sources.{TaxiFareSource, TaxiRideSource}
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.functions.co.{CoFlatMapFunction, CoProcessFunction, RichCoFlatMapFunction}
+import org.apache.flink.streaming.api.functions.co.RichCoFlatMapFunction
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 import org.apache.flink.util.Collector
 
@@ -32,7 +32,7 @@ import org.apache.flink.util.Collector
   * The goal for this exercise is to enrich TaxiRides with fare information.
   *
   * Parameters:
-  * -trips path-to-input-file
+  * -rides path-to-input-file
   * -fares path-to-input-file
   *
   */
@@ -41,9 +41,10 @@ object JoinRidesWithFares {
 
     // parse parameters
     val params = ParameterTool.fromArgs(args)
-    val tripsFile = params.getRequired("trips")
+    val ridesFile = params.getRequired("rides")
     val faresFile = params.getRequired("fares")
 
+    val delay = 60;               // at most 60 seconds of delay
     val servingSpeedFactor = 1800 // 30 minutes worth of events are served every second
 
     // set up streaming execution environment
@@ -51,12 +52,12 @@ object JoinRidesWithFares {
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
     val rides = env
-      .addSource(new CheckpointedTaxiRideSource(tripsFile, servingSpeedFactor))
+      .addSource(new TaxiRideSource(ridesFile, delay, servingSpeedFactor))
       .filter { ride => !ride.isStart }
       .keyBy("rideId")
 
     val fares = env
-      .addSource(new CheckpointedTaxiFareSource(faresFile, servingSpeedFactor))
+      .addSource(new TaxiFareSource(faresFile, delay, servingSpeedFactor))
       .keyBy("rideId")
 
     val processed = rides

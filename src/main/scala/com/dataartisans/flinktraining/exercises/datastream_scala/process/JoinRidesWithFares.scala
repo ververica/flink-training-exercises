@@ -33,7 +33,7 @@ import org.apache.flink.util.Collector
   * The goal for this exercise is to enrich TaxiRides with fare information.
   *
   * Parameters:
-  * -trips path-to-input-file
+  * -rides path-to-input-file
   * -fares path-to-input-file
   *
   */
@@ -45,7 +45,7 @@ object JoinRidesWithFares {
 
     // parse parameters
     val params = ParameterTool.fromArgs(args)
-    val tripsFile = params.getRequired("trips")
+    val ridesFile = params.getRequired("rides")
     val faresFile = params.getRequired("fares")
 
     val servingSpeedFactor = 1800 // 30 minutes worth of events are served every second
@@ -55,7 +55,7 @@ object JoinRidesWithFares {
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
     val rides = env
-      .addSource(new CheckpointedTaxiRideSource(tripsFile, servingSpeedFactor))
+      .addSource(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor))
       .filter { ride => !ride.isStart && (ride.rideId % 1000 != 0) }
       .keyBy("rideId")
 
