@@ -28,13 +28,15 @@ import java.util.Locale;
  *
  * A TaxiRide consists of
  * - the rideId of the event which is identical for start and end record
+ * - the type of the event (start or end)
  * - the time of the event
  * - the longitude of the start location
  * - the latitude of the start location
  * - the longitude of the end location
  * - the latitude of the end location
  * - the passengerCnt of the ride
- * - the travelDistance which is -1 for start events
+ * - the taxiId
+ * - the driverId
  *
  */
 public class TaxiRide implements Comparable<TaxiRide> {
@@ -46,7 +48,7 @@ public class TaxiRide implements Comparable<TaxiRide> {
 
 	public TaxiRide(long rideId, boolean isStart, DateTime startTime, DateTime endTime,
 					float startLon, float startLat, float endLon, float endLat,
-					short passengerCnt) {
+					short passengerCnt, long taxiId, long driverId) {
 
 		this.rideId = rideId;
 		this.isStart = isStart;
@@ -57,6 +59,8 @@ public class TaxiRide implements Comparable<TaxiRide> {
 		this.endLon = endLon;
 		this.endLat = endLat;
 		this.passengerCnt = passengerCnt;
+		this.taxiId = taxiId;
+		this.driverId = driverId;
 	}
 
 	public long rideId;
@@ -68,10 +72,14 @@ public class TaxiRide implements Comparable<TaxiRide> {
 	public float endLon;
 	public float endLat;
 	public short passengerCnt;
+	public long taxiId;
+	public long driverId;
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(rideId).append(",");
+		sb.append(taxiId).append(",");
+		sb.append(driverId).append(",");
 		sb.append(isStart ? "START" : "END").append(",");
 		sb.append(startTime.toString(timeFormatter)).append(",");
 		sb.append(endTime.toString(timeFormatter)).append(",");
@@ -87,7 +95,7 @@ public class TaxiRide implements Comparable<TaxiRide> {
 	public static TaxiRide fromString(String line) {
 
 		String[] tokens = line.split(",");
-		if (tokens.length != 9) {
+		if (tokens.length != 11) {
 			throw new RuntimeException("Invalid record: " + line);
 		}
 
@@ -116,6 +124,8 @@ public class TaxiRide implements Comparable<TaxiRide> {
 			ride.endLon = tokens[6].length() > 0 ? Float.parseFloat(tokens[6]) : 0.0f;
 			ride.endLat = tokens[7].length() > 0 ? Float.parseFloat(tokens[7]) : 0.0f;
 			ride.passengerCnt = Short.parseShort(tokens[8]);
+			ride.taxiId = Long.parseLong(tokens[9]);
+			ride.driverId = Long.parseLong(tokens[10]);
 
 		} catch (NumberFormatException nfe) {
 			throw new RuntimeException("Invalid record: " + line, nfe);

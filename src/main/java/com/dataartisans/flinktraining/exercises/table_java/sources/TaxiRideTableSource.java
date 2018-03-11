@@ -102,23 +102,27 @@ public class TaxiRideTableSource implements StreamTableSource<Row>, DefinedRowti
 	public TypeInformation<Row> getReturnType() {
 
 		TypeInformation<?>[] types = new TypeInformation[] {
-			Types.LONG,
-			Types.BOOLEAN,
-			Types.FLOAT,
-			Types.FLOAT,
-			Types.FLOAT,
-			Types.FLOAT,
-			Types.SHORT
+				Types.LONG,
+				Types.LONG,
+				Types.LONG,
+				Types.BOOLEAN,
+				Types.FLOAT,
+				Types.FLOAT,
+				Types.FLOAT,
+				Types.FLOAT,
+				Types.SHORT
 		};
 
 		String[] names = new String[]{
-			"rideId",
-			"isStart",
-			"startLon",
-			"startLat",
-			"endLon",
-			"endLat",
-			"passengerCnt"
+				"rideId",
+				"taxiId",
+				"driverId",
+				"isStart",
+				"startLon",
+				"startLat",
+				"endLon",
+				"endLat",
+				"passengerCnt"
 		};
 
 		return new RowTypeInfo(types, names);
@@ -127,6 +131,8 @@ public class TaxiRideTableSource implements StreamTableSource<Row>, DefinedRowti
 	@Override
 	public TableSchema getTableSchema() {
 		TypeInformation<?>[] types = new TypeInformation[] {
+				Types.LONG,
+				Types.LONG,
 				Types.LONG,
 				Types.BOOLEAN,
 				Types.FLOAT,
@@ -139,6 +145,8 @@ public class TaxiRideTableSource implements StreamTableSource<Row>, DefinedRowti
 
 		String[] names = new String[]{
 				"rideId",
+				"taxiId",
+				"driverId",
 				"isStart",
 				"startLon",
 				"startLat",
@@ -180,6 +188,8 @@ public class TaxiRideTableSource implements StreamTableSource<Row>, DefinedRowti
 
 			return Row.of(
 					ride.rideId,
+					ride.taxiId,
+					ride.driverId,
 					ride.isStart,
 					ride.startLon,
 					ride.startLat,
