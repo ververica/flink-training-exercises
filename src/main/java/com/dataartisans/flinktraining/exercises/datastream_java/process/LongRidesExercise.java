@@ -21,10 +21,14 @@ import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRide
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
+import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
+import org.apache.flink.util.Collector;
 
 /**
  * The "Long Ride Alerts" exercise of the Flink training
@@ -55,10 +59,30 @@ public class LongRidesExercise extends ExerciseBase {
 		// start the data generator
 		DataStream<TaxiRide> rides = env.addSource(sourceOrTest(new TaxiRideSource(input, maxEventDelay, servingSpeedFactor)));
 
-		throw new MissingSolutionException();
+		DataStream<TaxiRide> longRides = rides
+				.keyBy("rideId")
+				.process(new MatchFunction());
 
-//		DataStream<TaxiRide> longRides = ...
-//		longRides.addSink(printOrTest(new PrintSinkFunction<>()));
-//		env.execute("Long Taxi Rides");
+		longRides.addSink(printOrTest(new PrintSinkFunction<>()));
+
+		env.execute("Long Taxi Rides");
+	}
+
+	public static class MatchFunction extends ProcessFunction<TaxiRide, TaxiRide> {
+
+		@Override
+		public void open(Configuration config) throws Exception {
+			throw new MissingSolutionException();
+		}
+
+		@Override
+		public void processElement(TaxiRide ride, Context context, Collector<TaxiRide> out) throws Exception {
+			TimerService timerService = context.timerService();
+
+		}
+
+		@Override
+		public void onTimer(long timestamp, OnTimerContext context, Collector<TaxiRide> out) throws Exception {
+		}
 	}
 }

@@ -17,7 +17,6 @@
 package com.dataartisans.flinktraining.exercises.datastream_java.basics;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
@@ -27,7 +26,6 @@ import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
 /**
  * Java reference implementation for the "Ride Cleansing" exercise of the Flink training
