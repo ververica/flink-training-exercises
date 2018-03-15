@@ -28,7 +28,7 @@ public class RideCleansingTest extends TaxiRideTestBase<TaxiRide> {
 
 	private TaxiRide testRide(float startLon, float startLat, float endLon, float endLat) {
 		return new TaxiRide(1L, true, new DateTime(0), new DateTime(0),
-				startLon, startLat, endLon, endLat, (short)1);
+				startLon, startLat, endLon, endLat, (short)1, 0, 0);
 	}
 
 	private void runTest(TestSource source, TestSink<TaxiRide> sink) throws Exception {

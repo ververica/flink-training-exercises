@@ -64,12 +64,12 @@ public class PopularPlacesTest extends TaxiRideTestBase<Tuple5<Float, Float, Lon
 
 	// setting the endLon and endLat to the same as the starting position; shouldn't matter
 	private TaxiRide startRide(long rideId, DateTime startTime, float startLon, float startLat) {
-		return new TaxiRide(rideId, true, startTime, new DateTime(0), startLon, startLat, startLon, startLat, (short)1);
+		return new TaxiRide(rideId, true, startTime, new DateTime(0), startLon, startLat, startLon, startLat, (short)1, 0, 0);
 	}
 
 	private TaxiRide endRide(TaxiRide started, DateTime endTime, float endLon, float endLat) {
 		return new TaxiRide(started.rideId, false, started.startTime, endTime,
-				started.startLon, started.startLat, endLon, endLat, (short)1);
+				started.startLon, started.startLat, endLon, endLat, (short)1, 0, 0);
 	}
 
 	private void runTest(TestSource source, TestSink<Tuple5<Float, Float, Long, Boolean, Integer>> sink, int popThreshold) throws Exception {

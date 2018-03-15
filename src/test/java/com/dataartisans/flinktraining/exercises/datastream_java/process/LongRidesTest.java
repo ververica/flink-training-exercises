@@ -72,7 +72,7 @@ public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
 	}
 
 	private TaxiRide testRide(long rideId, Boolean isStart, DateTime startTime, DateTime endTime) {
-		return new TaxiRide(rideId, isStart, startTime, endTime, -73.9947F, 40.750626F, -73.9947F, 40.750626F, (short)1);
+		return new TaxiRide(rideId, isStart, startTime, endTime, -73.9947F, 40.750626F, -73.9947F, 40.750626F, (short)1, 0, 0);
 	}
 
 	private TaxiRide startRide(long rideId, DateTime startTime) {
