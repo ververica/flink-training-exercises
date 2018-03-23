@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.table_java.stream.popularPlaces;
+package com.dataartisans.flinktraining.exercises.table_java.stream.examples;
 
 import com.dataartisans.flinktraining.exercises.table_java.sources.TaxiFareTableSource;
 import com.dataartisans.flinktraining.exercises.table_java.sources.TaxiRideTableSource;
