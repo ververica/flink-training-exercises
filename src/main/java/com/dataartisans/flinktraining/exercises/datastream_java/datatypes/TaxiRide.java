@@ -78,8 +78,6 @@ public class TaxiRide implements Comparable<TaxiRide> {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(rideId).append(",");
-		sb.append(taxiId).append(",");
-		sb.append(driverId).append(",");
 		sb.append(isStart ? "START" : "END").append(",");
 		sb.append(startTime.toString(timeFormatter)).append(",");
 		sb.append(endTime.toString(timeFormatter)).append(",");
@@ -87,7 +85,9 @@ public class TaxiRide implements Comparable<TaxiRide> {
 		sb.append(startLat).append(",");
 		sb.append(endLon).append(",");
 		sb.append(endLat).append(",");
-		sb.append(passengerCnt);
+		sb.append(passengerCnt).append(",");
+		sb.append(taxiId).append(",");
+		sb.append(driverId);
 
 		return sb.toString();
 	}
