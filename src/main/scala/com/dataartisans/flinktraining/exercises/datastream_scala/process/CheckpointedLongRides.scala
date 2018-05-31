@@ -77,14 +77,14 @@ object CheckpointedLongRides {
     env.execute("Long Taxi Rides (checkpointed)")
   }
 
-  class MatchFunction extends ProcessFunction[TaxiRide, TaxiRide] {
+  class MatchFunction extends KeyedProcessFunction[Long, TaxiRide, TaxiRide] {
     // keyed, managed state
     // holds an END event if the ride has ended, otherwise a START event
     lazy val rideState: ValueState[TaxiRide] = getRuntimeContext.getState(
       new ValueStateDescriptor[TaxiRide]("saved ride", classOf[TaxiRide]))
 
     override def processElement(ride: TaxiRide,
-                                context: ProcessFunction[TaxiRide, TaxiRide]#Context,
+                                context: KeyedProcessFunction[Long, TaxiRide, TaxiRide]#Context,
                                 out: Collector[TaxiRide]): Unit = {
       val timerService = context.timerService
 
@@ -102,7 +102,7 @@ object CheckpointedLongRides {
     }
 
     override def onTimer(timestamp: Long,
-                         ctx: ProcessFunction[TaxiRide, TaxiRide]#OnTimerContext,
+                         ctx: KeyedProcessFunction[Long, TaxiRide, TaxiRide]#OnTimerContext,
                          out: Collector[TaxiRide]): Unit = {
       val savedRide = rideState.value
 

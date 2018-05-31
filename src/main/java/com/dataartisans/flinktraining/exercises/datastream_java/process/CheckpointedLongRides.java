@@ -30,7 +30,7 @@ import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
 
 import java.util.concurrent.TimeUnit;
@@ -76,7 +76,7 @@ public class CheckpointedLongRides {
 		env.execute("Long Taxi Rides (checkpointed)");
 	}
 
-	public static class MatchFunction extends ProcessFunction<TaxiRide, TaxiRide> {
+	public static class MatchFunction extends KeyedProcessFunction<Long, TaxiRide, TaxiRide> {
 		// keyed, managed state
 		// holds an END event if the ride has ended, otherwise a START event
 		private ValueState<TaxiRide> rideState;

@@ -28,7 +28,7 @@ import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
 
 import java.util.PriorityQueue;
@@ -61,7 +61,7 @@ public class CarEventSort {
 		env.execute("Sort Connected Car Events");
 	}
 
-	public static class SortFunction extends ProcessFunction<ConnectedCarEvent, ConnectedCarEvent> {
+	public static class SortFunction extends KeyedProcessFunction<String, ConnectedCarEvent, ConnectedCarEvent> {
 		private ValueState<PriorityQueue<ConnectedCarEvent>> queueState = null;
 
 		@Override
