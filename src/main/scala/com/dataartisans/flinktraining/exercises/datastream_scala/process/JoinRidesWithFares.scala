@@ -56,7 +56,7 @@ object JoinRidesWithFares {
 
     val rides = env
       .addSource(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor))
-      .filter { ride => !ride.isStart && (ride.rideId % 1000 != 0) }
+      .filter { ride => ride.isStart && (ride.rideId % 1000 != 0) }
       .keyBy("rideId")
 
     val fares = env
@@ -103,8 +103,8 @@ object JoinRidesWithFares {
       }
       else {
         fareState.update(fare)
-        // wait up to 6 hours for the corresponding ride END event, then clear the state
-        context.timerService.registerEventTimeTimer(fare.getEventTime + 6 * 60 * 60 * 1000)
+        // as soon as the watermark arrives, we can stop waiting for the corresponding ride
+        context.timerService.registerEventTimeTimer(fare.getEventTime)
       }
     }
 

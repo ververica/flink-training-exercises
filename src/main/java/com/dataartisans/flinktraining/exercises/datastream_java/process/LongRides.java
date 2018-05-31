@@ -58,7 +58,7 @@ public class LongRides {
 
 		DataStream<TaxiRide> longRides = rides
 				.filter(new RideCleansing.NYCFilter())
-				.keyBy("rideId")
+				.keyBy((TaxiRide ride) -> ride.rideId)
 				.process(new MatchFunction());
 
 		longRides.print();

@@ -20,7 +20,6 @@ import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFa
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiFareSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -63,12 +62,7 @@ public class JoinRidesWithFares {
 
 		DataStream<TaxiRide> rides = env
 				.addSource(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor))
-				.filter(new FilterFunction<TaxiRide>() {
-					@Override
-					public boolean filter(TaxiRide ride) throws Exception {
-						return !ride.isStart && (ride.rideId % 1000 != 0);
-					}
-				})
+				.filter((TaxiRide ride) -> (ride.isStart && (ride.rideId % 1000 != 0)))
 				.keyBy("rideId");
 
 		DataStream<TaxiFare> fares = env
@@ -134,8 +128,8 @@ public class JoinRidesWithFares {
 				out.collect(new Tuple2(ride, fare));
 			} else {
 				fareState.update(fare);
-				// wait up to 6 hours for the corresponding ride END event, then clear the state
-				context.timerService().registerEventTimeTimer(fare.getEventTime() + 6 * 60 * 60 * 1000);
+				// as soon as the watermark arrives, we can stop waiting for the corresponding ride
+				context.timerService().registerEventTimeTimer(fare.getEventTime());
 			}
 		}
 	}

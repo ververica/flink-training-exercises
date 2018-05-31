@@ -18,7 +18,6 @@ package com.dataartisans.flinktraining.exercises.datastream_java.windows;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiFareSource;
-import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -59,12 +58,8 @@ public class HourlyTips {
 				new CheckpointedTaxiFareSource(input, servingSpeedFactor));
 
 		// compute tips per hour for each driver
-		DataStream<Tuple3<Long, Long, Float>> hourlyTips = fares.keyBy(new KeySelector<TaxiFare, Long>() {
-					@Override
-					public Long getKey(TaxiFare fare) throws Exception {
-						return fare.driverId;
-					}
-				})
+		DataStream<Tuple3<Long, Long, Float>> hourlyTips = fares
+				.keyBy((TaxiFare fare) -> fare.driverId)
 				.timeWindow(Time.hours(1))
 				.apply(new AddTips());
 

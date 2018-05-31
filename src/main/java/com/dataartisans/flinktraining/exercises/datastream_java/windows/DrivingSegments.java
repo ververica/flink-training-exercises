@@ -19,7 +19,6 @@ package com.dataartisans.flinktraining.exercises.datastream_java.windows;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.ConnectedCarEvent;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.StoppedSegment;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ConnectedCarAssigner;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -63,12 +62,7 @@ public class DrivingSegments {
 
 		// map to events
 		DataStream<ConnectedCarEvent> events = carData
-				.map(new MapFunction<String, ConnectedCarEvent>() {
-					@Override
-					public ConnectedCarEvent map(String line) throws Exception {
-						return ConnectedCarEvent.fromString(line);
-					}
-				})
+				.map((String line) -> ConnectedCarEvent.fromString(line))
 				.assignTimestampsAndWatermarks(new ConnectedCarAssigner());
 
 		// find segments

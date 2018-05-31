@@ -20,7 +20,6 @@ import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFa
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiFareSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -59,12 +58,7 @@ public class JoinRidesWithFares {
 
 		DataStream<TaxiRide> rides = env
 				.addSource(new TaxiRideSource(ridesFile, delay, servingSpeedFactor))
-				.filter(new FilterFunction<TaxiRide>() {
-					@Override
-					public boolean filter(TaxiRide ride) throws Exception {
-						return !ride.isStart;
-					}
-				})
+				.filter((TaxiRide ride) -> ride.isStart)
 				.keyBy("rideId");
 
 		DataStream<TaxiFare> fares = env

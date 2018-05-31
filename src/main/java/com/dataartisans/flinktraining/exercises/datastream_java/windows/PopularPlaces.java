@@ -20,7 +20,6 @@ import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRide
 import com.dataartisans.flinktraining.exercises.datastream_java.basics.RideCleansing;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -80,12 +79,7 @@ public class PopularPlaces {
 				// count ride events in window
 				.apply(new RideCounter())
 				// filter by popularity threshold
-				.filter(new FilterFunction<Tuple4<Integer, Long, Boolean, Integer>>() {
-					@Override
-					public boolean filter(Tuple4<Integer, Long, Boolean, Integer> count) throws Exception {
-						return count.f3 >= popThreshold;
-					}
-				})
+				.filter((Tuple4<Integer, Long, Boolean, Integer> count) -> (count.f3 >= popThreshold))
 				// map grid cell to coordinates
 				.map(new GridToCoordinates());
 

@@ -53,7 +53,7 @@ object JoinRidesWithFares {
 
     val rides = env
       .addSource(new TaxiRideSource(ridesFile, delay, servingSpeedFactor))
-      .filter { ride => !ride.isStart }
+      .filter { ride => ride.isStart }
       .keyBy("rideId")
 
     val fares = env

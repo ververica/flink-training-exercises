@@ -18,7 +18,6 @@ package com.dataartisans.flinktraining.exercises.datastream_java.process;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.ConnectedCarEvent;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ConnectedCarAssigner;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeHint;
@@ -51,16 +50,11 @@ public class CarEventSort {
 
 		// map to events
 		DataStream<ConnectedCarEvent> events = carData
-				.map(new MapFunction<String, ConnectedCarEvent>() {
-					@Override
-					public ConnectedCarEvent map(String line) throws Exception {
-						return ConnectedCarEvent.fromString(line);
-					}
-				})
+				.map((String line) -> ConnectedCarEvent.fromString(line))
 				.assignTimestampsAndWatermarks(new ConnectedCarAssigner());
 
 		// sort events
-		events.keyBy("carId")
+		events.keyBy((ConnectedCarEvent event) -> event.carId)
 				.process(new SortFunction())
 				.print();
 
