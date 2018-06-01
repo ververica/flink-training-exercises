@@ -81,7 +81,9 @@ public class LongRides {
 							}
 						});
 
-		// We want to find rides that have NOT been completed within 120 minutes
+		// We want to find rides that have NOT been completed within 120 minutes.
+		// This pattern matches rides that ARE completed.
+		// Below we will ignore rides that match this pattern, and emit those that timeout.
 		PatternStream<TaxiRide> patternStream = CEP.pattern(keyedRides, completedRides.within(Time.minutes(120)));
 
 		OutputTag<TaxiRide> timedout = new OutputTag<TaxiRide>("timedout"){};

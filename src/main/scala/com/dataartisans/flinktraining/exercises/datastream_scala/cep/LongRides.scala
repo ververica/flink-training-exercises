@@ -65,6 +65,8 @@ object LongRides {
       .next("end").where(!_.isStart)
 
     // We want to find rides that have NOT been completed within 120 minutes
+    // This pattern matches rides that ARE completed.
+    // Below we will ignore rides that match this pattern, and emit those that timeout.
     val pattern: PatternStream[TaxiRide] = CEP.pattern[TaxiRide](keyedRides, completedRides.within(Time.minutes(120)))
 
     // side output tag for rides that time out
