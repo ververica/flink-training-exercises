@@ -85,12 +85,7 @@ public class PopularPlacesSolution extends ExerciseBase {
 				// count ride events in window
 				.apply(new RideCounter())
 				// filter by popularity threshold
-				.filter(new FilterFunction<Tuple4<Integer, Long, Boolean, Integer>>() {
-					@Override
-					public boolean filter(Tuple4<Integer, Long, Boolean, Integer> count) throws Exception {
-						return count.f3 >= popThreshold;
-					}
-				})
+				.filter((Tuple4<Integer, Long, Boolean, Integer> count) -> (count.f3 >= popThreshold))
 				// map grid cell to coordinates
 				.map(new GridToCoordinates());
 

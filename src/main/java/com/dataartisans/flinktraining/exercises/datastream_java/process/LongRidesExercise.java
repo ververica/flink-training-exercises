@@ -26,6 +26,7 @@ import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.util.Collector;
@@ -60,7 +61,7 @@ public class LongRidesExercise extends ExerciseBase {
 		DataStream<TaxiRide> rides = env.addSource(sourceOrTest(new TaxiRideSource(input, maxEventDelay, servingSpeedFactor)));
 
 		DataStream<TaxiRide> longRides = rides
-				.keyBy("rideId")
+				.keyBy(ride -> ride.rideId)
 				.process(new MatchFunction());
 
 		longRides.addSink(printOrTest(new PrintSinkFunction<>()));
@@ -68,7 +69,7 @@ public class LongRidesExercise extends ExerciseBase {
 		env.execute("Long Taxi Rides");
 	}
 
-	public static class MatchFunction extends ProcessFunction<TaxiRide, TaxiRide> {
+	public static class MatchFunction extends KeyedProcessFunction<Long, TaxiRide, TaxiRide> {
 
 		@Override
 		public void open(Configuration config) throws Exception {
