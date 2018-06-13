@@ -1,6 +1,6 @@
-package com.dataartisans.flinktraining.exercises.datastream_java.process;
+package com.dataartisans.flinktraining.solutions.datastream_java;
 
-import com.dataartisans.flinktraining.exercises.datastream_java.basics.RideCleansingSolution;
+import com.dataartisans.flinktraining.solutions.datastream_java.RideCleansingSolution;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
@@ -13,7 +13,6 @@ import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
-import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.util.Collector;
 
 public class LongRidesSolution extends ExerciseBase {
@@ -39,7 +38,7 @@ public class LongRidesSolution extends ExerciseBase {
 				.keyBy(r -> r.rideId)
 				.process(new MatchFunction());
 
-		longRides.addSink(printOrTest(new PrintSinkFunction<>()));
+		printOrTest(longRides);
 
 		env.execute("Long Taxi Rides");
 	}

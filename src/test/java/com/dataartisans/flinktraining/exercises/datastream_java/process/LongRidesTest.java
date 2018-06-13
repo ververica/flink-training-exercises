@@ -1,16 +1,21 @@
 package com.dataartisans.flinktraining.exercises.datastream_java.process;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
 import com.dataartisans.flinktraining.exercises.datastream_java.testing.TaxiRideTestBase;
 import com.google.common.collect.Lists;
-import org.apache.flink.runtime.client.JobExecutionException;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
+	static Testable javaExercise = () -> LongRidesExercise.main(new String[]{});
+	static Testable javaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.LongRidesSolution.main(new String[]{});
+
+	public void runTest(TestSource source, TestSink<?> sink) throws Exception {
+		test(source, sink, javaExercise, javaSolution);
+	}
+
 	private DateTime beginning = new DateTime(2000, 1, 1, 0, 0);
 	TestSink<TaxiRide> sink = new TestSink<TaxiRide>();
 
@@ -83,26 +88,4 @@ public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
 		return testRide(started.rideId, false, started.startTime, endTime);
 	}
 
-
-	private void runTest(TestSource source, TestSink<TaxiRide> sink) throws Exception {
-
-		try {
-			sink.values.clear();
-			LongRidesExercise.in = source;
-			LongRidesExercise.out = sink;
-			LongRidesExercise.parallelism = 1;
-			LongRidesExercise.main(new String[]{});
-		} catch (JobExecutionException | MissingSolutionException e) {
-			if (e instanceof MissingSolutionException ||
-					(e.getCause() != null && e.getCause() instanceof MissingSolutionException)) {
-				sink.values.clear();
-				LongRidesSolution.in = source;
-				LongRidesSolution.out = sink;
-				LongRidesSolution.parallelism = 1;
-				LongRidesSolution.main(new String[]{});
-			} else {
-				throw e;
-			}
-		}
-	}
 }

@@ -27,8 +27,6 @@ import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
-import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.util.Collector;
 
 /**
@@ -64,7 +62,7 @@ public class LongRidesExercise extends ExerciseBase {
 				.keyBy(ride -> ride.rideId)
 				.process(new MatchFunction());
 
-		longRides.addSink(printOrTest(new PrintSinkFunction<>()));
+		printOrTest(longRides);
 
 		env.execute("Long Taxi Rides");
 	}

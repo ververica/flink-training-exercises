@@ -1,6 +1,9 @@
 package com.dataartisans.flinktraining.exercises.datastream_java.testing;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
+import org.apache.flink.runtime.client.JobExecutionException;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.watermark.Watermark;
@@ -8,7 +11,7 @@ import org.apache.flink.streaming.api.watermark.Watermark;
 import java.util.*;
 
 public abstract class TaxiRideTestBase<OUT> {
-	public class TestSource implements SourceFunction<TaxiRide> {
+	public static class TestSource implements SourceFunction<TaxiRide> {
 		private volatile boolean running = true;
 		private Object[] testStream;
 
@@ -44,8 +47,30 @@ public abstract class TaxiRideTestBase<OUT> {
 		public static final List values = new ArrayList<>();
 
 		@Override
-		public synchronized void invoke(OUT value) throws Exception {
+		public void invoke(OUT value, Context context) throws Exception {
 			values.add(value);
+		}
+	}
+
+	public interface Testable {
+		public abstract void main() throws Exception;
+	}
+
+	protected void test(TestSource source, TestSink<?> sink, Testable exercise, Testable solution) throws Exception {
+		sink.values.clear();
+		ExerciseBase.in = source;
+		ExerciseBase.out = sink;
+		ExerciseBase.parallelism = 1;
+
+		try {
+			exercise.main();
+		} catch (JobExecutionException | MissingSolutionException e) {
+			if (e instanceof MissingSolutionException ||
+					(e.getCause() != null && e.getCause() instanceof MissingSolutionException)) {
+				solution.main();
+			} else {
+				throw e;
+			}
 		}
 	}
 }

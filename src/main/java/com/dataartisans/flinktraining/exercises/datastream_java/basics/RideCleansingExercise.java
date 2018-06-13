@@ -25,7 +25,6 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 
 /**
  * Java reference implementation for the "Ride Cleansing" exercise of the Flink training
@@ -40,10 +39,8 @@ import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 public class RideCleansingExercise extends ExerciseBase {
 
 	public static void main(String[] args) throws Exception {
-		final String pathToRideData = "/Users/david/stuff/flink-training/trainingData/nycTaxiRides.gz";
-
 		ParameterTool params = ParameterTool.fromArgs(args);
-		final String input = params.get("input", pathToRideData);
+		final String input = params.get("input", "/Users/david/stuff/flink-training/trainingData/nycTaxiRides.gz");
 
 		final int maxEventDelay = 60;       // events are out of order by max 60 seconds
 		final int servingSpeedFactor = 600; // events of 10 minutes are served in 1 second
@@ -61,7 +58,7 @@ public class RideCleansingExercise extends ExerciseBase {
 				.filter(new NYCFilter());
 
 		// print the filtered stream
-		filteredRides.addSink(printOrTest(new PrintSinkFunction<>()));
+		printOrTest(filteredRides);
 
 		// run the cleansing pipeline
 		env.execute("Taxi Ride Cleansing");

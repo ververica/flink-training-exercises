@@ -16,10 +16,17 @@ public class ExerciseBase {
 		return in;
 	}
 
-	public static SinkFunction printOrTest(SinkFunction sink) {
+	public static void printOrTest(org.apache.flink.streaming.api.datastream.DataStream<?> ds) {
 		if (out == null) {
-			return sink;
+			ds.print();
 		}
-		return out;
+		ds.addSink(out);
+	}
+
+	public static void printOrTest(org.apache.flink.streaming.api.scala.DataStream<?> ds) {
+		if (out == null) {
+			ds.print();
+		}
+		ds.addSink(out);
 	}
 }

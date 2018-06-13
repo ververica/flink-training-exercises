@@ -37,15 +37,13 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  *
  */
 public class PopularPlacesExercise extends ExerciseBase {
-	// threshold for popular places; reduced during testing
-	public static int popThreshold = 20;
-
 	public static void main(String[] args) throws Exception {
 
 		final String pathToRideData = "/Users/david/stuff/flink-training/trainingData/nycTaxiRides.gz";
 
 		ParameterTool params = ParameterTool.fromArgs(args);
 		final String input = params.get("input", pathToRideData);
+		final int popThreshold = params.getInt("threshold", 20);
 
 		final int maxEventDelay = 60;       // events are out of order by max 60 seconds
 		final int servingSpeedFactor = 600; // events of 10 minutes are served in 1 second

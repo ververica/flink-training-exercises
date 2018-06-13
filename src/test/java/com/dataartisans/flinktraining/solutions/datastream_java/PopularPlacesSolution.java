@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_java.windows;
+package com.dataartisans.flinktraining.solutions.datastream_java;
 
-import com.dataartisans.flinktraining.exercises.datastream_java.basics.RideCleansing;
-import com.dataartisans.flinktraining.exercises.datastream_java.basics.RideCleansingSolution;
+import com.dataartisans.flinktraining.solutions.datastream_java.RideCleansingSolution;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -32,7 +30,6 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
 import org.apache.flink.streaming.api.scala.KeyedStream;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -48,18 +45,15 @@ import org.apache.flink.util.Collector;
  *
  * Parameters:
  * -input path-to-input-file
+ * [-threshold popularity-threshold]
  *
  */
 public class PopularPlacesSolution extends ExerciseBase {
-	// threshold for popular places; reduced during testing
-	public static int popThreshold = 20;
-
 	public static void main(String[] args) throws Exception {
 
-		final String pathToRideData = "/Users/david/stuff/flink-training/trainingData/nycTaxiRides.gz";
-
 		ParameterTool params = ParameterTool.fromArgs(args);
-		final String input = params.get("input", pathToRideData);
+		final String input = params.get("input");
+		final int popThreshold = params.getInt("threshold", 20);
 
 		final int maxEventDelay = 60;       // events are out of order by max 60 seconds
 		final int servingSpeedFactor = 600; // events of 10 minutes are served in 1 second
@@ -90,7 +84,7 @@ public class PopularPlacesSolution extends ExerciseBase {
 				.map(new GridToCoordinates());
 
 		// print result on stdout
-		popularSpots.addSink(printOrTest(new PrintSinkFunction<>()));
+		printOrTest(popularSpots);
 
 		// execute the transformation pipeline
 		env.execute("Popular Places");
