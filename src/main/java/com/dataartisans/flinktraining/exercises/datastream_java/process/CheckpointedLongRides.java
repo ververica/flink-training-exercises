@@ -16,9 +16,10 @@
 
 package com.dataartisans.flinktraining.exercises.datastream_java.process;
 
-import com.dataartisans.flinktraining.exercises.datastream_java.basics.RideCleansing;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource;
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
@@ -67,7 +68,7 @@ public class CheckpointedLongRides {
 		DataStream<TaxiRide> rides = env.addSource(new CheckpointedTaxiRideSource(input, servingSpeedFactor));
 
 		DataStream<TaxiRide> longRides = rides
-				.filter(new RideCleansing.NYCFilter())
+				.filter(new NYCFilter())
 				.keyBy((TaxiRide ride) -> ride.rideId)
 				.process(new MatchFunction());
 
@@ -111,6 +112,15 @@ public class CheckpointedLongRides {
 				out.collect(savedRide);
 			}
 			rideState.clear();
+		}
+	}
+
+	public static class NYCFilter implements FilterFunction<TaxiRide> {
+		@Override
+		public boolean filter(TaxiRide taxiRide) throws Exception {
+
+			return GeoUtils.isInNYC(taxiRide.startLon, taxiRide.startLat) &&
+					GeoUtils.isInNYC(taxiRide.endLon, taxiRide.endLat);
 		}
 	}
 }

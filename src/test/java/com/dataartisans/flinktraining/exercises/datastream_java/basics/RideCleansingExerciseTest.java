@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class RideCleansingTest extends TaxiRideTestBase<TaxiRide> {
+public class RideCleansingExerciseTest extends TaxiRideTestBase<TaxiRide> {
 	TestSink<TaxiRide> sink = new TestSink<TaxiRide>();
 
 	static Testable javaExercise = () -> RideCleansingExercise.main(new String[]{});

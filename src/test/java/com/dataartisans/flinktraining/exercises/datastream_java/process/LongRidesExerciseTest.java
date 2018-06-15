@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
+public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 	static Testable javaExercise = () -> LongRidesExercise.main(new String[]{});
 	static Testable javaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.LongRidesSolution.main(new String[]{});
 

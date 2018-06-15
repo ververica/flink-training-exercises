@@ -17,9 +17,9 @@
 package com.dataartisans.flinktraining.exercises.datastream_java.connectors;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
-import com.dataartisans.flinktraining.exercises.datastream_java.basics.RideCleansing;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.java.tuple.Tuple;
@@ -82,7 +82,7 @@ public class PopularPlacesToES {
 		// find popular places
 		DataStream<Tuple5<Float, Float, Long, Boolean, Integer>> popularPlaces = rides
 				// remove all rides which are not within NYC
-				.filter(new RideCleansing.NYCFilter())
+				.filter(new NYCFilter())
 				// match ride to grid cell and event type (start or end)
 				.map(new GridCellMatcher())
 				// partition by cell id and event type
@@ -204,6 +204,15 @@ public class PopularPlacesToES {
 					cellCount.f1,
 					cellCount.f2,
 					cellCount.f3);
+		}
+	}
+
+	public static class NYCFilter implements FilterFunction<TaxiRide> {
+		@Override
+		public boolean filter(TaxiRide taxiRide) throws Exception {
+
+			return GeoUtils.isInNYC(taxiRide.startLon, taxiRide.startLat) &&
+					GeoUtils.isInNYC(taxiRide.endLon, taxiRide.endLat);
 		}
 	}
 

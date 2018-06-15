@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class PopularPlacesTest extends TaxiRideTestBase<Tuple5<Float, Float, Long, Boolean, Integer>> {
+public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Float, Long, Boolean, Integer>> {
 	static Testable javaExercise = () -> PopularPlacesExercise.main(new String[]{"-threshold", "2"});
 	static Testable javaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.PopularPlacesSolution.main(new String[]{"-threshold", "2"});
 
