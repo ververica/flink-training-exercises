@@ -16,6 +16,7 @@
 
 package com.dataartisans.flinktraining.exercises.datastream_java.datatypes;
 
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -44,7 +45,10 @@ public class TaxiRide implements Comparable<TaxiRide> {
 	private static transient DateTimeFormatter timeFormatter =
 			DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withLocale(Locale.US).withZoneUTC();
 
-	public TaxiRide() {}
+	public TaxiRide() {
+		this.startTime = new DateTime();
+		this.endTime = new DateTime();
+	}
 
 	public TaxiRide(long rideId, boolean isStart, DateTime startTime, DateTime endTime,
 					float startLon, float startLat, float endLon, float endLat,
@@ -176,6 +180,14 @@ public class TaxiRide implements Comparable<TaxiRide> {
 		}
 		else {
 			return endTime.getMillis();
+		}
+	}
+
+	public double getEuclideanDistance(double longitude, double latitude) {
+		if (this.isStart) {
+			return GeoUtils.getEuclideanDistance((float) longitude, (float) latitude, this.startLon, this.startLat);
+		} else {
+			return GeoUtils.getEuclideanDistance((float) longitude, (float) latitude, this.endLon, this.endLat);
 		}
 	}
 }

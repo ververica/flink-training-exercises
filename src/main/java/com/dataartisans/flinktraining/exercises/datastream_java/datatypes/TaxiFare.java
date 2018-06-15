@@ -35,7 +35,9 @@ public class TaxiFare {
 	private static transient DateTimeFormatter timeFormatter =
 			DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withLocale(Locale.US).withZoneUTC();
 
-	public TaxiFare() {}
+	public TaxiFare() {
+		this.startTime = new DateTime();
+	}
 
 	public TaxiFare(long rideId, long taxiId, long driverId, DateTime startTime, String paymentType, float tip, float tolls, float totalFare) {
 
