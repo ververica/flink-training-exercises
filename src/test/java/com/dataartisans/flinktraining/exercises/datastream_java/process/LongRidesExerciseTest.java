@@ -12,8 +12,19 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 	static Testable javaExercise = () -> LongRidesExercise.main(new String[]{});
 	static Testable javaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.LongRidesSolution.main(new String[]{});
 
-	public void runTest(TestSource source, TestSink<?> sink) throws Exception {
-		test(source, sink, javaExercise, javaSolution);
+	static Testable scalaExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.process.LongRidesExercise.main(new String[]{});
+	static Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.LongRidesSolution.main(new String[]{});
+
+	public TestSink<TaxiRide> javaResults(TestSource source) throws Exception {
+		TestSink<TaxiRide> sink = new TestSink<TaxiRide>();
+		runTest(source, sink, javaExercise, javaSolution);
+		return sink;
+	}
+
+	public TestSink<TaxiRide> scalaResults(TestSource source) throws Exception {
+		TestSink<TaxiRide> sink = new TestSink<TaxiRide>();
+		runTest(source, sink, scalaExercise, scalaSolution);
+		return sink;
 	}
 
 	private DateTime beginning = new DateTime(2000, 1, 1, 0, 0);
@@ -27,8 +38,8 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 		Long markOneMinLater = oneMinLater.getMillis();
 
 		TestSource source = new TestSource(rideStarted, endedOneMinLater, markOneMinLater);
-		runTest(source, sink);
-		assert(sink.values.isEmpty());
+		assert(javaResults(source).values.isEmpty());
+		assert(scalaResults(source).values.isEmpty());
 	}
 
 	@Test
@@ -39,8 +50,8 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 		Long markOneMinLater = oneMinLater.getMillis();
 
 		TestSource source = new TestSource(endedOneMinLater, rideStarted, markOneMinLater);
-		runTest(source, sink);
-		assert(sink.values.isEmpty());
+		assert(javaResults(source).values.isEmpty());
+		assert(scalaResults(source).values.isEmpty());
 	}
 
 	@Test
@@ -51,8 +62,8 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 		Long markOneMinLater = oneMinLater.getMillis();
 
 		TestSource source = new TestSource(endedOneMinLater, markOneMinLater);
-		runTest(source, sink);
-		assert(sink.values.isEmpty());
+		assert(javaResults(source).values.isEmpty());
+		assert(scalaResults(source).values.isEmpty());
 	}
 
 	@Test
@@ -61,8 +72,8 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 		Long markThreeHoursLater = beginning.plusHours(3).getMillis();
 
 		TestSource source = new TestSource(rideStarted, markThreeHoursLater);
-		runTest(source, sink);
-		assertEquals(Lists.newArrayList(rideStarted), sink.values);
+		assertEquals(Lists.newArrayList(rideStarted), javaResults(source).values);
+		assertEquals(Lists.newArrayList(rideStarted), scalaResults(source).values);
 	}
 
 	@Test
@@ -72,8 +83,8 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 		TaxiRide rideEnded3HoursLater = endRide(rideStarted, beginning.plusHours(3));
 
 		TestSource source = new TestSource(rideStarted, mark2HoursLater, rideEnded3HoursLater);
-		runTest(source, sink);
-		assertEquals(Lists.newArrayList(rideStarted), sink.values);
+		assertEquals(Lists.newArrayList(rideStarted), javaResults(source).values);
+		assertEquals(Lists.newArrayList(rideStarted), scalaResults(source).values);
 	}
 
 	private TaxiRide testRide(long rideId, Boolean isStart, DateTime startTime, DateTime endTime) {

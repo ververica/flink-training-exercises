@@ -77,7 +77,6 @@ public class LongRidesExercise extends ExerciseBase {
 		@Override
 		public void processElement(TaxiRide ride, Context context, Collector<TaxiRide> out) throws Exception {
 			TimerService timerService = context.timerService();
-
 		}
 
 		@Override

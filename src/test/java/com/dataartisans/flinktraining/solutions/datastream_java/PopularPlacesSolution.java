@@ -21,6 +21,7 @@ import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRi
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -52,7 +53,7 @@ public class PopularPlacesSolution extends ExerciseBase {
 	public static void main(String[] args) throws Exception {
 
 		ParameterTool params = ParameterTool.fromArgs(args);
-		final String input = params.get("input");
+		final String input = params.get("input", pathToRideData);
 		final int popThreshold = params.getInt("threshold", 20);
 
 		final int maxEventDelay = 60;       // events are out of order by max 60 seconds
@@ -69,7 +70,7 @@ public class PopularPlacesSolution extends ExerciseBase {
 		// find popular places
 		DataStream<Tuple5<Float, Float, Long, Boolean, Integer>> popularSpots = rides
 				// remove all rides which are not within NYC
-				.filter(new RideCleansingSolution.NYCFilter())
+				.filter(new NYCFilter())
 				// match ride to grid cell and event type (start or end)
 				.map(new GridCellMatcher())
 				// partition by cell id and event type
@@ -160,4 +161,12 @@ public class PopularPlacesSolution extends ExerciseBase {
 		}
 	}
 
+	public static class NYCFilter implements FilterFunction<TaxiRide> {
+		@Override
+		public boolean filter(TaxiRide taxiRide) throws Exception {
+
+			return GeoUtils.isInNYC(taxiRide.startLon, taxiRide.startLat) &&
+					GeoUtils.isInNYC(taxiRide.endLon, taxiRide.endLat);
+		}
+	}
 }

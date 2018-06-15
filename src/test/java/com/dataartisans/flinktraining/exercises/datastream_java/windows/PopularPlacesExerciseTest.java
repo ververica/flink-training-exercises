@@ -8,17 +8,32 @@ import org.apache.flink.api.java.tuple.Tuple5;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static org.junit.Assert.assertEquals;
 
 public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Float, Long, Boolean, Integer>> {
 	static Testable javaExercise = () -> PopularPlacesExercise.main(new String[]{"-threshold", "2"});
 	static Testable javaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.PopularPlacesSolution.main(new String[]{"-threshold", "2"});
 
-	public void runTest(TestSource source, TestSink<?> sink) throws Exception {
-		test(source, sink, javaExercise, javaSolution);
+	static Testable scalaExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.windows.PopularPlacesExercise.main(new String[]{"-threshold", "2"});
+	static Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.PopularPlacesSolution.main(new String[]{"-threshold", "2"});
+
+	public TestSink<Tuple5<Float, Float, Long, Boolean, Integer>> javaResults(TestSource source) throws Exception {
+		TestSink<Tuple5<Float, Float, Long, Boolean, Integer>> sink = new TestSink<>();
+		runTest(source, sink, javaExercise, javaSolution);
+		return sink;
 	}
 
-	TestSink<Tuple5<Float, Float, Long, Boolean, Integer>> sink = new TestSink<>();
+	public TestSink<Tuple5<Float, Float, Long, Boolean, Integer>> scalaResults(TestSource source) throws Exception {
+		TestSink<Tuple5<Float, Float, Long, Boolean, Integer>> sink = new TestSink<>();
+		runTest(source, sink, scalaExercise, scalaSolution);
+		return sink;
+	}
 
 	float pennStationLon = -73.9947F;
 	float pennStationLat = 40.750626F;
@@ -45,8 +60,6 @@ public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Fl
 				penn14,
 				moma15a, moma15b, moma15c, t(15), t(20), t(25), t(30), t(35));
 
-		runTest(source, sink);
-
 		int momaGridId = GeoUtils.mapToGridCell(momaLon, momaLat);
 		float momaGridLon = GeoUtils.getGridCellCenterLon(momaGridId);
 		float momaGridLat = GeoUtils.getGridCellCenterLat(momaGridId);
@@ -57,7 +70,11 @@ public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Fl
 		Tuple5<Float, Float, Long, Boolean, Integer> moma20 = new Tuple5<>(momaGridLon, momaGridLat, t(20), false, 3);
 		Tuple5<Float, Float, Long, Boolean, Integer> moma25 = new Tuple5<>(momaGridLon, momaGridLat, t(25), false, 3);
 		Tuple5<Float, Float, Long, Boolean, Integer> moma30 = new Tuple5<>(momaGridLon, momaGridLat, t(30), false, 3);
-		assertEquals(Lists.newArrayList(penn10, penn15, penn20, moma20, moma25, moma30), sink.values);
+
+		ArrayList<Tuple5<Float, Float, Long, Boolean, Integer>> expected = Lists.newArrayList(penn10, penn15, penn20, moma20, moma25, moma30);
+
+		assertEquals(expected, javaResults(source).values);
+		assertEquals(scalaTuples(expected), scalaResults(source).values);
 	}
 
 	private long t(int n) {
@@ -72,6 +89,12 @@ public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Fl
 	private TaxiRide endRide(TaxiRide started, DateTime endTime, float endLon, float endLat) {
 		return new TaxiRide(started.rideId, false, started.startTime, endTime,
 				started.startLon, started.startLat, endLon, endLat, (short) 1, 0, 0);
+	}
+
+	private ArrayList<scala.Tuple5<Float, Float, Long, Boolean, Integer>> scalaTuples(ArrayList<Tuple5<Float, Float, Long, Boolean, Integer>> a) {
+		ArrayList<scala.Tuple5<Float, Float, Long, Boolean, Integer>> scalaCopy = new ArrayList<>(a.size());
+		a.iterator().forEachRemaining(t -> scalaCopy.add(new scala.Tuple5(t.f0, t.f1, t.f2, t.f3, t.f4)));
+		return scalaCopy;
 	}
 
 }

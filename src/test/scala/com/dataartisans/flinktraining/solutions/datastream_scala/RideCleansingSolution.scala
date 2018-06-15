@@ -17,7 +17,7 @@
 package com.dataartisans.flinktraining.solutions.datastream_scala
 
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase.printOrTest
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase._
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.{ExerciseBase, GeoUtils}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
@@ -40,7 +40,7 @@ object RideCleansingSolution {
   def main(args: Array[String]) {
     // parse parameters
     val params = ParameterTool.fromArgs(args)
-    val input = params.get("input")
+    val input = params.get("input", pathToRideData)
 
     val maxDelay = 60 // events are out of order by max 60 seconds
     val speed = 600   // events of 10 minutes are served in 1 second
@@ -48,10 +48,10 @@ object RideCleansingSolution {
     // set up the execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
-    env.setParallelism(ExerciseBase.parallelism)
+    env.setParallelism(parallelism)
 
     // get the taxi ride data stream
-    val rides = env.addSource(ExerciseBase.sourceOrTest(new TaxiRideSource(input, maxDelay, speed)))
+    val rides = env.addSource(sourceOrTest(new TaxiRideSource(input, maxDelay, speed)))
 
     val filteredRides = rides
       .filter(r => GeoUtils.isInNYC(r.startLon, r.startLat) && GeoUtils.isInNYC(r.endLon, r.endLat))

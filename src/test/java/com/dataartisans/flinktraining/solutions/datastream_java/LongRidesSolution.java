@@ -17,7 +17,6 @@ import org.apache.flink.util.Collector;
 
 public class LongRidesSolution extends ExerciseBase {
 	public static void main(String[] args) throws Exception {
-		final String pathToRideData = "/Users/david/stuff/flink-training/trainingData/nycTaxiRides.gz";
 
 		ParameterTool params = ParameterTool.fromArgs(args);
 		final String input = params.get("input", pathToRideData);
@@ -34,7 +33,6 @@ public class LongRidesSolution extends ExerciseBase {
 		DataStream<TaxiRide> rides = env.addSource(sourceOrTest(new TaxiRideSource(input, maxEventDelay, servingSpeedFactor)));
 
 		DataStream<TaxiRide> longRides = rides
-				.filter(new RideCleansingSolution.NYCFilter())
 				.keyBy(r -> r.rideId)
 				.process(new MatchFunction());
 

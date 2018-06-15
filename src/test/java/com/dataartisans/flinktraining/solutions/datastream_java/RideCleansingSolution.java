@@ -15,7 +15,7 @@ public class RideCleansingSolution extends ExerciseBase {
 	public static void main(String[] args) throws Exception {
 
 		ParameterTool params = ParameterTool.fromArgs(args);
-		final String input = params.get("input");
+		final String input = params.get("input", pathToRideData);
 
 		final int maxEventDelay = 60;       // events are out of order by max 60 seconds
 		final int servingSpeedFactor = 600; // events of 10 minutes are served in 1 second
@@ -39,9 +39,7 @@ public class RideCleansingSolution extends ExerciseBase {
 		env.execute("Taxi Ride Cleansing");
 	}
 
-
 	public static class NYCFilter implements FilterFunction<TaxiRide> {
-
 		@Override
 		public boolean filter(TaxiRide taxiRide) throws Exception {
 

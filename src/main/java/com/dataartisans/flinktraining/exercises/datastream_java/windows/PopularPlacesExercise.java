@@ -19,7 +19,11 @@ package com.dataartisans.flinktraining.exercises.datastream_java.windows;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
+import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -56,13 +60,36 @@ public class PopularPlacesExercise extends ExerciseBase {
 		// start the data generator
 		DataStream<TaxiRide> rides = env.addSource(sourceOrTest(new TaxiRideSource(input, maxEventDelay, servingSpeedFactor)));
 
-		throw new MissingSolutionException();
+		// find n most popular spots
+		DataStream<?> popularPlaces = rides
+				// remove all rides which are not within NYC
+				.filter(new NYCFilter())
+				// match ride to grid cell and event type (start or end)
+				.map(new GridCellMatcher());
 
-//		DataStream<Tuple5<Float, Float, Long, Boolean, Integer>> popularSpots = rides
-//				...
+		printOrTest(popularPlaces);
 
-//		popularSpots.addSink(printOrTest(new PrintSinkFunction<>()));
-//		env.execute("Popular Places");
+		env.execute("Popular Places");
 	}
 
+	/**
+	 * Map taxi ride to grid cell and event type.
+	 * Start records use departure location, end record use arrival location.
+	 */
+	public static class GridCellMatcher implements MapFunction<TaxiRide, Tuple2<Integer, Boolean>> {
+
+		@Override
+		public Tuple2<Integer, Boolean> map(TaxiRide taxiRide) throws Exception {
+			throw new MissingSolutionException();
+		}
+	}
+
+	public static class NYCFilter implements FilterFunction<TaxiRide> {
+		@Override
+		public boolean filter(TaxiRide taxiRide) throws Exception {
+
+			return GeoUtils.isInNYC(taxiRide.startLon, taxiRide.startLat) &&
+					GeoUtils.isInNYC(taxiRide.endLon, taxiRide.endLat);
+		}
+	}
 }

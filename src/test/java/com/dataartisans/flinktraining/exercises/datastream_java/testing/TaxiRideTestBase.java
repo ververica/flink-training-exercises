@@ -56,7 +56,7 @@ public abstract class TaxiRideTestBase<OUT> {
 		public abstract void main() throws Exception;
 	}
 
-	protected void test(TestSource source, TestSink<?> sink, Testable exercise, Testable solution) throws Exception {
+	protected void runTest(TestSource source, TestSink<?> sink, Testable exercise, Testable solution) throws Exception {
 		sink.values.clear();
 		ExerciseBase.in = source;
 		ExerciseBase.out = sink;

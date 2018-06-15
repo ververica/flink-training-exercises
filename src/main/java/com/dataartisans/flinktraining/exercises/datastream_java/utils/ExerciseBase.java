@@ -8,6 +8,7 @@ public class ExerciseBase {
 	public static SourceFunction<TaxiRide> in = null;
 	public static SinkFunction out = null;
 	public static int parallelism = 4;
+	public final static String pathToRideData = "/Users/david/stuff/flink-training/trainingData/nycTaxiRides.gz";
 
 	public static SourceFunction<TaxiRide> sourceOrTest(SourceFunction<TaxiRide> source) {
 		if (in == null) {
@@ -19,14 +20,16 @@ public class ExerciseBase {
 	public static void printOrTest(org.apache.flink.streaming.api.datastream.DataStream<?> ds) {
 		if (out == null) {
 			ds.print();
+		} else {
+			ds.addSink(out);
 		}
-		ds.addSink(out);
 	}
 
 	public static void printOrTest(org.apache.flink.streaming.api.scala.DataStream<?> ds) {
 		if (out == null) {
 			ds.print();
+		} else {
+			ds.addSink(out);
 		}
-		ds.addSink(out);
 	}
 }
