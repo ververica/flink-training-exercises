@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.solutions.datastream_scala
+package com.dataartisans.flinktraining.solutions.datastream_scala.basics
 
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase._
@@ -48,10 +48,10 @@ object RideCleansingSolution {
     // set up the execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
-    env.setParallelism(parallelism)
+    env.setParallelism(ExerciseBase.parallelism)
 
     // get the taxi ride data stream
-    val rides = env.addSource(sourceOrTest(new TaxiRideSource(input, maxDelay, speed)))
+    val rides = env.addSource(rideSourceOrTest(new TaxiRideSource(input, maxDelay, speed)))
 
     val filteredRides = rides
       .filter(r => GeoUtils.isInNYC(r.startLon, r.startLat) && GeoUtils.isInNYC(r.endLon, r.endLat))

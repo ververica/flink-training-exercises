@@ -19,7 +19,7 @@ package com.dataartisans.flinktraining.exercises.datastream_scala.process
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase._
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.{ExerciseBase, MissingSolutionException}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.TimeCharacteristic
@@ -44,7 +44,7 @@ object LongRidesExercise {
 
     // parse parameters
     val params = ParameterTool.fromArgs(args)
-    val input = params.get("input", "/Users/david/stuff/flink-training/trainingData/nycTaxiRides.gz")
+    val input = params.get("input", ExerciseBase.pathToRideData)
 
     val maxDelay = 60     // events are out of order by max 60 seconds
     val speed = 1800      // events of 30 minutes are served every second
@@ -52,9 +52,9 @@ object LongRidesExercise {
     // set up the execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
-    env.setParallelism(parallelism)
+    env.setParallelism(ExerciseBase.parallelism)
 
-    val rides = env.addSource(sourceOrTest(new TaxiRideSource(input, maxDelay, speed)))
+    val rides = env.addSource(rideSourceOrTest(new TaxiRideSource(input, maxDelay, speed)))
 
     val longRides = rides
       .keyBy(_.rideId)

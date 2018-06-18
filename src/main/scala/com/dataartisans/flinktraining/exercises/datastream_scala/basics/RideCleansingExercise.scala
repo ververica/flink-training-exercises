@@ -39,7 +39,7 @@ object RideCleansingExercise extends ExerciseBase {
   def main(args: Array[String]) {
     // parse parameters
     val params = ParameterTool.fromArgs(args)
-    val input = params.get("input", "/Users/david/stuff/flink-training/trainingData/nycTaxiRides.gz")
+    val input = params.get("input", ExerciseBase.pathToRideData)
 
     val maxDelay = 60 // events are out of order by max 60 seconds
     val speed = 600   // events of 10 minutes are served in 1 second
@@ -47,10 +47,10 @@ object RideCleansingExercise extends ExerciseBase {
     // set up the execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
-    env.setParallelism(parallelism)
+    env.setParallelism(ExerciseBase.parallelism)
 
     // get the taxi ride data stream
-    val rides = env.addSource(sourceOrTest(new TaxiRideSource(input, maxDelay, speed)))
+    val rides = env.addSource(rideSourceOrTest(new TaxiRideSource(input, maxDelay, speed)))
 
     val filteredRides = rides
       // filter out rides that do not start and end in NYC

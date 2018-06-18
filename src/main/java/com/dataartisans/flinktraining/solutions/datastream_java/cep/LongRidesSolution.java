@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_java.cep;
+package com.dataartisans.flinktraining.solutions.datastream_java.cep;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource;
+import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.PatternFlatSelectFunction;
@@ -47,19 +49,20 @@ import java.util.Map;
  * -input path-to-input-file
  *
  */
-public class LongRides {
+public class LongRidesSolution extends ExerciseBase {
 	public static void main(String[] args) throws Exception {
 
 		ParameterTool params = ParameterTool.fromArgs(args);
-		final String input = params.getRequired("input");
+		final String input = params.get("input", pathToRideData);
 
 		final int servingSpeedFactor = 600; // events of 10 minutes are served in 1 second
 
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+		env.setParallelism(ExerciseBase.parallelism);
 
 		// CheckpointedTaxiRideSource delivers events in order
-		DataStream<TaxiRide> rides = env.addSource(new CheckpointedTaxiRideSource(input, servingSpeedFactor));
+		DataStream<TaxiRide> rides = env.addSource(rideSourceOrTest(new CheckpointedTaxiRideSource(input, servingSpeedFactor)));
 
 		DataStream<TaxiRide> keyedRides = rides
 			.keyBy("rideId");
@@ -94,9 +97,9 @@ public class LongRides {
 				new FlatSelectNothing<TaxiRide>()
 		);
 
-		longRides.getSideOutput(timedout).print();
+		printOrTest(longRides.getSideOutput(timedout));
 
-		env.execute("Long Taxi Rides");
+		env.execute("Long Taxi Rides (CEP)");
 	}
 
 	public static class TaxiRideTimedOut<TaxiRide> implements PatternFlatTimeoutFunction<TaxiRide, TaxiRide> {

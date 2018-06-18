@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.solutions.datastream_java;
+package com.dataartisans.flinktraining.solutions.datastream_java.windows;
 
-import com.dataartisans.flinktraining.solutions.datastream_java.RideCleansingSolution;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
@@ -62,10 +61,10 @@ public class PopularPlacesSolution extends ExerciseBase {
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-		env.setParallelism(parallelism);
+		env.setParallelism(ExerciseBase.parallelism);
 
 		// start the data generator
-		DataStream<TaxiRide> rides = env.addSource(sourceOrTest(new TaxiRideSource(input, maxEventDelay, servingSpeedFactor)));
+		DataStream<TaxiRide> rides = env.addSource(rideSourceOrTest(new TaxiRideSource(input, maxEventDelay, servingSpeedFactor)));
 
 		// find popular places
 		DataStream<Tuple5<Float, Float, Long, Boolean, Integer>> popularSpots = rides

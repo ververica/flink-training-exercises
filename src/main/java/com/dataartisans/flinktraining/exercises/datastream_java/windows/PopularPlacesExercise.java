@@ -43,10 +43,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 public class PopularPlacesExercise extends ExerciseBase {
 	public static void main(String[] args) throws Exception {
 
-		final String pathToRideData = "/Users/david/stuff/flink-training/trainingData/nycTaxiRides.gz";
-
 		ParameterTool params = ParameterTool.fromArgs(args);
-		final String input = params.get("input", pathToRideData);
+		final String input = params.get("input", ExerciseBase.pathToRideData);
 		final int popThreshold = params.getInt("threshold", 20);
 
 		final int maxEventDelay = 60;       // events are out of order by max 60 seconds
@@ -55,10 +53,10 @@ public class PopularPlacesExercise extends ExerciseBase {
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-		env.setParallelism(parallelism);
+		env.setParallelism(ExerciseBase.parallelism);
 
 		// start the data generator
-		DataStream<TaxiRide> rides = env.addSource(sourceOrTest(new TaxiRideSource(input, maxEventDelay, servingSpeedFactor)));
+		DataStream<TaxiRide> rides = env.addSource(rideSourceOrTest(new TaxiRideSource(input, maxEventDelay, servingSpeedFactor)));
 
 		// find n most popular spots
 		DataStream<?> popularPlaces = rides

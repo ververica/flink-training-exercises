@@ -3,36 +3,30 @@ package com.dataartisans.flinktraining.exercises.datastream_java.windows;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.testing.TaxiRideTestBase;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
+import com.dataartisans.flinktraining.solutions.datastream_java.windows.PopularPlacesSolution;
 import com.google.common.collect.Lists;
 import org.apache.flink.api.java.tuple.Tuple5;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
 public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Float, Long, Boolean, Integer>> {
 	static Testable javaExercise = () -> PopularPlacesExercise.main(new String[]{"-threshold", "2"});
-	static Testable javaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.PopularPlacesSolution.main(new String[]{"-threshold", "2"});
+	static Testable javaSolution = () -> PopularPlacesSolution.main(new String[]{"-threshold", "2"});
 
 	static Testable scalaExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.windows.PopularPlacesExercise.main(new String[]{"-threshold", "2"});
-	static Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.PopularPlacesSolution.main(new String[]{"-threshold", "2"});
+	static Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.windows.PopularPlacesSolution.main(new String[]{"-threshold", "2"});
 
-	public TestSink<Tuple5<Float, Float, Long, Boolean, Integer>> javaResults(TestSource source) throws Exception {
-		TestSink<Tuple5<Float, Float, Long, Boolean, Integer>> sink = new TestSink<>();
-		runTest(source, sink, javaExercise, javaSolution);
-		return sink;
+	public List<Tuple5<Float, Float, Long, Boolean, Integer>> javaResults(TestSource source) throws Exception {
+		return runRidesTest(source, new TestSink<>(), javaExercise, javaSolution);
 	}
 
-	public TestSink<Tuple5<Float, Float, Long, Boolean, Integer>> scalaResults(TestSource source) throws Exception {
-		TestSink<Tuple5<Float, Float, Long, Boolean, Integer>> sink = new TestSink<>();
-		runTest(source, sink, scalaExercise, scalaSolution);
-		return sink;
+	public List<Tuple5<Float, Float, Long, Boolean, Integer>> scalaResults(TestSource source) throws Exception {
+		return runRidesTest(source, new TestSink<>(), scalaExercise, scalaSolution);
 	}
 
 	float pennStationLon = -73.9947F;
@@ -73,8 +67,8 @@ public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Fl
 
 		ArrayList<Tuple5<Float, Float, Long, Boolean, Integer>> expected = Lists.newArrayList(penn10, penn15, penn20, moma20, moma25, moma30);
 
-		assertEquals(expected, javaResults(source).values);
-		assertEquals(scalaTuples(expected), scalaResults(source).values);
+		assertEquals(expected, javaResults(source));
+		assertEquals(scalaTuples(expected), scalaResults(source));
 	}
 
 	private long t(int n) {

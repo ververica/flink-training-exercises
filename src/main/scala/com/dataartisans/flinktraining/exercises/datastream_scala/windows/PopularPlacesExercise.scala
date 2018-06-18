@@ -19,7 +19,7 @@ package com.dataartisans.flinktraining.exercises.datastream_scala.windows
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase._
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.{GeoUtils, MissingSolutionException}
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.{ExerciseBase, GeoUtils, MissingSolutionException}
 import org.apache.flink.api.common.functions.MapFunction
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
@@ -44,7 +44,7 @@ object PopularPlacesExercise {
 
     // read parameters
     val params = ParameterTool.fromArgs(args)
-    val input = params.get("input", "/Users/david/stuff/flink-training/trainingData/nycTaxiRides.gz")
+    val input = params.get("input", ExerciseBase.pathToRideData)
     val popThreshold = params.getInt("threshold", 20)
 
     val maxDelay = 60     // events are out of order by max 60 seconds
@@ -53,10 +53,10 @@ object PopularPlacesExercise {
     // set up streaming execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
-    env.setParallelism(parallelism)
+    env.setParallelism(ExerciseBase.parallelism)
 
     // start the data generator
-    val rides = env.addSource(sourceOrTest(new TaxiRideSource(input, maxDelay, speed)))
+    val rides = env.addSource(rideSourceOrTest(new TaxiRideSource(input, maxDelay, speed)))
 
     // find n most popular spots
     val popularPlaces = rides

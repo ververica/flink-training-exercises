@@ -56,9 +56,11 @@ public abstract class TaxiRideTestBase<OUT> {
 		public abstract void main() throws Exception;
 	}
 
-	protected void runTest(TestSource source, TestSink<?> sink, Testable exercise, Testable solution) throws Exception {
+	public static Testable missingExercise = () -> MissingExercise.main(new String[]{});
+
+	protected List<OUT> runRidesTest(TestSource source, TestSink<OUT> sink, Testable exercise, Testable solution) throws Exception {
 		sink.values.clear();
-		ExerciseBase.in = source;
+		ExerciseBase.rides = source;
 		ExerciseBase.out = sink;
 		ExerciseBase.parallelism = 1;
 
@@ -72,5 +74,11 @@ public abstract class TaxiRideTestBase<OUT> {
 				throw e;
 			}
 		}
+
+		return sink.values;
+	}
+
+	protected void noExercise() throws MissingSolutionException {
+		throw new MissingSolutionException();
 	}
 }

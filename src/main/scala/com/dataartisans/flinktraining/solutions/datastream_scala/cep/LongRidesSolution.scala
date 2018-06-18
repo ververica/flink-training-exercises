@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_scala.cep
+package com.dataartisans.flinktraining.solutions.datastream_scala.cep
 
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase._
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide
-import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource
+import com.dataartisans.flinktraining.exercises.datastream_java.sources.{CheckpointedTaxiRideSource, TaxiRideSource}
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase
 import org.apache.flink.api.java.utils.ParameterTool
-import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
-import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.cep.scala.{CEP, PatternStream}
 import org.apache.flink.cep.scala.pattern.Pattern
-import org.apache.flink.cep.{PatternFlatSelectFunction, PatternFlatTimeoutFunction}
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator
+import org.apache.flink.cep.scala.{CEP, PatternStream}
+import org.apache.flink.streaming.api.TimeCharacteristic
+import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
+import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.util.Collector
-import org.apache.flink.streaming.api.scala._
 
 import scala.collection.Map
 
@@ -42,10 +41,10 @@ import scala.collection.Map
   * -input path-to-input-file
   *
   */
-object LongRides {
+object LongRidesSolution {
   def main(args: Array[String]) {
     val params = ParameterTool.fromArgs(args)
-    val input = params.getRequired("input")
+    val input = params.get("input", pathToRideData)
 
     val speed = 600   // events of 10 minutes are served in 1 second
 
@@ -53,9 +52,10 @@ object LongRides {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     // operate in Event-time
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    env.setParallelism(ExerciseBase.parallelism)
 
     // get the taxi ride data stream, in order
-    val rides = env.addSource(new CheckpointedTaxiRideSource(input, speed))
+    val rides = env.addSource(rideSourceOrTest(new CheckpointedTaxiRideSource(input, speed)))
 
     val keyedRides = rides.keyBy(_.rideId)
 
@@ -84,9 +84,8 @@ object LongRides {
 
     val longRides = pattern.flatSelect(timedoutTag)(timeoutFunction)(selectFunction)
 
-    longRides.getSideOutput(timedoutTag)
-      .print()
+    printOrTest(longRides.getSideOutput(timedoutTag))
 
-    env.execute("Long Taxi Rides")
+    env.execute("Long Taxi Rides (CEP)")
   }
 }
