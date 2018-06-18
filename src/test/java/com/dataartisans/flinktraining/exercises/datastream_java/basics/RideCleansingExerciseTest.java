@@ -12,7 +12,6 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 public class RideCleansingExerciseTest extends TaxiRideTestBase<TaxiRide> {
-	TestSink<TaxiRide> sink = new TestSink<TaxiRide>();
 
 	static Testable javaExercise = () -> RideCleansingExercise.main(new String[]{});
 	static Testable javaSolution = () -> RideCleansingSolution.main(new String[]{});
@@ -20,12 +19,12 @@ public class RideCleansingExerciseTest extends TaxiRideTestBase<TaxiRide> {
 	static Testable scalaExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.basics.RideCleansingExercise.main(new String[]{});
 	static Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.basics.RideCleansingSolution.main(new String[]{});
 
-	public List<?> javaResults(TestSource source) throws Exception {
-		return runRidesTest(source, new TestSink<TaxiRide>(), javaExercise, javaSolution);
+	public List<?> javaResults(TestRideSource source) throws Exception {
+		return runTest(source, new TestSink<TaxiRide>(), javaExercise, javaSolution);
 	}
 
-	public List<?> scalaResults(TestSource source) throws Exception {
-		return runRidesTest(source, new TestSink<TaxiRide>(), scalaExercise, scalaSolution);
+	public List<?> scalaResults(TestRideSource source) throws Exception {
+		return runTest(source, new TestSink<TaxiRide>(), scalaExercise, scalaSolution);
 	}
 
 	@Test
@@ -36,7 +35,7 @@ public class RideCleansingExerciseTest extends TaxiRideTestBase<TaxiRide> {
 		TaxiRide fromThePole = testRide(0, 90, -73.9947F, 40.750626F);
 		TaxiRide atNorthPole = testRide(0, 90, 0, 90);
 
-		TestSource source = new TestSource(atPennStation, toThePole, fromThePole, atNorthPole);
+		TestRideSource source = new TestRideSource(atPennStation, toThePole, fromThePole, atNorthPole);
 
 		assertEquals(Lists.newArrayList(atPennStation), javaResults(source));
 		assertEquals(Lists.newArrayList(atPennStation), scalaResults(source));

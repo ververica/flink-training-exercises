@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_java.process;
+package com.dataartisans.flinktraining.solutions.datastream_java.state;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
-import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiFareSource;
-import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource;
+import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiFareSource;
+import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
@@ -28,11 +28,9 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.co.CoProcessFunction;
+import org.apache.flink.streaming.api.functions.co.RichCoFlatMapFunction;
 import org.apache.flink.util.Collector;
-import org.apache.flink.util.OutputTag;
 
 /**
  * Java reference implementation for the "Join Rides with Fares" exercise of the Flink training
@@ -45,47 +43,40 @@ import org.apache.flink.util.OutputTag;
  * -fares path-to-input-file
  *
  */
-public class JoinRidesWithFares {
-	static final OutputTag<TaxiRide> unmatchedRides = new OutputTag<TaxiRide>("unmatchedRides") {};
-	static final OutputTag<TaxiFare> unmatchedFares = new OutputTag<TaxiFare>("unmatchedFares") {};
-
+public class RidesAndFaresSolution extends ExerciseBase {
 	public static void main(String[] args) throws Exception {
 
 		ParameterTool params = ParameterTool.fromArgs(args);
-		final String ridesFile = params.get("rides", ExerciseBase.pathToRideData);
-		final String faresFile = params.get("fares", ExerciseBase.pathToFareData);
+		final String ridesFile = params.get("rides", pathToRideData);
+		final String faresFile = params.get("fares", pathToFareData);
 
+		final int delay = 60;					// at most 60 seconds of delay
 		final int servingSpeedFactor = 1800; 	// 30 minutes worth of events are served every second
 
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+		env.setParallelism(ExerciseBase.parallelism);
 
 		DataStream<TaxiRide> rides = env
-				.addSource(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor))
-				.filter((TaxiRide ride) -> (ride.isStart && (ride.rideId % 1000 != 0)))
+				.addSource(rideSourceOrTest(new TaxiRideSource(ridesFile, delay, servingSpeedFactor)))
+				.filter((TaxiRide ride) -> ride.isStart)
 				.keyBy("rideId");
 
 		DataStream<TaxiFare> fares = env
-				.addSource(new CheckpointedTaxiFareSource(faresFile, servingSpeedFactor))
+				.addSource(fareSourceOrTest(new TaxiFareSource(faresFile, delay, servingSpeedFactor)))
 				.keyBy("rideId");
 
-		SingleOutputStreamOperator processed = rides
+		DataStream<Tuple2<TaxiRide, TaxiFare>> enrichedRides = rides
 				.connect(fares)
-				.process(new EnrichmentFunction());
+				.flatMap(new EnrichmentFunction());
 
-		processed
-				.getSideOutput(unmatchedFares)
-				.print();
+		printOrTest(enrichedRides);
 
-		processed
-				.getSideOutput(unmatchedRides)
-				.print();
-
-		env.execute("Join Rides with Fares (java ProcessFunction)");
+		env.execute("Join Rides with Fares (java RichCoFlatMap)");
 	}
 
-	public static class EnrichmentFunction extends CoProcessFunction<TaxiRide, TaxiFare, Tuple2<TaxiRide, TaxiFare>> {
+	public static class EnrichmentFunction extends RichCoFlatMapFunction<TaxiRide, TaxiFare, Tuple2<TaxiRide, TaxiFare>> {
 		// keyed, managed state
 		private ValueState<TaxiRide> rideState;
 		private ValueState<TaxiFare> fareState;
@@ -97,40 +88,24 @@ public class JoinRidesWithFares {
 		}
 
 		@Override
-		public void onTimer(long timestamp, OnTimerContext ctx, Collector<Tuple2<TaxiRide, TaxiFare>> out) throws Exception {
-			if (fareState.value() != null) {
-				ctx.output(unmatchedFares, fareState.value());
-				fareState.clear();
-			}
-			if (rideState.value() != null) {
-				ctx.output(unmatchedRides, rideState.value());
-				rideState.clear();
-			}
-		}
-
-		@Override
-		public void processElement1(TaxiRide ride, Context context, Collector<Tuple2<TaxiRide, TaxiFare>> out) throws Exception {
+		public void flatMap1(TaxiRide ride, Collector<Tuple2<TaxiRide, TaxiFare>> out) throws Exception {
 			TaxiFare fare = fareState.value();
 			if (fare != null) {
 				fareState.clear();
 				out.collect(new Tuple2(ride, fare));
 			} else {
 				rideState.update(ride);
-				// as soon as the watermark arrives, we can stop waiting for the corresponding fare
-				context.timerService().registerEventTimeTimer(ride.getEventTime());
 			}
 		}
 
 		@Override
-		public void processElement2(TaxiFare fare, Context context, Collector<Tuple2<TaxiRide, TaxiFare>> out) throws Exception {
+		public void flatMap2(TaxiFare fare, Collector<Tuple2<TaxiRide, TaxiFare>> out) throws Exception {
 			TaxiRide ride = rideState.value();
 			if (ride != null) {
 				rideState.clear();
 				out.collect(new Tuple2(ride, fare));
 			} else {
 				fareState.update(fare);
-				// as soon as the watermark arrives, we can stop waiting for the corresponding ride
-				context.timerService().registerEventTimeTimer(fare.getEventTime());
 			}
 		}
 	}

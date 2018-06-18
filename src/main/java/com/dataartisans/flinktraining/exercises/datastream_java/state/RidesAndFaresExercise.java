@@ -20,6 +20,7 @@ import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFa
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiFareSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -42,12 +43,12 @@ import org.apache.flink.util.Collector;
  * -fares path-to-input-file
  *
  */
-public class JoinRidesWithFares {
+public class RidesAndFaresExercise extends ExerciseBase {
 	public static void main(String[] args) throws Exception {
 
 		ParameterTool params = ParameterTool.fromArgs(args);
-		final String ridesFile = params.getRequired("rides");
-		final String faresFile = params.getRequired("fares");
+		final String ridesFile = params.get("rides", pathToRideData);
+		final String faresFile = params.get("fares", pathToFareData);
 
 		final int delay = 60;					// at most 60 seconds of delay
 		final int servingSpeedFactor = 1800; 	// 30 minutes worth of events are served every second
@@ -55,21 +56,22 @@ public class JoinRidesWithFares {
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+		env.setParallelism(ExerciseBase.parallelism);
 
 		DataStream<TaxiRide> rides = env
-				.addSource(new TaxiRideSource(ridesFile, delay, servingSpeedFactor))
+				.addSource(rideSourceOrTest(new TaxiRideSource(ridesFile, delay, servingSpeedFactor)))
 				.filter((TaxiRide ride) -> ride.isStart)
 				.keyBy("rideId");
 
 		DataStream<TaxiFare> fares = env
-				.addSource(new TaxiFareSource(faresFile, delay, servingSpeedFactor))
+				.addSource(fareSourceOrTest(new TaxiFareSource(faresFile, delay, servingSpeedFactor)))
 				.keyBy("rideId");
 
 		DataStream<Tuple2<TaxiRide, TaxiFare>> enrichedRides = rides
 				.connect(fares)
 				.flatMap(new EnrichmentFunction());
 
-		enrichedRides.print();
+		printOrTest(enrichedRides);
 
 		env.execute("Join Rides with Fares (java RichCoFlatMap)");
 	}

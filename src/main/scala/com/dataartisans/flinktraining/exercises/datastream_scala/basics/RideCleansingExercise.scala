@@ -47,7 +47,7 @@ object RideCleansingExercise extends ExerciseBase {
     // set up the execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
-    env.setParallelism(ExerciseBase.parallelism)
+    env.setParallelism(parallelism)
 
     // get the taxi ride data stream
     val rides = env.addSource(rideSourceOrTest(new TaxiRideSource(input, maxDelay, speed)))

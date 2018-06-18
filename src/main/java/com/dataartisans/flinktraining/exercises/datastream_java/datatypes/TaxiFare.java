@@ -20,6 +20,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import java.io.Serializable;
 import java.util.Locale;
 
 /**
@@ -30,7 +31,7 @@ import java.util.Locale;
  * - the time of the event
  *
  */
-public class TaxiFare {
+public class TaxiFare implements Serializable {
 
 	private static transient DateTimeFormatter timeFormatter =
 			DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withLocale(Locale.US).withZoneUTC();

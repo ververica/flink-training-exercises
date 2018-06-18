@@ -18,7 +18,7 @@ public class LongRidesSolution extends ExerciseBase {
 	public static void main(String[] args) throws Exception {
 
 		ParameterTool params = ParameterTool.fromArgs(args);
-		final String input = params.get("input", pathToRideData);
+		final String input = params.get("input", ExerciseBase.pathToRideData);
 
 		final int maxEventDelay = 60;       // events are out of order by max 60 seconds
 		final int servingSpeedFactor = 600; // events of 10 minutes are served in 1 second

@@ -21,34 +21,29 @@ public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Fl
 	static Testable scalaExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.windows.PopularPlacesExercise.main(new String[]{"-threshold", "2"});
 	static Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.windows.PopularPlacesSolution.main(new String[]{"-threshold", "2"});
 
-	public List<Tuple5<Float, Float, Long, Boolean, Integer>> javaResults(TestSource source) throws Exception {
-		return runRidesTest(source, new TestSink<>(), javaExercise, javaSolution);
+	public List<Tuple5<Float, Float, Long, Boolean, Integer>> javaResults(TestRideSource source) throws Exception {
+		return runTest(source, new TestSink<>(), javaExercise, javaSolution);
 	}
 
-	public List<Tuple5<Float, Float, Long, Boolean, Integer>> scalaResults(TestSource source) throws Exception {
-		return runRidesTest(source, new TestSink<>(), scalaExercise, scalaSolution);
+	public List<Tuple5<Float, Float, Long, Boolean, Integer>> scalaResults(TestRideSource source) throws Exception {
+		return runTest(source, new TestSink<>(), scalaExercise, scalaSolution);
 	}
 
-	float pennStationLon = -73.9947F;
-	float pennStationLat = 40.750626F;
-	float momaLon = -73.9776F;
-	float momaLat = 40.7614F;
-
-	DateTime zero = new DateTime(2000, 1, 1, 0, 0);
-	DateTime six = zero.plusMinutes(6);
-	DateTime fourteen = zero.plusMinutes(14);
-	DateTime fifteen = zero.plusMinutes(15);
+	static final float pennStationLon = -73.9947F;
+	static final float pennStationLat = 40.750626F;
+	static final float momaLon = -73.9776F;
+	static final float momaLat = 40.7614F;
 
 	@Test
 	public void testPopularPlaces() throws Exception {
-		TaxiRide penn0 = startRide(1, zero, pennStationLon, pennStationLat);
-		TaxiRide penn6 = startRide(2, six, pennStationLon, pennStationLat);
-		TaxiRide penn14 = startRide(3, fourteen, pennStationLon, pennStationLat);
-		TaxiRide moma15a = endRide(penn0, fifteen, momaLon, momaLat);
-		TaxiRide moma15b = endRide(penn6, fifteen, momaLon, momaLat);
-		TaxiRide moma15c = endRide(penn14, fifteen, momaLon, momaLat);
+		TaxiRide penn0 = startRide(1, t(0), pennStationLon, pennStationLat);
+		TaxiRide penn6 = startRide(2, t(6), pennStationLon, pennStationLat);
+		TaxiRide penn14 = startRide(3, t(14), pennStationLon, pennStationLat);
+		TaxiRide moma15a = endRide(penn0, t(15), momaLon, momaLat);
+		TaxiRide moma15b = endRide(penn6, t(15), momaLon, momaLat);
+		TaxiRide moma15c = endRide(penn14, t(15), momaLon, momaLat);
 
-		TestSource source = new TestSource(
+		TestRideSource source = new TestRideSource(
 				penn0, t(0), t(5),
 				penn6, t(10),
 				penn14,
@@ -72,16 +67,16 @@ public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Fl
 	}
 
 	private long t(int n) {
-		return zero.plusMinutes(n).getMillis();
+		return new DateTime(2000, 1, 1, 0, 0).plusMinutes(n).getMillis();
 	}
 
 	// setting the endLon and endLat to the same as the starting position; shouldn't matter
-	private TaxiRide startRide(long rideId, DateTime startTime, float startLon, float startLat) {
-		return new TaxiRide(rideId, true, startTime, new DateTime(0), startLon, startLat, startLon, startLat, (short) 1, 0, 0);
+	private TaxiRide startRide(long rideId, long startTime, float startLon, float startLat) {
+		return new TaxiRide(rideId, true, new DateTime(startTime), new DateTime(0), startLon, startLat, startLon, startLat, (short) 1, 0, 0);
 	}
 
-	private TaxiRide endRide(TaxiRide started, DateTime endTime, float endLon, float endLat) {
-		return new TaxiRide(started.rideId, false, started.startTime, endTime,
+	private TaxiRide endRide(TaxiRide started, long endTime, float endLon, float endLat) {
+		return new TaxiRide(started.rideId, false, started.startTime, new DateTime(endTime),
 				started.startLon, started.startLat, endLon, endLat, (short) 1, 0, 0);
 	}
 
