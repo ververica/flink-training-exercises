@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_scala.state
+package com.dataartisans.flinktraining.solutions.datastream_scala.state
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.{TaxiFare, TaxiRide}
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.{TaxiFareSource, TaxiRideSource}
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase._
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
@@ -36,13 +38,13 @@ import org.apache.flink.util.Collector
   * -fares path-to-input-file
   *
   */
-object JoinRidesWithFares {
+object RidesAndFaresSolution {
   def main(args: Array[String]) {
 
     // parse parameters
     val params = ParameterTool.fromArgs(args)
-    val ridesFile = params.getRequired("rides")
-    val faresFile = params.getRequired("fares")
+    val ridesFile = params.get("rides", ExerciseBase.pathToRideData)
+    val faresFile = params.get("fares", ExerciseBase.pathToFareData)
 
     val delay = 60;               // at most 60 seconds of delay
     val servingSpeedFactor = 1800 // 30 minutes worth of events are served every second
@@ -50,20 +52,22 @@ object JoinRidesWithFares {
     // set up streaming execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    env.setParallelism(ExerciseBase.parallelism)
 
     val rides = env
-      .addSource(new TaxiRideSource(ridesFile, delay, servingSpeedFactor))
+      .addSource(rideSourceOrTest(new TaxiRideSource(ridesFile, delay, servingSpeedFactor)))
       .filter { ride => ride.isStart }
       .keyBy("rideId")
 
     val fares = env
-      .addSource(new TaxiFareSource(faresFile, delay, servingSpeedFactor))
+      .addSource(fareSourceOrTest(new TaxiFareSource(faresFile, delay, servingSpeedFactor)))
       .keyBy("rideId")
 
     val processed = rides
       .connect(fares)
       .flatMap(new EnrichmentFunction)
-      .print()
+
+    printOrTest(processed)
 
     env.execute("Join Rides with Fares (scala RichCoFlatMap)")
   }

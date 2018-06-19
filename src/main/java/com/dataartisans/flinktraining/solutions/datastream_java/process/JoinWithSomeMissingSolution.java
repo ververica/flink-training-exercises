@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_java.process;
+package com.dataartisans.flinktraining.solutions.datastream_java.process;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
@@ -45,7 +45,7 @@ import org.apache.flink.util.OutputTag;
  * -fares path-to-input-file
  *
  */
-public class JoinRidesWithFares {
+public class JoinWithSomeMissingSolution extends ExerciseBase {
 	static final OutputTag<TaxiRide> unmatchedRides = new OutputTag<TaxiRide>("unmatchedRides") {};
 	static final OutputTag<TaxiFare> unmatchedFares = new OutputTag<TaxiFare>("unmatchedFares") {};
 
@@ -55,34 +55,28 @@ public class JoinRidesWithFares {
 		final String ridesFile = params.get("rides", ExerciseBase.pathToRideData);
 		final String faresFile = params.get("fares", ExerciseBase.pathToFareData);
 
-		final int servingSpeedFactor = 1800; 	// 30 minutes worth of events are served every second
+		final int servingSpeedFactor = 600; 	// 10 minutes worth of events are served every second
 
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
 		DataStream<TaxiRide> rides = env
-				.addSource(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor))
+				.addSource(rideSourceOrTest(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor)))
 				.filter((TaxiRide ride) -> (ride.isStart && (ride.rideId % 1000 != 0)))
 				.keyBy("rideId");
 
 		DataStream<TaxiFare> fares = env
-				.addSource(new CheckpointedTaxiFareSource(faresFile, servingSpeedFactor))
+				.addSource(fareSourceOrTest(new CheckpointedTaxiFareSource(faresFile, servingSpeedFactor)))
 				.keyBy("rideId");
 
 		SingleOutputStreamOperator processed = rides
 				.connect(fares)
 				.process(new EnrichmentFunction());
 
-		processed
-				.getSideOutput(unmatchedFares)
-				.print();
+		printOrTest(processed.getSideOutput(unmatchedFares));
 
-		processed
-				.getSideOutput(unmatchedRides)
-				.print();
-
-		env.execute("Join Rides with Fares (java ProcessFunction)");
+		env.execute("JoinWithSomeMissingExercise (java)");
 	}
 
 	public static class EnrichmentFunction extends CoProcessFunction<TaxiRide, TaxiFare, Tuple2<TaxiRide, TaxiFare>> {

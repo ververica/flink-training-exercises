@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 data Artisans GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dataartisans.flinktraining.exercises.datastream_java.testing;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
@@ -89,35 +105,31 @@ public abstract class TaxiRideTestBase<OUT> {
 
 	public static Testable missingExercise = () -> MissingExercise.main(new String[]{});
 
-	protected List<OUT> runTest(TestRideSource source, TestSink<OUT> sink, Testable exercise, Testable solution) throws Exception {
-		sink.values.clear();
+	protected List<OUT> runApp(TestRideSource source, TestSink<OUT> sink, Testable exercise, Testable solution) throws Exception {
 		ExerciseBase.rides = source;
-		ExerciseBase.out = sink;
-		ExerciseBase.parallelism = 1;
 
 		return execute(sink, exercise, solution);
 	}
 
-	protected List<OUT> runTest(TestFareSource source, TestSink<OUT> sink, Testable exercise, Testable solution) throws Exception {
-		sink.values.clear();
+	protected List<OUT> runApp(TestFareSource source, TestSink<OUT> sink, Testable exercise, Testable solution) throws Exception {
 		ExerciseBase.fares = source;
-		ExerciseBase.out = sink;
-		ExerciseBase.parallelism = 1;
 
 		return execute(sink, exercise, solution);
 	}
 
-	protected List<OUT> runTest(TestRideSource rides, TestFareSource fares, TestSink<OUT> sink, Testable exercise, Testable solution) throws Exception {
-		sink.values.clear();
+	protected List<OUT> runApp(TestRideSource rides, TestFareSource fares, TestSink<OUT> sink, Testable exercise, Testable solution) throws Exception {
 		ExerciseBase.rides = rides;
 		ExerciseBase.fares = fares;
-		ExerciseBase.out = sink;
-		ExerciseBase.parallelism = 1;
 
 		return execute(sink, exercise, solution);
 	}
 
 	private List<OUT> execute(TestSink<OUT> sink, Testable exercise, Testable solution) throws Exception {
+		sink.values.clear();
+
+		ExerciseBase.out = sink;
+		ExerciseBase.parallelism = 1;
+
 		try {
 			exercise.main();
 		} catch (JobExecutionException | MissingSolutionException e) {

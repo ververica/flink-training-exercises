@@ -18,6 +18,8 @@ package com.dataartisans.flinktraining.exercises.datastream_scala.process
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.{TaxiFare, TaxiRide}
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.{CheckpointedTaxiFareSource, CheckpointedTaxiRideSource}
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.{ExerciseBase, MissingSolutionException}
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase._
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
@@ -37,7 +39,7 @@ import org.apache.flink.util.Collector
   * -fares path-to-input-file
   *
   */
-object JoinRidesWithFares {
+object JoinWithSomeMissingExercise {
   val unmatchedRides = new OutputTag[TaxiRide]("unmatchedRides") {}
   val unmatchedFares = new OutputTag[TaxiFare]("unmatchedFares") {}
 
@@ -45,80 +47,49 @@ object JoinRidesWithFares {
 
     // parse parameters
     val params = ParameterTool.fromArgs(args)
-    val ridesFile = params.getRequired("rides")
-    val faresFile = params.getRequired("fares")
+    val ridesFile = params.get("rides", ExerciseBase.pathToRideData)
+    val faresFile = params.get("fares", ExerciseBase.pathToFareData)
 
-    val servingSpeedFactor = 1800 // 30 minutes worth of events are served every second
+    val servingSpeedFactor = 600 // 10 minutes worth of events are served every second
 
     // set up streaming execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    env.setParallelism(ExerciseBase.parallelism)
 
     val rides = env
-      .addSource(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor))
+      .addSource(rideSourceOrTest(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor)))
       .filter { ride => ride.isStart && (ride.rideId % 1000 != 0) }
       .keyBy("rideId")
 
     val fares = env
-      .addSource(new CheckpointedTaxiFareSource(faresFile, servingSpeedFactor))
+      .addSource(fareSourceOrTest(new CheckpointedTaxiFareSource(faresFile, servingSpeedFactor)))
       .keyBy("rideId")
 
     val processed = rides.connect(fares).process(new EnrichmentFunction)
 
-    processed.getSideOutput[TaxiFare](unmatchedFares).print
-    processed.getSideOutput[TaxiRide](unmatchedRides).print
+    printOrTest(processed.getSideOutput[TaxiFare](unmatchedFares))
 
     env.execute("Join Rides with Fares (scala ProcessFunction)")
   }
 
   class EnrichmentFunction extends CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)] {
-    // keyed, managed state
-    lazy val rideState: ValueState[TaxiRide] = getRuntimeContext.getState(
-      new ValueStateDescriptor[TaxiRide]("saved ride", classOf[TaxiRide]))
-    lazy val fareState: ValueState[TaxiFare] = getRuntimeContext.getState(
-      new ValueStateDescriptor[TaxiFare]("saved fare", classOf[TaxiFare]))
 
     override def processElement1(ride: TaxiRide,
                                  context: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
                                  out: Collector[(TaxiRide, TaxiFare)]): Unit = {
-      val fare = fareState.value
-      if (fare != null) {
-        fareState.clear()
-        out.collect((ride, fare))
-      }
-      else {
-        rideState.update(ride)
-        // as soon as the watermark arrives, we can stop waiting for the corresponding fare
-        context.timerService.registerEventTimeTimer(ride.getEventTime)
-      }
+
+      throw new MissingSolutionException();
     }
 
     override def processElement2(fare: TaxiFare,
                                  context: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
                                  out: Collector[(TaxiRide, TaxiFare)]): Unit = {
-      val ride = rideState.value
-      if (ride != null) {
-        rideState.clear()
-        out.collect((ride, fare))
-      }
-      else {
-        fareState.update(fare)
-        // as soon as the watermark arrives, we can stop waiting for the corresponding ride
-        context.timerService.registerEventTimeTimer(fare.getEventTime)
-      }
     }
 
     override def onTimer(timestamp: Long,
                          ctx: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#OnTimerContext,
                          out: Collector[(TaxiRide, TaxiFare)]): Unit = {
-      if (fareState.value != null) {
-        ctx.output(unmatchedFares, fareState.value)
-        fareState.clear()
-      }
-      if (rideState.value != null) {
-        ctx.output(unmatchedRides, rideState.value)
-        rideState.clear()
-      }
     }
   }
 

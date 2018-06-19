@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 data Artisans GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.dataartisans.flinktraining.exercises.datastream_java.windows;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
@@ -21,11 +37,11 @@ public class HourlyTipsExerciseTest extends TaxiRideTestBase<Tuple3<Long, Long, 
 	static Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.windows.HourlyTipsSolution.main(new String[]{});
 
 	public List<Tuple3<Long, Long, Float>> javaResults(TestFareSource source) throws Exception {
-		return runTest(source, new TestSink<>(), javaExercise, javaSolution);
+		return runApp(source, new TestSink<>(), javaExercise, javaSolution);
 	}
 
 	public List<Tuple3<Long, Long, Float>> scalaResults(TestFareSource source) throws Exception {
-		return runTest(source, new TestSink<>(), scalaExercise, scalaSolution);
+		return runApp(source, new TestSink<>(), scalaExercise, scalaSolution);
 	}
 
 	@Test
