@@ -31,19 +31,10 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Float, Long, Boolean, Integer>> {
+
 	static Testable javaExercise = () -> PopularPlacesExercise.main(new String[]{"-threshold", "2"});
-	static Testable javaSolution = () -> PopularPlacesSolution.main(new String[]{"-threshold", "2"});
-
 	static Testable scalaExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.windows.PopularPlacesExercise.main(new String[]{"-threshold", "2"});
-	static Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.windows.PopularPlacesSolution.main(new String[]{"-threshold", "2"});
 
-	public List<Tuple5<Float, Float, Long, Boolean, Integer>> javaResults(TestRideSource source) throws Exception {
-		return runApp(source, new TestSink<>(), javaExercise, javaSolution);
-	}
-
-	public List<Tuple5<Float, Float, Long, Boolean, Integer>> scalaResults(TestRideSource source) throws Exception {
-		return runApp(source, new TestSink<>(), scalaExercise, scalaSolution);
-	}
 
 	static final float pennStationLon = -73.9947F;
 	static final float pennStationLat = 40.750626F;
@@ -102,4 +93,13 @@ public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Fl
 		return scalaCopy;
 	}
 
+	private List<Tuple5<Float, Float, Long, Boolean, Integer>> javaResults(TestRideSource source) throws Exception {
+		Testable javaSolution = () -> PopularPlacesSolution.main(new String[]{"-threshold", "2"});
+		return runApp(source, new TestSink<>(), javaExercise, javaSolution);
+	}
+
+	private List<Tuple5<Float, Float, Long, Boolean, Integer>> scalaResults(TestRideSource source) throws Exception {
+		Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.windows.PopularPlacesSolution.main(new String[]{"-threshold", "2"});
+		return runApp(source, new TestSink<>(), scalaExercise, scalaSolution);
+	}
 }

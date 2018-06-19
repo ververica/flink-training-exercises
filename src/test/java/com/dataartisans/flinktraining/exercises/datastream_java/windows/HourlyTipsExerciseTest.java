@@ -31,18 +31,8 @@ import static org.junit.Assert.assertEquals;
 
 public class HourlyTipsExerciseTest extends TaxiRideTestBase<Tuple3<Long, Long, Float>> {
 	static Testable javaExercise = () -> HourlyTipsExercise.main(new String[]{});
-	static Testable javaSolution = () -> HourlyTipsSolution.main(new String[]{});
-
 	static Testable scalaExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.windows.HourlyTipsExercise.main(new String[]{});
-	static Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.windows.HourlyTipsSolution.main(new String[]{});
 
-	public List<Tuple3<Long, Long, Float>> javaResults(TestFareSource source) throws Exception {
-		return runApp(source, new TestSink<>(), javaExercise, javaSolution);
-	}
-
-	public List<Tuple3<Long, Long, Float>> scalaResults(TestFareSource source) throws Exception {
-		return runApp(source, new TestSink<>(), scalaExercise, scalaSolution);
-	}
 
 	@Test
 	public void testOneDriverOneTip() throws Exception {
@@ -116,6 +106,16 @@ public class HourlyTipsExerciseTest extends TaxiRideTestBase<Tuple3<Long, Long, 
 		ArrayList<scala.Tuple3<Long, Long, Float>> scalaCopy = new ArrayList<>(a.size());
 		a.iterator().forEachRemaining(t -> scalaCopy.add(new scala.Tuple3(t.f0, t.f1, t.f2)));
 		return scalaCopy;
+	}
+
+	private List<Tuple3<Long, Long, Float>> javaResults(TestFareSource source) throws Exception {
+		Testable javaSolution = () -> HourlyTipsSolution.main(new String[]{});
+		return runApp(source, new TestSink<>(), javaExercise, javaSolution);
+	}
+
+	private List<Tuple3<Long, Long, Float>> scalaResults(TestFareSource source) throws Exception {
+		Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.windows.HourlyTipsSolution.main(new String[]{});
+		return runApp(source, new TestSink<>(), scalaExercise, scalaSolution);
 	}
 
 }

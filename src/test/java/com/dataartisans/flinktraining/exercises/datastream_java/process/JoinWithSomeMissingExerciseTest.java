@@ -30,19 +30,10 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 public class JoinWithSomeMissingExerciseTest extends TaxiRideTestBase<TaxiFare> {
+
 	static Testable javaExercise = () -> JoinWithSomeMissingExercise.main(new String[]{});
-	static Testable javaSolution = () -> JoinWithSomeMissingSolution.main(new String[]{});
-
 	static Testable scalaExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.process.JoinWithSomeMissingExercise.main(new String[]{});
-	static Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.process.JoinWithSomeMissingSolution.main(new String[]{});
 
-	public List<?> javaResults(TestRideSource rides, TestFareSource fares) throws Exception {
-		return runApp(rides, fares, new TestSink<TaxiFare>(), javaExercise, javaSolution);
-	}
-
-	public List<?> scalaResults(TestRideSource rides, TestFareSource fares) throws Exception {
-		return runApp(rides, fares, new TestSink<TaxiFare>(), scalaExercise, scalaSolution);
-	}
 
 	final TaxiRide ride1 = testRide(1);
 	final TaxiFare fare1 = testFare(1);
@@ -81,6 +72,16 @@ public class JoinWithSomeMissingExerciseTest extends TaxiRideTestBase<TaxiFare> 
 
 	private TaxiFare testFare(long rideId) {
 		return new TaxiFare(rideId, 0, rideId, new DateTime(0), "", 0F, 0F, 0F);
+	}
+
+	private List<?> javaResults(TestRideSource rides, TestFareSource fares) throws Exception {
+		Testable javaSolution = () -> JoinWithSomeMissingSolution.main(new String[]{});
+		return runApp(rides, fares, new TestSink<TaxiFare>(), javaExercise, javaSolution);
+	}
+
+	private List<?> scalaResults(TestRideSource rides, TestFareSource fares) throws Exception {
+		Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.process.JoinWithSomeMissingSolution.main(new String[]{});
+		return runApp(rides, fares, new TestSink<TaxiFare>(), scalaExercise, scalaSolution);
 	}
 
 }
