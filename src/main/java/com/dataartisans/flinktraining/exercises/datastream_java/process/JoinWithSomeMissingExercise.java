@@ -59,15 +59,16 @@ public class JoinWithSomeMissingExercise extends ExerciseBase {
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+		env.setParallelism(ExerciseBase.parallelism);
 
 		DataStream<TaxiRide> rides = env
 				.addSource(rideSourceOrTest(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor)))
 				.filter((TaxiRide ride) -> (ride.isStart && (ride.rideId % 1000 != 0)))
-				.keyBy("rideId");
+				.keyBy(ride -> ride.rideId);
 
 		DataStream<TaxiFare> fares = env
 				.addSource(fareSourceOrTest(new CheckpointedTaxiFareSource(faresFile, servingSpeedFactor)))
-				.keyBy("rideId");
+				.keyBy(fare -> fare.rideId);
 
 		SingleOutputStreamOperator processed = rides
 				.connect(fares)

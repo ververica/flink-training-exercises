@@ -8,6 +8,7 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction;
 public class ExerciseBase {
 	public static SourceFunction<TaxiRide> rides = null;
 	public static SourceFunction<TaxiFare> fares = null;
+	public static SourceFunction<String> strings = null;
 	public static SinkFunction out = null;
 	public static int parallelism = 4;
 
@@ -26,6 +27,13 @@ public class ExerciseBase {
 			return source;
 		}
 		return fares;
+	}
+
+	public static SourceFunction<String> stringSourceOrTest(SourceFunction<String> source) {
+		if (strings == null) {
+			return source;
+		}
+		return strings;
 	}
 
 	public static void printOrTest(org.apache.flink.streaming.api.datastream.DataStream<?> ds) {

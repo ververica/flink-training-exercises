@@ -20,71 +20,44 @@ import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFa
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.java.typeutils.ResultTypeQueryable;
 import org.apache.flink.runtime.client.JobExecutionException;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
-import org.apache.flink.streaming.api.watermark.Watermark;
 
 import java.util.*;
 
 public abstract class TaxiRideTestBase<OUT> {
-	public static class TestRideSource implements SourceFunction<TaxiRide> {
-		private volatile boolean running = true;
-		private Object[] testStream;
-
-		public TestRideSource(Object ... ridesOrWatermarks) {
-			this.testStream = ridesOrWatermarks;
+	public static class TestRideSource extends TestSource implements ResultTypeQueryable<TaxiRide> {
+		public TestRideSource(Object ... eventsOrWatermarks) {
+			this.testStream = eventsOrWatermarks;
 		}
 
 		@Override
-		public void run(SourceContext<TaxiRide> ctx) throws Exception {
-			for (int i = 0; (i < testStream.length) && running; i++) {
-				if (testStream[i] instanceof TaxiRide) {
-					TaxiRide ride = (TaxiRide) testStream[i];
-					ctx.collectWithTimestamp(ride, ride.getEventTime());
-				} else if (testStream[i] instanceof Long) {
-					Long ts = (Long) testStream[i];
-					ctx.emitWatermark(new Watermark(ts));
-				} else {
-					throw new RuntimeException(testStream[i].toString());
-				}
-			}
-			// source is finite, so it will have an implicit MAX watermark when it finishes
-		}
-
-		@Override
-		public void cancel() {
-			running = false;
+		public TypeInformation<TaxiRide> getProducedType() {
+			return TypeInformation.of(TaxiRide.class);
 		}
 	}
 
-	public static class TestFareSource implements SourceFunction<TaxiFare> {
-		private volatile boolean running = true;
-		private Object[] testStream;
-
-		public TestFareSource(Object ... faresOrWatermarks) {
-			this.testStream = faresOrWatermarks;
+	public static class TestFareSource extends TestSource implements ResultTypeQueryable<TaxiFare> {
+		public TestFareSource(Object ... eventsOrWatermarks) {
+			this.testStream = eventsOrWatermarks;
 		}
 
 		@Override
-		public void run(SourceContext<TaxiFare> ctx) throws Exception {
-			for (int i = 0; (i < testStream.length) && running; i++) {
-				if (testStream[i] instanceof TaxiFare) {
-					TaxiFare fare = (TaxiFare) testStream[i];
-					ctx.collectWithTimestamp(fare, fare.getEventTime());
-				} else if (testStream[i] instanceof Long) {
-					Long ts = (Long) testStream[i];
-					ctx.emitWatermark(new Watermark(ts));
-				} else {
-					throw new RuntimeException(testStream[i].toString());
-				}
-			}
-			// source is finite, so it will have an implicit MAX watermark when it finishes
+		public TypeInformation<TaxiFare> getProducedType() {
+			return TypeInformation.of(TaxiFare.class);
+		}
+	}
+
+	public static class TestStringSource extends TestSource implements ResultTypeQueryable<String> {
+		public TestStringSource(Object ... eventsOrWatermarks) {
+			this.testStream = eventsOrWatermarks;
 		}
 
 		@Override
-		public void cancel() {
-			running = false;
+		public TypeInformation<String> getProducedType() {
+			return TypeInformation.of(String.class);
 		}
 	}
 
@@ -102,8 +75,6 @@ public abstract class TaxiRideTestBase<OUT> {
 	public interface Testable {
 		public abstract void main() throws Exception;
 	}
-
-	public static Testable missingExercise = () -> MissingExercise.main(new String[]{});
 
 	protected List<OUT> runApp(TestRideSource source, TestSink<OUT> sink, Testable exercise, Testable solution) throws Exception {
 		ExerciseBase.rides = source;
@@ -124,6 +95,19 @@ public abstract class TaxiRideTestBase<OUT> {
 		return execute(sink, exercise, solution);
 	}
 
+	protected List<OUT> runApp(TestRideSource rides, TestSink<OUT> sink, Testable solution) throws Exception {
+		ExerciseBase.rides = rides;
+
+		return execute(sink, solution);
+	}
+
+	protected List<OUT> runApp(TestRideSource rides, TestStringSource strings, TestSink<OUT> sink, Testable exercise, Testable solution) throws Exception {
+		ExerciseBase.rides = rides;
+		ExerciseBase.strings = strings;
+
+		return execute(sink, exercise, solution);
+	}
+
 	private List<OUT> execute(TestSink<OUT> sink, Testable exercise, Testable solution) throws Exception {
 		sink.values.clear();
 
@@ -135,11 +119,23 @@ public abstract class TaxiRideTestBase<OUT> {
 		} catch (JobExecutionException | MissingSolutionException e) {
 			if (e instanceof MissingSolutionException ||
 					(e.getCause() != null && e.getCause() instanceof MissingSolutionException)) {
+				sink.values.clear();
 				solution.main();
 			} else {
 				throw e;
 			}
 		}
+
+		return sink.values;
+	}
+
+	private List<OUT> execute(TestSink<OUT> sink, Testable solution) throws Exception {
+		sink.values.clear();
+
+		ExerciseBase.out = sink;
+		ExerciseBase.parallelism = 1;
+
+		solution.main();
 
 		return sink.values;
 	}

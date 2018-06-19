@@ -34,7 +34,6 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 
 
 	private DateTime beginning = new DateTime(2000, 1, 1, 0, 0);
-	TestSink<TaxiRide> sink = new TestSink<TaxiRide>();
 
 	@Test
 	public void shortRide() throws Exception {
@@ -127,12 +126,12 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 
 	private List<TaxiRide> javaCEPResults(TestRideSource source) throws Exception {
 		Testable javaCEPSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.cep.LongRidesSolution.main(new String[]{});
-		return runApp(source, new TestSink<TaxiRide>(), missingExercise, javaCEPSolution);
+		return runApp(source, new TestSink<TaxiRide>(), javaCEPSolution);
 	}
 
 	private List<TaxiRide> scalaCEPResults(TestRideSource source) throws Exception {
 		Testable scalaCEPSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.cep.LongRidesSolution.main(new String[]{});
-		return runApp(source, new TestSink<TaxiRide>(), missingExercise, scalaCEPSolution);
+		return runApp(source, new TestSink<TaxiRide>(), scalaCEPSolution);
 	}
 
 }

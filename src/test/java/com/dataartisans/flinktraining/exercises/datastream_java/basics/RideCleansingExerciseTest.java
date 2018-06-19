@@ -18,6 +18,7 @@ package com.dataartisans.flinktraining.exercises.datastream_java.basics;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.testing.TaxiRideTestBase;
+import com.dataartisans.flinktraining.exercises.datastream_java.testing.TestSource;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
 import org.junit.Test;

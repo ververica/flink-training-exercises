@@ -76,11 +76,6 @@ public class RidesAndFaresExerciseTest extends TaxiRideTestBase<Tuple2<TaxiRide,
 		return new TaxiFare(rideId, 0, rideId, new DateTime(0), "", 0F, 0F, 0F);
 	}
 
-	private ArrayList<scala.Tuple2<TaxiRide, TaxiFare>> scalaTuples(ArrayList<org.apache.flink.api.java.tuple.Tuple2<TaxiRide, TaxiFare>> a) {
-		ArrayList<scala.Tuple2<TaxiRide, TaxiFare>> scalaCopy = new ArrayList<>(a.size());
-		a.iterator().forEachRemaining(t -> scalaCopy.add(new scala.Tuple2(t.f0, t.f1)));
-		return scalaCopy;
-	}
 	private List<?> javaResults(TestRideSource rides, TestFareSource fares) throws Exception {
 		Testable javaSolution = () -> RidesAndFaresSolution.main(new String[]{});
 		return runApp(rides, fares, new TestSink<Tuple2<TaxiRide, TaxiFare>>(), javaExercise, javaSolution);
@@ -91,4 +86,9 @@ public class RidesAndFaresExerciseTest extends TaxiRideTestBase<Tuple2<TaxiRide,
 		return runApp(rides, fares, new TestSink<Tuple2<TaxiRide, TaxiFare>>(), scalaExercise, scalaSolution);
 	}
 
+	private ArrayList<scala.Tuple2<TaxiRide, TaxiFare>> scalaTuples(ArrayList<org.apache.flink.api.java.tuple.Tuple2<TaxiRide, TaxiFare>> a) {
+		ArrayList<scala.Tuple2<TaxiRide, TaxiFare>> scalaCopy = new ArrayList<>(a.size());
+		a.iterator().forEachRemaining(t -> scalaCopy.add(new scala.Tuple2(t.f0, t.f1)));
+		return scalaCopy;
+	}
 }

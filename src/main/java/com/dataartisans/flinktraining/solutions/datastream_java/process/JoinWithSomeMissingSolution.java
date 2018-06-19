@@ -60,6 +60,7 @@ public class JoinWithSomeMissingSolution extends ExerciseBase {
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+		env.setParallelism(ExerciseBase.parallelism);
 
 		DataStream<TaxiRide> rides = env
 				.addSource(rideSourceOrTest(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor)))
