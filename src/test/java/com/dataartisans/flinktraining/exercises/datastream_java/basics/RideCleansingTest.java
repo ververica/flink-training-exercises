@@ -50,7 +50,7 @@ public abstract class RideCleansingTest extends TaxiRideTestBase<TaxiRide> {
 
 	protected List<?> results(TestRideSource source) throws Exception {
 		Testable javaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.basics.RideCleansingSolution.main(new String[]{});
-		return runApp(source, new TestSink<TaxiRide>(), javaExercise, javaSolution);
+		return runApp(source, new TestSink<>(), javaExercise, javaSolution);
 	}
 
 }

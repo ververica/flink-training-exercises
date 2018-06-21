@@ -75,7 +75,7 @@ public class RidesAndFaresTest extends TaxiRideTestBase<Tuple2<TaxiRide, TaxiFar
 
 	protected List<?> results(TestRideSource rides, TestFareSource fares) throws Exception {
 		Testable javaSolution = () -> RidesAndFaresSolution.main(new String[]{});
-		return runApp(rides, fares, new TestSink<Tuple2<TaxiRide, TaxiFare>>(), javaExercise, javaSolution);
+		return runApp(rides, fares, new TestSink<>(), javaExercise, javaSolution);
 	}
 
 }

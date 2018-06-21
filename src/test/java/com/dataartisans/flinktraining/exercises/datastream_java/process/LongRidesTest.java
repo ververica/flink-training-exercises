@@ -104,12 +104,12 @@ public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
 
 	protected List<TaxiRide> results(TestRideSource source) throws Exception {
 		Testable javaSolution = () -> LongRidesSolution.main(new String[]{});
-		return runApp(source, new TestSink<TaxiRide>(), javaExercise, javaSolution);
+		return runApp(source, new TestSink<>(), javaExercise, javaSolution);
 	}
 
 	protected List<TaxiRide> cepResults(TestRideSource source) throws Exception {
 		Testable javaCEPSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.cep.LongRidesSolution.main(new String[]{});
-		return runApp(source, new TestSink<TaxiRide>(), javaCEPSolution);
+		return runApp(source, new TestSink<>(), javaCEPSolution);
 	}
 
 }

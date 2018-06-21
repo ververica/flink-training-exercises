@@ -27,12 +27,12 @@ public class LongRidesScalaTest extends LongRidesTest {
 
 	protected List<TaxiRide> results(TestRideSource source) throws Exception {
 		Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.process.LongRidesSolution.main(new String[]{});
-		return runApp(source, new TestSink<TaxiRide>(), scalaExercise, scalaSolution);
+		return runApp(source, new TestSink<>(), scalaExercise, scalaSolution);
 	}
 
 	protected List<TaxiRide> cepResults(TestRideSource source) throws Exception {
 		Testable scalaCEPSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.cep.LongRidesSolution.main(new String[]{});
-		return runApp(source, new TestSink<TaxiRide>(), scalaCEPSolution);
+		return runApp(source, new TestSink<>(), scalaCEPSolution);
 	}
 
 }
