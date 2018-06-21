@@ -29,10 +29,9 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class HourlyTipsExerciseTest extends TaxiRideTestBase<Tuple3<Long, Long, Float>> {
-	static Testable javaExercise = () -> HourlyTipsExercise.main(new String[]{});
-	static Testable scalaExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.windows.HourlyTipsExercise.main(new String[]{});
+public class HourlyTipsTest extends TaxiRideTestBase<Tuple3<Long, Long, Float>> {
 
+	static Testable javaExercise = () -> HourlyTipsExercise.main(new String[]{});
 
 	@Test
 	public void testOneDriverOneTip() throws Exception {
@@ -46,8 +45,7 @@ public class HourlyTipsExerciseTest extends TaxiRideTestBase<Tuple3<Long, Long, 
 
 		ArrayList<Tuple3<Long, Long, Float>> expected = Lists.newArrayList(max);
 
-		assertEquals(expected, javaResults(source));
-		assertEquals(scalaTuples(expected), scalaResults(source));
+		assertEquals(expected, results(source));
 	}
 
 	@Test
@@ -67,8 +65,7 @@ public class HourlyTipsExerciseTest extends TaxiRideTestBase<Tuple3<Long, Long, 
 
 		ArrayList<Tuple3<Long, Long, Float>> expected = Lists.newArrayList(hour1, hour2);
 
-		assertEquals(expected, javaResults(source));
-		assertEquals(scalaTuples(expected), scalaResults(source));
+		assertEquals(expected, results(source));
 	}
 
 	@Test
@@ -90,8 +87,7 @@ public class HourlyTipsExerciseTest extends TaxiRideTestBase<Tuple3<Long, Long, 
 
 		ArrayList<Tuple3<Long, Long, Float>> expected = Lists.newArrayList(hour1, hour2);
 
-		assertEquals(expected, javaResults(source));
-		assertEquals(scalaTuples(expected), scalaResults(source));
+		assertEquals(expected, results(source));
 	}
 
 	private long t(int n) {
@@ -102,20 +98,9 @@ public class HourlyTipsExerciseTest extends TaxiRideTestBase<Tuple3<Long, Long, 
 		return new TaxiFare(0, 0, driverId, new DateTime(startTime), "", tip, 0F, 0F);
 	}
 
-	private ArrayList<scala.Tuple3<Long, Long, Float>> scalaTuples(ArrayList<Tuple3<Long, Long, Float>> a) {
-		ArrayList<scala.Tuple3<Long, Long, Float>> scalaCopy = new ArrayList<>(a.size());
-		a.iterator().forEachRemaining(t -> scalaCopy.add(new scala.Tuple3(t.f0, t.f1, t.f2)));
-		return scalaCopy;
-	}
-
-	private List<Tuple3<Long, Long, Float>> javaResults(TestFareSource source) throws Exception {
+	protected List<Tuple3<Long, Long, Float>> results(TestFareSource source) throws Exception {
 		Testable javaSolution = () -> HourlyTipsSolution.main(new String[]{});
 		return runApp(source, new TestSink<>(), javaExercise, javaSolution);
-	}
-
-	private List<Tuple3<Long, Long, Float>> scalaResults(TestFareSource source) throws Exception {
-		Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.windows.HourlyTipsSolution.main(new String[]{});
-		return runApp(source, new TestSink<>(), scalaExercise, scalaSolution);
 	}
 
 }

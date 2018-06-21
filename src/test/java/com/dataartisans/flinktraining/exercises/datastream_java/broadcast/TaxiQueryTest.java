@@ -1,6 +1,5 @@
 package com.dataartisans.flinktraining.exercises.datastream_java.broadcast;
 
-import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.testing.TaxiRideTestBase;
 import com.dataartisans.flinktraining.solutions.datastream_java.broadcast.TaxiQuerySolution;
@@ -14,10 +13,9 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class TaxiQueryExerciseTest extends TaxiRideTestBase<Tuple2<String, String>> {
+public class TaxiQueryTest extends TaxiRideTestBase<Tuple2<String, String>> {
 
 	static Testable javaExercise = () -> TaxiQueryExercise.main(new String[]{});
-
 
 	@Test
 	public void ongoingRides() throws Exception {
@@ -27,7 +25,7 @@ public class TaxiQueryExerciseTest extends TaxiRideTestBase<Tuple2<String, Strin
 		TestStringSource queries = new TestStringSource("ride.isStart");
 
 		List<String> expected = Lists.newArrayList(rideStarted.toString());
-		assertEquals(expected, javaResults(rides, queries));
+		assertEquals(expected, results(rides, queries));
 	}
 
 	@Test
@@ -44,7 +42,7 @@ public class TaxiQueryExerciseTest extends TaxiRideTestBase<Tuple2<String, Strin
 		TestStringSource queries = new TestStringSource(String.format("ride.getEuclideanDistance(%f, %f) < 1.0", momaLon, momaLat));
 
 		List<String> expected = Lists.newArrayList(rideEnded.toString());
-		assertEquals(expected, javaResults(rides, queries));
+		assertEquals(expected, results(rides, queries));
 	}
 
 	private DateTime minutes(int n) {
@@ -63,7 +61,7 @@ public class TaxiQueryExerciseTest extends TaxiRideTestBase<Tuple2<String, Strin
 		return testRide(started.rideId, false, started.startTime, endTime, started.startLon, started.startLat, endLon, endLat, started.taxiId);
 	}
 
-	private List<String> javaResults(TestRideSource rides, TestStringSource queries) throws Exception {
+	private List<String> results(TestRideSource rides, TestStringSource queries) throws Exception {
 		Testable javaSolution = () -> TaxiQuerySolution.main(new String[]{});
 		List<Tuple2<String, String>>results = runApp(rides, queries, new TestSink<>(), javaExercise, javaSolution);
 

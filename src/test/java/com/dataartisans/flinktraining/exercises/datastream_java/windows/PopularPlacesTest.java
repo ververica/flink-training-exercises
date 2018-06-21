@@ -30,11 +30,9 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Float, Long, Boolean, Integer>> {
+public class PopularPlacesTest extends TaxiRideTestBase<Tuple5<Float, Float, Long, Boolean, Integer>> {
 
 	static Testable javaExercise = () -> PopularPlacesExercise.main(new String[]{"-threshold", "2"});
-	static Testable scalaExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.windows.PopularPlacesExercise.main(new String[]{"-threshold", "2"});
-
 
 	static final float pennStationLon = -73.9947F;
 	static final float pennStationLat = 40.750626F;
@@ -69,37 +67,27 @@ public class PopularPlacesExerciseTest extends TaxiRideTestBase<Tuple5<Float, Fl
 
 		ArrayList<Tuple5<Float, Float, Long, Boolean, Integer>> expected = Lists.newArrayList(penn10, penn15, penn20, moma20, moma25, moma30);
 
-		assertEquals(expected, javaResults(source));
-		assertEquals(scalaTuples(expected), scalaResults(source));
+		assertEquals(expected, results(source));
 	}
 
-	private long t(int n) {
+	protected long t(int n) {
 		return new DateTime(2000, 1, 1, 0, 0).plusMinutes(n).getMillis();
 	}
 
+
 	// setting the endLon and endLat to the same as the starting position; shouldn't matter
-	private TaxiRide startRide(long rideId, long startTime, float startLon, float startLat) {
+	protected TaxiRide startRide(long rideId, long startTime, float startLon, float startLat) {
 		return new TaxiRide(rideId, true, new DateTime(startTime), new DateTime(0), startLon, startLat, startLon, startLat, (short) 1, 0, 0);
 	}
 
-	private TaxiRide endRide(TaxiRide started, long endTime, float endLon, float endLat) {
+	protected TaxiRide endRide(TaxiRide started, long endTime, float endLon, float endLat) {
 		return new TaxiRide(started.rideId, false, started.startTime, new DateTime(endTime),
 				started.startLon, started.startLat, endLon, endLat, (short) 1, 0, 0);
 	}
 
-	private ArrayList<scala.Tuple5<Float, Float, Long, Boolean, Integer>> scalaTuples(ArrayList<Tuple5<Float, Float, Long, Boolean, Integer>> a) {
-		ArrayList<scala.Tuple5<Float, Float, Long, Boolean, Integer>> scalaCopy = new ArrayList<>(a.size());
-		a.iterator().forEachRemaining(t -> scalaCopy.add(new scala.Tuple5(t.f0, t.f1, t.f2, t.f3, t.f4)));
-		return scalaCopy;
-	}
-
-	private List<Tuple5<Float, Float, Long, Boolean, Integer>> javaResults(TestRideSource source) throws Exception {
+	protected List<Tuple5<Float, Float, Long, Boolean, Integer>> results(TestRideSource source) throws Exception {
 		Testable javaSolution = () -> PopularPlacesSolution.main(new String[]{"-threshold", "2"});
 		return runApp(source, new TestSink<>(), javaExercise, javaSolution);
 	}
 
-	private List<Tuple5<Float, Float, Long, Boolean, Integer>> scalaResults(TestRideSource source) throws Exception {
-		Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.windows.PopularPlacesSolution.main(new String[]{"-threshold", "2"});
-		return runApp(source, new TestSink<>(), scalaExercise, scalaSolution);
-	}
 }

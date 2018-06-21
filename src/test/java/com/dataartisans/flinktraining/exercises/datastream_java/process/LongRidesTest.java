@@ -27,11 +27,9 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
+public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
 
 	static Testable javaExercise = () -> LongRidesExercise.main(new String[]{});
-	static Testable scalaExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.process.LongRidesExercise.main(new String[]{});
-
 
 	private DateTime beginning = new DateTime(2000, 1, 1, 0, 0);
 
@@ -43,10 +41,8 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 		Long markOneMinLater = oneMinLater.getMillis();
 
 		TestRideSource source = new TestRideSource(rideStarted, endedOneMinLater, markOneMinLater);
-		assert(javaResults(source).isEmpty());
-		assert(scalaResults(source).isEmpty());
-		assert(javaCEPResults(source).isEmpty());
-		assert(scalaCEPResults(source).isEmpty());
+		assert(results(source).isEmpty());
+		assert(cepResults(source).isEmpty());
 	}
 
 	@Test
@@ -57,10 +53,8 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 		Long markOneMinLater = oneMinLater.getMillis();
 
 		TestRideSource source = new TestRideSource(endedOneMinLater, rideStarted, markOneMinLater);
-		assert(javaResults(source).isEmpty());
-		assert(scalaResults(source).isEmpty());
-		assert(javaCEPResults(source).isEmpty());
-		assert(scalaCEPResults(source).isEmpty());
+		assert(results(source).isEmpty());
+		assert(cepResults(source).isEmpty());
 	}
 
 	@Test
@@ -71,10 +65,8 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 		Long markOneMinLater = oneMinLater.getMillis();
 
 		TestRideSource source = new TestRideSource(endedOneMinLater, markOneMinLater);
-		assert(javaResults(source).isEmpty());
-		assert(scalaResults(source).isEmpty());
-		assert(javaCEPResults(source).isEmpty());
-		assert(scalaCEPResults(source).isEmpty());
+		assert(results(source).isEmpty());
+		assert(cepResults(source).isEmpty());
 	}
 
 	@Test
@@ -83,10 +75,8 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 		Long markThreeHoursLater = beginning.plusHours(3).getMillis();
 
 		TestRideSource source = new TestRideSource(rideStarted, markThreeHoursLater);
-		assertEquals(Lists.newArrayList(rideStarted), javaResults(source));
-		assertEquals(Lists.newArrayList(rideStarted), scalaResults(source));
-		assertEquals(Lists.newArrayList(rideStarted), javaCEPResults(source));
-		assertEquals(Lists.newArrayList(rideStarted), scalaCEPResults(source));
+		assertEquals(Lists.newArrayList(rideStarted), results(source));
+		assertEquals(Lists.newArrayList(rideStarted), cepResults(source));
 	}
 
 	@Test
@@ -96,10 +86,8 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 		TaxiRide rideEnded3HoursLater = endRide(rideStarted, beginning.plusHours(3));
 
 		TestRideSource source = new TestRideSource(rideStarted, mark2HoursLater, rideEnded3HoursLater);
-		assertEquals(Lists.newArrayList(rideStarted), javaResults(source));
-		assertEquals(Lists.newArrayList(rideStarted), scalaResults(source));
-		assertEquals(Lists.newArrayList(rideStarted), javaCEPResults(source));
-		assertEquals(Lists.newArrayList(rideStarted), scalaCEPResults(source));
+		assertEquals(Lists.newArrayList(rideStarted), results(source));
+		assertEquals(Lists.newArrayList(rideStarted), cepResults(source));
 	}
 
 	private TaxiRide testRide(long rideId, Boolean isStart, DateTime startTime, DateTime endTime) {
@@ -114,24 +102,14 @@ public class LongRidesExerciseTest extends TaxiRideTestBase<TaxiRide> {
 		return testRide(started.rideId, false, started.startTime, endTime);
 	}
 
-	private List<TaxiRide> javaResults(TestRideSource source) throws Exception {
+	protected List<TaxiRide> results(TestRideSource source) throws Exception {
 		Testable javaSolution = () -> LongRidesSolution.main(new String[]{});
 		return runApp(source, new TestSink<TaxiRide>(), javaExercise, javaSolution);
 	}
 
-	private List<TaxiRide> scalaResults(TestRideSource source) throws Exception {
-		Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.process.LongRidesSolution.main(new String[]{});
-		return runApp(source, new TestSink<TaxiRide>(), scalaExercise, scalaSolution);
-	}
-
-	private List<TaxiRide> javaCEPResults(TestRideSource source) throws Exception {
+	protected List<TaxiRide> cepResults(TestRideSource source) throws Exception {
 		Testable javaCEPSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.cep.LongRidesSolution.main(new String[]{});
 		return runApp(source, new TestSink<TaxiRide>(), javaCEPSolution);
-	}
-
-	private List<TaxiRide> scalaCEPResults(TestRideSource source) throws Exception {
-		Testable scalaCEPSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.cep.LongRidesSolution.main(new String[]{});
-		return runApp(source, new TestSink<TaxiRide>(), scalaCEPSolution);
 	}
 
 }
