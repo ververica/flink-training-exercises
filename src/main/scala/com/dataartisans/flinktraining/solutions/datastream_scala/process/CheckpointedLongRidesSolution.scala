@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_scala.process
+package com.dataartisans.flinktraining.solutions.datastream_scala.process
 
-import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide
-import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
-import org.apache.flink.api.java.utils.ParameterTool
-import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.functions.KeyedProcessFunction
-import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
-import org.apache.flink.streaming.api.scala._
-import org.apache.flink.util.Collector
-import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource
-import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import java.util.concurrent.TimeUnit
 
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils
+import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide
+import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase._
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.{ExerciseBase, GeoUtils}
+import org.apache.flink.api.common.restartstrategy.RestartStrategies
+import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.common.time.Time
+import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.runtime.state.filesystem.FsStateBackend
+import org.apache.flink.streaming.api.TimeCharacteristic
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction
+import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
+import org.apache.flink.util.Collector
 
 
 /**
@@ -46,25 +46,26 @@ import org.apache.flink.runtime.state.filesystem.FsStateBackend
   * -input path-to-input-file
   *
   */
-object CheckpointedLongRides {
+object CheckpointedLongRidesSolution {
   def main(args: Array[String]) {
 
     // parse parameters
     val params = ParameterTool.fromArgs(args)
-    val input = params.getRequired("input")
+    val input = params.get("input", ExerciseBase.pathToRideData)
     val speed = 1800       // events of 30 minutes are served every second
 
     // set up the execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     // operate in Event-time
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    env.setParallelism(ExerciseBase.parallelism)
 
     // set up checkpointing
     env.setStateBackend(new FsStateBackend("file:///tmp/checkpoints"))
     env.enableCheckpointing(1000)
     env.setRestartStrategy(RestartStrategies.fixedDelayRestart(60, Time.of(10, TimeUnit.SECONDS)))
 
-    val rides = env.addSource(new CheckpointedTaxiRideSource(input, speed))
+    val rides = env.addSource(rideSourceOrTest(new CheckpointedTaxiRideSource(input, speed)))
 
     val longRides = rides
       // remove all rides which are not within NYC
@@ -72,7 +73,7 @@ object CheckpointedLongRides {
       .keyBy(_.rideId)
       .process(new MatchFunction())
 
-    longRides.print()
+    printOrTest(longRides)
 
     env.execute("Long Taxi Rides (checkpointed)")
   }

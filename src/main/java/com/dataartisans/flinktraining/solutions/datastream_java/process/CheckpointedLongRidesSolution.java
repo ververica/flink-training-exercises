@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_java.process;
+package com.dataartisans.flinktraining.solutions.datastream_java.process;
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource;
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
@@ -49,30 +50,31 @@ import java.util.concurrent.TimeUnit;
  * -input path-to-input-file
  *
  */
-public class CheckpointedLongRides {
+public class CheckpointedLongRidesSolution extends ExerciseBase {
 	public static void main(String[] args) throws Exception {
 
 		ParameterTool params = ParameterTool.fromArgs(args);
-		final String input = params.getRequired("input");
+		final String input = params.get("input", ExerciseBase.pathToRideData);
 		final int servingSpeedFactor = 1800; // 30 minutes worth of events are served every second
 
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+		env.setParallelism(ExerciseBase.parallelism);
 
 		// set up checkpointing
 		env.setStateBackend(new FsStateBackend("file:///tmp/checkpoints"));
 		env.enableCheckpointing(1000);
 		env.setRestartStrategy(RestartStrategies.fixedDelayRestart(60, Time.of(10, TimeUnit.SECONDS)));
 
-		DataStream<TaxiRide> rides = env.addSource(new CheckpointedTaxiRideSource(input, servingSpeedFactor));
+		DataStream<TaxiRide> rides = env.addSource(rideSourceOrTest(new CheckpointedTaxiRideSource(input, servingSpeedFactor)));
 
 		DataStream<TaxiRide> longRides = rides
 				.filter(new NYCFilter())
 				.keyBy((TaxiRide ride) -> ride.rideId)
 				.process(new MatchFunction());
 
-		longRides.print();
+		printOrTest(longRides);
 
 		env.execute("Long Taxi Rides (checkpointed)");
 	}

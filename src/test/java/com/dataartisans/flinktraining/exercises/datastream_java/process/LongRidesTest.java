@@ -88,6 +88,7 @@ public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
 		TestRideSource source = new TestRideSource(rideStarted, mark2HoursLater, rideEnded3HoursLater);
 		assertEquals(Lists.newArrayList(rideStarted), results(source));
 		assertEquals(Lists.newArrayList(rideStarted), cepResults(source));
+		assertEquals(Lists.newArrayList(rideStarted), checkpointedResults(source));
 	}
 
 	private TaxiRide testRide(long rideId, Boolean isStart, DateTime startTime, DateTime endTime) {
@@ -110,6 +111,11 @@ public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
 	protected List<TaxiRide> cepResults(TestRideSource source) throws Exception {
 		Testable javaCEPSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.cep.LongRidesSolution.main(new String[]{});
 		return runApp(source, new TestSink<>(), javaCEPSolution);
+	}
+
+	protected List<TaxiRide> checkpointedResults(TestRideSource source) throws Exception {
+		Testable checkpointedSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.process.CheckpointedLongRidesSolution.main(new String[]{});
+		return runApp(source, new TestSink<>(), checkpointedSolution);
 	}
 
 }

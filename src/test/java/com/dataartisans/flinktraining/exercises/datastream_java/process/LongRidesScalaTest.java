@@ -35,4 +35,9 @@ public class LongRidesScalaTest extends LongRidesTest {
 		return runApp(source, new TestSink<>(), scalaCEPSolution);
 	}
 
+	protected List<TaxiRide> checkpointedResults(TestRideSource source) throws Exception {
+		Testable scalaCheckpointedSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.process.CheckpointedLongRidesSolution.main(new String[]{});
+		return runApp(source, new TestSink<>(), scalaCheckpointedSolution);
+	}
+
 }
