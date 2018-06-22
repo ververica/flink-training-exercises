@@ -28,7 +28,7 @@ import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 import org.apache.flink.util.Collector
 
 /**
-  * Scala reference implementation for the "Join Rides with Fares" exercise of the Flink training
+  * Scala reference implementation for the "Stateful Enrichment" exercise of the Flink training
   * (http://training.data-artisans.com).
   *
   * The goal for this exercise is to enrich TaxiRides with fare information.

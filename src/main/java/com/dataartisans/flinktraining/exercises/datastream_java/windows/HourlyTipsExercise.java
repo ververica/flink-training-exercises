@@ -26,7 +26,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * Java reference implementation for the "Hourly Tips" exercise of the Flink training
+ * The "Hourly Tips" exercise of the Flink training
  * (http://training.data-artisans.com).
  *
  * The task of the exercise is to first calculate the total tips collected by each driver, hour by hour, and

@@ -32,7 +32,7 @@ import org.apache.flink.streaming.api.functions.co.RichCoFlatMapFunction;
 import org.apache.flink.util.Collector;
 
 /**
- * Java reference implementation for the "Join Rides with Fares" exercise of the Flink training
+ * The "Stateful Enrichment" exercise of the Flink training
  * (http://training.data-artisans.com).
  *
  * The goal for this exercise is to enrich TaxiRides with fare information.

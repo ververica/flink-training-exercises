@@ -24,7 +24,7 @@ import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.scala._
 
 /**
- * Scala reference implementation for the "Ride Cleansing" exercise of the Flink training
+ * The "Ride Cleansing" exercise of the Flink training
  * (http://training.data-artisans.com).
  *
  * The task of the exercise is to filter a data stream of taxi ride records to keep only rides that

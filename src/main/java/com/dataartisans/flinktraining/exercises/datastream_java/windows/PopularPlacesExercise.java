@@ -30,7 +30,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
- * Java reference implementation for the "Popular Places" exercise of the Flink training
+ * The "Popular Places" exercise of the Flink training
  * (http://training.data-artisans.com).
  *
  * The task of the exercise is to identify every five minutes popular areas where many taxi rides

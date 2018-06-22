@@ -22,11 +22,9 @@ import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBa
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.util.Collector
 
 /**
-  * Scala reference implementation for the "Hourly Tips" exercise of the Flink training
+  * The "Hourly Tips" exercise of the Flink training
   * (http://training.data-artisans.com).
   *
   * The task of the exercise is to first calculate the total tips collected by each driver, hour by hour, and

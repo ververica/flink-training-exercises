@@ -35,7 +35,7 @@ import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
 
 /**
- * Java reference implementation for the "Join Rides with Fares" exercise of the Flink training
+ * Java reference implementation for the "Expiring State" exercise of the Flink training
  * (http://training.data-artisans.com).
  *
  * The goal for this exercise is to enrich TaxiRides with fare information.

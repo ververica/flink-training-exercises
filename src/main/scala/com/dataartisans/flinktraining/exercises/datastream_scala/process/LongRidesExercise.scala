@@ -29,7 +29,7 @@ import org.apache.flink.streaming.api.scala._
 import org.apache.flink.util.Collector
 
 /**
-  * Scala reference implementation for the "Long Ride Alerts" exercise of the Flink training
+  * The "Long Ride Alerts" exercise of the Flink training
   * (http://training.data-artisans.com).
   *
   * The goal for this exercise is to emit START events for taxi rides that have not been matched
