@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package com.dataartisans.flinktraining.exercises.datastream_scala.process
+package com.dataartisans.flinktraining.solutions.datastream_scala.process
 
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.{TaxiFare, TaxiRide}
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.{CheckpointedTaxiFareSource, CheckpointedTaxiRideSource}
-import com.dataartisans.flinktraining.exercises.datastream_java.utils.{ExerciseBase, MissingSolutionException}
+import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase._
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
-import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.functions.co.CoProcessFunction
+import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 import org.apache.flink.util.Collector
 
 /**
-  * The "Expiring State" exercise of the Flink training
+  * Scala reference implementation for the "Expiring State" exercise of the Flink training
   * (http://training.data-artisans.com).
   *
   * The goal for this exercise is to enrich TaxiRides with fare information.
@@ -39,7 +38,7 @@ import org.apache.flink.util.Collector
   * -fares path-to-input-file
   *
   */
-object JoinWithSomeMissingExercise {
+object ExpiringStateSolution {
   val unmatchedRides = new OutputTag[TaxiRide]("unmatchedRides") {}
   val unmatchedFares = new OutputTag[TaxiFare]("unmatchedFares") {}
 
@@ -70,26 +69,57 @@ object JoinWithSomeMissingExercise {
 
     printOrTest(processed.getSideOutput[TaxiFare](unmatchedFares))
 
-    env.execute("Join Rides with Fares (scala ProcessFunction)")
+    env.execute("ExpiringState (scala)")
   }
 
   class EnrichmentFunction extends CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)] {
+    // keyed, managed state
+    lazy val rideState: ValueState[TaxiRide] = getRuntimeContext.getState(
+      new ValueStateDescriptor[TaxiRide]("saved ride", classOf[TaxiRide]))
+    lazy val fareState: ValueState[TaxiFare] = getRuntimeContext.getState(
+      new ValueStateDescriptor[TaxiFare]("saved fare", classOf[TaxiFare]))
 
     override def processElement1(ride: TaxiRide,
                                  context: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
                                  out: Collector[(TaxiRide, TaxiFare)]): Unit = {
-
-      throw new MissingSolutionException();
+      val fare = fareState.value
+      if (fare != null) {
+        fareState.clear()
+        out.collect((ride, fare))
+      }
+      else {
+        rideState.update(ride)
+        // as soon as the watermark arrives, we can stop waiting for the corresponding fare
+        context.timerService.registerEventTimeTimer(ride.getEventTime)
+      }
     }
 
     override def processElement2(fare: TaxiFare,
                                  context: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
                                  out: Collector[(TaxiRide, TaxiFare)]): Unit = {
+      val ride = rideState.value
+      if (ride != null) {
+        rideState.clear()
+        out.collect((ride, fare))
+      }
+      else {
+        fareState.update(fare)
+        // as soon as the watermark arrives, we can stop waiting for the corresponding ride
+        context.timerService.registerEventTimeTimer(fare.getEventTime)
+      }
     }
 
     override def onTimer(timestamp: Long,
                          ctx: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#OnTimerContext,
                          out: Collector[(TaxiRide, TaxiFare)]): Unit = {
+      if (fareState.value != null) {
+        ctx.output(unmatchedFares, fareState.value)
+        fareState.clear()
+      }
+      if (rideState.value != null) {
+        ctx.output(unmatchedRides, rideState.value)
+        rideState.clear()
+      }
     }
   }
 

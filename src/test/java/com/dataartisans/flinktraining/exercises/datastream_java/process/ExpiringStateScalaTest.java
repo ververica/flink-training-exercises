@@ -16,16 +16,15 @@
 
 package com.dataartisans.flinktraining.exercises.datastream_java.process;
 
-import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
-import com.dataartisans.flinktraining.exercises.datastream_scala.process.JoinWithSomeMissingExercise;
+import com.dataartisans.flinktraining.exercises.datastream_scala.process.ExpiringStateExercise;
 import java.util.List;
 
-public class JoinWithSomeMissingScalaTest extends JoinWithSomeMissingTest {
+public class ExpiringStateScalaTest extends ExpiringStateTest {
 
-	static Testable scalaExercise = () -> JoinWithSomeMissingExercise.main(new String[]{});
+	static Testable scalaExercise = () -> ExpiringStateExercise.main(new String[]{});
 
 	protected List<?> results(TestRideSource rides, TestFareSource fares) throws Exception {
-		Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.process.JoinWithSomeMissingSolution.main(new String[]{});
+		Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.process.ExpiringStateSolution.main(new String[]{});
 		return runApp(rides, fares, new TestSink<>(), scalaExercise, scalaSolution);
 	}
 
