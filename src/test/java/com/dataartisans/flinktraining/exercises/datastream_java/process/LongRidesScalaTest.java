@@ -24,6 +24,7 @@ import java.util.List;
 public class LongRidesScalaTest extends LongRidesTest {
 
 	static Testable scalaExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.process.LongRidesExercise.main(new String[]{});
+	static Testable scalaCEPExercise = () -> com.dataartisans.flinktraining.exercises.datastream_scala.cep.LongRidesExercise.main(new String[]{});
 
 	protected List<TaxiRide> results(TestRideSource source) throws Exception {
 		Testable scalaSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.process.LongRidesSolution.main(new String[]{});
@@ -32,7 +33,7 @@ public class LongRidesScalaTest extends LongRidesTest {
 
 	protected List<TaxiRide> cepResults(TestRideSource source) throws Exception {
 		Testable scalaCEPSolution = () -> com.dataartisans.flinktraining.solutions.datastream_scala.cep.LongRidesSolution.main(new String[]{});
-		return runApp(source, new TestSink<>(), scalaCEPSolution);
+		return runApp(source, new TestSink<>(), scalaCEPExercise, scalaCEPSolution);
 	}
 
 	protected List<TaxiRide> checkpointedResults(TestRideSource source) throws Exception {

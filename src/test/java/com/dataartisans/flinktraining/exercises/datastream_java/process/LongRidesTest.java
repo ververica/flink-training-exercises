@@ -30,6 +30,7 @@ import static org.junit.Assert.assertEquals;
 public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
 
 	static Testable javaExercise = () -> LongRidesExercise.main(new String[]{});
+	static Testable javaCEPExercise = () -> com.dataartisans.flinktraining.exercises.datastream_java.cep.LongRidesExercise.main(new String[]{});
 
 	private DateTime beginning = new DateTime(2000, 1, 1, 0, 0);
 
@@ -110,7 +111,7 @@ public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
 
 	protected List<TaxiRide> cepResults(TestRideSource source) throws Exception {
 		Testable javaCEPSolution = () -> com.dataartisans.flinktraining.solutions.datastream_java.cep.LongRidesSolution.main(new String[]{});
-		return runApp(source, new TestSink<>(), javaCEPSolution);
+		return runApp(source, new TestSink<>(), javaCEPExercise, javaCEPSolution);
 	}
 
 	protected List<TaxiRide> checkpointedResults(TestRideSource source) throws Exception {
