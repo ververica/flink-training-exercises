@@ -72,6 +72,14 @@ public class BroadcastState {
 		}
 	}
 
+	final static Class<Tuple2<Shape, Shape>> typedTuple = (Class<Tuple2<Shape, Shape>>) (Class<?>) Tuple2.class;
+
+	final static TupleTypeInfo<Tuple2<Shape, Shape>> tupleTypeInfo = new TupleTypeInfo<>(
+			typedTuple,
+			new EnumTypeInfo<>(Shape.class),
+			new EnumTypeInfo<>(Shape.class)
+	);
+
 	public static void main(String[] args) throws Exception {
 
 		final List<Tuple2<Shape, Shape>> rules = new ArrayList<>();
@@ -90,14 +98,6 @@ public class BroadcastState {
 
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		final Class<Tuple2<Shape, Shape>> typedTuple = (Class<Tuple2<Shape, Shape>>) (Class<?>) Tuple2.class;
-
-		final TupleTypeInfo<Tuple2<Shape, Shape>> tupleTypeInfo = new TupleTypeInfo<>(
-				typedTuple,
-				new EnumTypeInfo<>(Shape.class),
-				new EnumTypeInfo<>(Shape.class)
-		);
-
 		MapStateDescriptor<String, Tuple2<Shape, Shape>> rulesStateDescriptor = new MapStateDescriptor<>(
 				"RulesBroadcastState",
 				BasicTypeInfo.STRING_TYPE_INFO,
@@ -105,9 +105,9 @@ public class BroadcastState {
 		);
 
 		KeyedStream<Item, Color> itemColorKeyedStream = env.fromCollection(keyedInput)
-				.rebalance()                                                         // needed to increase the parallelism
+				.rebalance()                               // needed to increase the parallelism
 				.map(item -> item)
-				.setParallelism(1)
+				.setParallelism(4)
 				.keyBy(item -> item.color);
 
 		BroadcastStream<Tuple2<Shape, Shape>> broadcastRulesStream = env.fromCollection(rules)
@@ -119,69 +119,67 @@ public class BroadcastState {
 						out.collect(value);
 					}
 				})
-				.setParallelism(1)
+				.setParallelism(4)
 				.broadcast(rulesStateDescriptor);
 
 		DataStream<String> output = itemColorKeyedStream
 				.connect(broadcastRulesStream)
-				.process(
-						new KeyedBroadcastProcessFunction<Color, Item, Tuple2<Shape, Shape>, String>() {
+				.process(new MatchFunction());
 
-							private static final long serialVersionUID = 8512350700250748742L;
-
-							private int counter = 0;
-
-							private final MapStateDescriptor<String, List<Item>> matchStateDesc =
-									new MapStateDescriptor<>("items", BasicTypeInfo.STRING_TYPE_INFO, new ListTypeInfo<>(Item.class));
-
-							private final MapStateDescriptor<String, Tuple2<Shape, Shape>> broadcastStateDescriptor =
-									new MapStateDescriptor<>("RulesBroadcastState", BasicTypeInfo.STRING_TYPE_INFO, tupleTypeInfo);
-
-							@Override
-							public void processBroadcastElement(Tuple2<Shape, Shape> value, Context ctx, Collector<String> out) throws Exception {
-								ctx.getBroadcastState(broadcastStateDescriptor).put("Rule_" + counter++, value);
-								System.out.println("ADDED: Rule_" + (counter-1) + " " + value);
-							}
-
-							@Override
-							public void processElement(Item nextItem, ReadOnlyContext ctx, Collector<String> out) throws Exception {
-
-								final MapState<String, List<Item>> partialMatches = getRuntimeContext().getMapState(matchStateDesc);
-								final Shape shapeOfNextItem = nextItem.getShape();
-
-								System.out.println("SAW: " + nextItem);
-								for (Map.Entry<String, Tuple2<Shape, Shape>> entry: ctx.getBroadcastState(broadcastStateDescriptor).immutableEntries()) {
-									final String ruleName = entry.getKey();
-									final Tuple2<Shape, Shape> rule = entry.getValue();
-
-									List<Item> partialsForThisRule = partialMatches.get(ruleName);
-									if (partialsForThisRule == null) {
-										partialsForThisRule = new ArrayList<>();
-									}
-
-									if (shapeOfNextItem == rule.f1 && !partialsForThisRule.isEmpty()) {
-										for (Item i : partialsForThisRule) {
-											out.collect("MATCH: " + i + " - " + nextItem);
-										}
-										partialsForThisRule.clear();
-									}
-
-									// no else to cover if f0 == f1
-									if (shapeOfNextItem == rule.f0) {
-										partialsForThisRule.add(nextItem);
-									}
-
-									if (partialsForThisRule.isEmpty()) {
-										partialMatches.remove(ruleName);
-									} else {
-										partialMatches.put(ruleName, partialsForThisRule);
-									}
-								}
-
-							}
-						});
 		output.print();
 		System.out.println(env.getExecutionPlan());
 		env.execute();
+	}
+
+	public static class MatchFunction extends KeyedBroadcastProcessFunction<Color, Item, Tuple2<Shape, Shape>, String> {
+
+		private int counter = 0;
+
+		private final MapStateDescriptor<String, List<Item>> matchStateDesc =
+				new MapStateDescriptor<>("items", BasicTypeInfo.STRING_TYPE_INFO, new ListTypeInfo<>(Item.class));
+
+		private final MapStateDescriptor<String, Tuple2<Shape, Shape>> broadcastStateDescriptor =
+				new MapStateDescriptor<>("RulesBroadcastState", BasicTypeInfo.STRING_TYPE_INFO, tupleTypeInfo);
+
+		@Override
+		public void processBroadcastElement(Tuple2<Shape, Shape> value, Context ctx, Collector<String> out) throws Exception {
+			ctx.getBroadcastState(broadcastStateDescriptor).put("Rule_" + counter++, value);
+			System.out.println("ADDED: Rule_" + (counter-1) + " " + value);
+		}
+
+		@Override
+		public void processElement(Item nextItem, ReadOnlyContext ctx, Collector<String> out) throws Exception {
+
+			final MapState<String, List<Item>> partialMatches = getRuntimeContext().getMapState(matchStateDesc);
+			final Shape shapeOfNextItem = nextItem.getShape();
+
+			System.out.println("SAW: " + nextItem);
+			for (Map.Entry<String, Tuple2<Shape, Shape>> entry: ctx.getBroadcastState(broadcastStateDescriptor).immutableEntries()) {
+				final String ruleName = entry.getKey();
+				final Tuple2<Shape, Shape> rule = entry.getValue();
+
+				List<Item> partialsForThisRule = partialMatches.get(ruleName);
+				if (partialsForThisRule == null) {
+					partialsForThisRule = new ArrayList<>();
+				}
+
+				if (shapeOfNextItem == rule.f1 && !partialsForThisRule.isEmpty()) {
+					for (Item i : partialsForThisRule) {
+						out.collect("MATCH: " + i + " - " + nextItem);
+					}
+					partialsForThisRule.clear();
+				}
+
+				if (shapeOfNextItem == rule.f0) {
+					partialsForThisRule.add(nextItem);
+				}
+
+				if (partialsForThisRule.isEmpty()) {
+					partialMatches.remove(ruleName);
+				} else {
+					partialMatches.put(ruleName, partialsForThisRule);
+				}
+			}
+		}
 	}
 }
