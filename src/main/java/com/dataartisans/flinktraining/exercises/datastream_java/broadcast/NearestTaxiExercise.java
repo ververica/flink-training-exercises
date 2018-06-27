@@ -125,7 +125,6 @@ public class NearestTaxiExercise extends ExerciseBase {
 
 		// add a socket source
 		BroadcastStream<Query> queryStream = env.socketTextStream("localhost", 9999)
-				.assignTimestampsAndWatermarks(new QueryStreamAssigner())
 				.map(new MapFunction<String, Query>() {
 					@Override
 					public Query map(String msg) throws Exception {
@@ -143,7 +142,8 @@ public class NearestTaxiExercise extends ExerciseBase {
 				.process(new QueryFunction());
 
 		DataStream<Tuple3<Long, Long, Float>> nearest = reports
-				.keyBy(new KeySelector<Tuple3<Long,Long,Float>, Long>() {
+				// key by the queryId
+				.keyBy(new KeySelector<Tuple3<Long, Long, Float>, Long>() {
 					@Override
 					public Long getKey(Tuple3<Long, Long, Float> value) throws Exception {
 						return value.f0;
@@ -154,23 +154,6 @@ public class NearestTaxiExercise extends ExerciseBase {
 		printOrTest(nearest);
 
 		env.execute("Nearest Available Taxi");
-	}
-
-	// Once the two streams are connected, the Watermark of the KeyedBroadcastProcessFunction operator
-	// will be the minimum of the Watermarks of the two connected streams. Our query stream has a default
-	// Watermark at Long.MIN_VALUE, and this will hold back the event time clock of the
-	// KeyedBroadcastProcessFunction, unless we do something about it.
-	public static class QueryStreamAssigner implements AssignerWithPeriodicWatermarks<String> {
-		@Nullable
-		@Override
-		public Watermark getCurrentWatermark() {
-			return Watermark.MAX_WATERMARK;
-		}
-
-		@Override
-		public long extractTimestamp(String element, long previousElementTimestamp) {
-			return 0;
-		}
 	}
 
 	// Only pass thru values that are new minima -- remove duplicates.
@@ -211,7 +194,7 @@ public class NearestTaxiExercise extends ExerciseBase {
 		}
 
 		@Override
-		// output (queryId, taxiId, euclidean distance) for every query, if the taxi ride is now ending
+		// Output (queryId, taxiId, euclidean distance) for every query, if the taxi ride is now ending.
 		public void processElement(TaxiRide ride, ReadOnlyContext ctx, Collector<Tuple3<Long, Long, Float>> out) throws Exception {
 			if (!ride.isStart) {
 				throw new MissingSolutionException();

@@ -147,7 +147,8 @@ public class NearestTaxiWithCleanupSolution extends ExerciseBase {
 				.process(new QueryFunction());
 
 		DataStream<Tuple3<Long, Long, Float>> nearest = reports
-				.keyBy(new KeySelector<Tuple3<Long,Long,Float>, Long>() {
+				// key by the queryId
+				.keyBy(new KeySelector<Tuple3<Long, Long, Float>, Long>() {
 					@Override
 					public Long getKey(Tuple3<Long, Long, Float> value) throws Exception {
 						return value.f0;
@@ -253,6 +254,7 @@ public class NearestTaxiWithCleanupSolution extends ExerciseBase {
 		}
 
 		@Override
+		// Output (queryId, taxiId, euclidean distance) for every query, if the taxi ride is now ending.
 		public void processElement(TaxiRide ride, ReadOnlyContext ctx, Collector<Tuple3<Long, Long, Float>> out) throws Exception {
 			if (!ride.isStart) {
 				Iterable<Map.Entry<Long, Query>> entries = ctx.getBroadcastState(queryDescriptor).immutableEntries();

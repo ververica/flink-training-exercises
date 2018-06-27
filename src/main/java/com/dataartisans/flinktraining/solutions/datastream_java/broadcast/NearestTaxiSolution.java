@@ -115,6 +115,7 @@ public class NearestTaxiSolution extends ExerciseBase {
 		// set up streaming execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+		env.setParallelism(ExerciseBase.parallelism);
 
 		DataStream<TaxiRide> rides = env.addSource(rideSourceOrTest(new TaxiRideSource(input, maxEventDelay, servingSpeedFactor)));
 
@@ -189,6 +190,7 @@ public class NearestTaxiSolution extends ExerciseBase {
 		}
 
 		@Override
+		// Output (queryId, taxiId, euclidean distance) for every query, if the taxi ride is now ending.
 		public void processElement(TaxiRide ride, ReadOnlyContext ctx, Collector<Tuple3<Long, Long, Float>> out) throws Exception {
 			if (!ride.isStart) {
 				Iterable<Map.Entry<Long, Query>> entries = ctx.getBroadcastState(queryDescriptor).immutableEntries();
