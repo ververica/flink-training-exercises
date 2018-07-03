@@ -26,7 +26,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public abstract class RideCleansingTest extends TaxiRideTestBase<TaxiRide> {
+public class RideCleansingTest extends TaxiRideTestBase<TaxiRide> {
 
 	static Testable javaExercise = () -> RideCleansingExercise.main(new String[]{});
 
