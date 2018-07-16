@@ -47,10 +47,26 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Locale;
 
 /**
+ *
  * Parameters:
  * -input path-to-input-file
  *
+ * Taxi Rides are streamed into keyed state (keyed by taxi ID), storing the latest ride event for taxi.
+ *
+ * Use nc -lk 9999 to establish a socket stream from stdin on port 9999
+ *
+ * On that socket stream, type java expressions to be matched against both the stored
+ * state and newly arriving rides. These expressions have a "ride" and the current "watermark"
+ * in scope.
+ *
+ * Examples:
+ *
+ *     true -- match everything: dump all stored state and match all incoming rides
+ *     false -- match nothing: stop emitting any results
+ *     ride.isStart && (watermark - ride.getEventTime()) > 100 * 60000  -- match ongoing rides that started more than 100 minutes ago
+ *     !ride.isStart && ride.getEuclideanDistance(-74, 41) < 10.0 -- match rides that end within 10km of the given location
  */
+
 public class TaxiQuerySolution extends ExerciseBase {
 
 	final static String QUERY_KEY = "query";
