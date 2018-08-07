@@ -22,6 +22,7 @@ import com.dataartisans.flinktraining.solutions.datastream_java.windows.HourlyTi
 import com.google.common.collect.Lists;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -91,7 +92,7 @@ public class HourlyTipsTest extends TaxiRideTestBase<Tuple3<Long, Long, Float>> 
 	}
 
 	private long t(int n) {
-		return new DateTime(2000, 1, 1, 0, 0).plusMinutes(n).getMillis();
+		return new DateTime(2000, 1, 1, 0, 0, DateTimeZone.UTC).plusMinutes(n).getMillis();
 	}
 
 	private TaxiFare testFare(long driverId, long startTime, float tip) {
