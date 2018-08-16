@@ -19,12 +19,13 @@ package com.dataartisans.flinktraining.solutions.datastream_java.windows;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiFareSource;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
+import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
+import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
@@ -63,7 +64,7 @@ public class HourlyTipsSolution extends ExerciseBase {
 		DataStream<Tuple3<Long, Long, Float>> hourlyTips = fares
 				.keyBy((TaxiFare fare) -> fare.driverId)
 				.timeWindow(Time.hours(1))
-				.apply(new AddTips());
+				.aggregate(new AddTips(), new WrapWithWindowInfo());
 
 		// find the highest total tips in each hour
 		DataStream<Tuple3<Long, Long, Float>> hourlyMax = hourlyTips
@@ -80,26 +81,43 @@ public class HourlyTipsSolution extends ExerciseBase {
 	/**
 	 * Adds up the tips.
 	 */
-	public static class AddTips implements WindowFunction<
+	public static class AddTips implements AggregateFunction<
 			TaxiFare, // input type
-			Tuple3<Long, Long, Float>, // output type
-			Long, // key type
-			TimeWindow> // window type
+			Float,    // accumulator type
+			Float     // output type
+		>
+
 	{
+		@Override
+		public Float createAccumulator() {
+			return 0F;
+		}
 
 		@Override
-		public void apply(
-				Long key,
-				TimeWindow window,
-				Iterable<TaxiFare> fares,
-				Collector<Tuple3<Long, Long, Float>> out) throws Exception {
+		public Float add(TaxiFare fare, Float aFloat) {
+			return fare.tip + aFloat;
+		}
 
-			float sumOfTips = 0;
-			for(TaxiFare fare : fares) {
-				sumOfTips += fare.tip;
-			}
+		@Override
+		public Float getResult(Float aFloat) {
+			return aFloat;
+		}
 
-			out.collect(new Tuple3<>(window.getEnd(), key, sumOfTips));
+		@Override
+		public Float merge(Float aFloat, Float accumulator) {
+			return aFloat + accumulator;
+		}
+	}
+
+	/*
+	 * Wraps the pre-aggregated result into a tuple along with the window's timestamp and key.
+	 */
+	public static class WrapWithWindowInfo extends ProcessWindowFunction<
+			Float, Tuple3<Long, Long, Float>, Long, TimeWindow> {
+		@Override
+		public void process(Long key, Context context, Iterable<Float> elements, Collector<Tuple3<Long, Long, Float>> out) throws Exception {
+			Float sumOfTips = elements.iterator().next();
+			out.collect(new Tuple3<>(context.window().getEnd(), key, sumOfTips));
 		}
 	}
 }

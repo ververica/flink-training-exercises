@@ -16,13 +16,16 @@
 
 package com.dataartisans.flinktraining.solutions.datastream_scala.windows
 
+import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.TaxiFare
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiFareSource
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase._
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.scala._
+import org.apache.flink.streaming.api.scala.function.ProcessWindowFunction
 import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.util.Collector
 
 /**
@@ -57,11 +60,12 @@ object HourlyTipsSolution {
 
     // total tips per hour by driver
     val hourlyTips = fares
-      .keyBy(fare => fare.driverId)
+      .map((f: TaxiFare) => (f.driverId, f.tip))
+      .keyBy(_._1)
       .timeWindow(Time.hours(1))
-      .apply { (key: Long, window, fares, out: Collector[(Long, Long, Float)]) =>
-        out.collect((window.getEnd, key, fares.map(fare => fare.tip).sum))
-      }
+      .reduce(
+        (f1: (Long, Float), f2: (Long, Float)) => { (f1._1, f1._2 + f2._2) },
+        new WrapWithWindowInfo())
 
     // max tip total in each hour
     val hourlyMax = hourlyTips
@@ -73,6 +77,13 @@ object HourlyTipsSolution {
 
     // execute the transformation pipeline
     env.execute("Hourly Tips (scala)")
+  }
+
+  class WrapWithWindowInfo() extends ProcessWindowFunction[(Long, Float), (Long, Long, Float), Long, TimeWindow] {
+    override def process(key: Long, context: Context, elements: Iterable[(Long, Float)], out: Collector[(Long, Long, Float)]): Unit = {
+      val sumOfTips = elements.iterator.next()._2
+      out.collect((context.window.getEnd(), key, sumOfTips))
+    }
   }
 
 }
