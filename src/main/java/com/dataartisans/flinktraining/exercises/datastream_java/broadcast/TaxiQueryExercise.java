@@ -21,6 +21,8 @@ import com.dataartisans.flinktraining.exercises.datastream_java.sources.TaxiRide
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import com.dataartisans.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
 import org.apache.flink.api.common.state.MapStateDescriptor;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -104,16 +106,28 @@ public class TaxiQueryExercise extends ExerciseBase {
 	}
 
 	public static class QueryProcessor extends KeyedBroadcastProcessFunction<Long, TaxiRide, String, Tuple2<String, String>> {
+		private ValueStateDescriptor<TaxiRide> rideDescriptor =
+				new ValueStateDescriptor<>("saved ride", TaxiRide.class);
+		private ValueState<TaxiRide> taxiState;
+
 		private static transient DateTimeFormatter timeFormatter =
 				DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withLocale(Locale.US).withZoneUTC();
 
 		@Override
 		public void open(Configuration config) {
+			taxiState = getRuntimeContext().getState(rideDescriptor);
 		}
 
 		@Override
 		public void processElement(TaxiRide ride, ReadOnlyContext ctx, Collector<Tuple2<String, String>> out) throws Exception {
 
+			// for every taxi, we want to store the most up-to-date information
+			TaxiRide savedRide = taxiState.value();
+			if (ride.compareTo(savedRide) > 0) {
+				taxiState.update(ride);
+			}
+
+			// TODO: only collect this event if the current query evaluates to TRUE for this ride
 			out.collect(new Tuple2<>("PE@" + timeFormatter.print(ctx.currentWatermark()), ride.toString()));
 
 			throw new MissingSolutionException();
@@ -125,6 +139,14 @@ public class TaxiQueryExercise extends ExerciseBase {
 											Collector<Tuple2<String, String>> out) throws Exception {
 
 			out.collect(new Tuple2<>("QUERY", query));
+
+			// TODO: Store the incoming query in broadcast state
+
+			// TODO: Use applyToKeyedState to process the incoming query with every saved ride
+
+			// TODO: Whenever the query evaluates to TRUE, emit that saved ride
+			//     out.collect(new Tuple2<>("PBE@" + timeFormatter.print(ctx.currentWatermark()), ride.toString()));
+
 		}
 
 		private ExpressionEvaluator cookBooleanExpression(String expression) throws CompileException {
