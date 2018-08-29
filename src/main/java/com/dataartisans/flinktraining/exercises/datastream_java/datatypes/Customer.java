@@ -42,4 +42,15 @@ public class Customer implements Comparable<Customer> {
 		return Long.compare(this.timestamp, other.timestamp);
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		else if (o != null && getClass() == o.getClass()) {
+			Customer that = (Customer) o;
+			return ((this.customerId.equals(that.customerId)) && (this.timestamp.equals(that.timestamp)));
+		}
+		return false;
+	}
 }

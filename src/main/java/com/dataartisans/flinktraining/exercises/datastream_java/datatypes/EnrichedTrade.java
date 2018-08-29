@@ -16,27 +16,43 @@
 
 package com.dataartisans.flinktraining.exercises.datastream_java.datatypes;
 
-public class EnrichedTrade implements Comparable<EnrichedTrade> {
+public class EnrichedTrade {
 
 	public EnrichedTrade() {}
 
-	public EnrichedTrade(Trade trade, String customerInfo) {
-
+	public EnrichedTrade(Trade trade, Customer customer) {
 		this.trade = trade;
-		this.customerInfo = customerInfo;
+		this.customer = customer;
 	}
 
 	public Trade trade;
-	public String customerInfo;
+	public Customer customer;
 
 	public String toString() {
+		String customerInfo;
+
+		if (customer == null) {
+			customerInfo = "null";
+		} else {
+			customerInfo = customer.customerInfo;
+		}
+
 		StringBuilder sb = new StringBuilder();
 		sb.append("EnrichedTrade(").append(trade.timestamp).append(") ");
 		sb.append(customerInfo);
 		return sb.toString();
 	}
 
-	public int compareTo(EnrichedTrade other) {
-		return Long.compare(this.trade.timestamp, other.trade.timestamp);
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		else if (o != null && getClass() == o.getClass()) {
+			EnrichedTrade that = (EnrichedTrade) o;
+			return (this.trade.equals(that.trade) &&
+					(this.customer == null ? that.customer == null : this.customer.equals(that.customer)));
+		}
+		return false;
 	}
 }

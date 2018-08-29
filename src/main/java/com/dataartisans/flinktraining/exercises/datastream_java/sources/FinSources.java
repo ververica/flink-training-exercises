@@ -31,30 +31,33 @@ public class FinSources {
 	public static DataStream<Customer> customerSource(StreamExecutionEnvironment env) {
 		// This is a bit of a hack to use Thread.sleep() for sequencing but it works for our test purposes
 		DataStream<Customer> customers = env.addSource(new SourceFunction<Customer>() {
+			private volatile boolean running = true;
+
 			@Override
 			public void run(SourceContext<Customer> sc) throws Exception {
-				sc.collectWithTimestamp(new Customer(0L, 0L, "Customer data @ 0"), 0);
+				sc.collectWithTimestamp(new Customer(0L, 0L, "customer-0"), 0);
 				sc.emitWatermark(new Watermark(0));
 				Thread.sleep(2000);
-				sc.collectWithTimestamp(new Customer(500L, 0L, "Customer data @ 500"), 500);
+				sc.collectWithTimestamp(new Customer(500L, 0L, "customer-500"), 500);
 				sc.emitWatermark(new Watermark(500));
 				Thread.sleep(1000);
-				sc.collectWithTimestamp(new Customer(1500L, 0L, "Customer data @ 1500"), 1500);
+				sc.collectWithTimestamp(new Customer(1500L, 0L, "customer-1500"), 1500);
 				sc.emitWatermark(new Watermark(1500));
 				Thread.sleep(6000);
-				sc.collectWithTimestamp(new Customer(1600L, 0L, "Customer data @ 1600"), 1600);
+				sc.collectWithTimestamp(new Customer(1600L, 0L, "customer-1600"), 1600);
 				sc.emitWatermark(new Watermark(1600));
 				Thread.sleep(1000);
-				sc.collectWithTimestamp(new Customer(2100L, 0L, "Customer data @ 2100"), 2100);
+				sc.collectWithTimestamp(new Customer(2100L, 0L, "customer-2100"), 2100);
 				sc.emitWatermark(new Watermark(2100));
 
-				while (true) {
+				while (running) {
 					Thread.sleep(1000);
 				}
 			}
 
 			@Override
 			public void cancel() {
+				running = false;
 			}
 		});
 
@@ -68,35 +71,38 @@ public class FinSources {
 	public static DataStream<Trade> tradeSource(StreamExecutionEnvironment env) {
 		// This is a bit of a hack to use Thread.sleep() for sequencing but it works for our test purposes
 		DataStream<Trade> trades = env.addSource(new SourceFunction<Trade>() {
+			private volatile boolean running = true;
+
 			@Override
 			public void run(SourceContext<Trade> sc) throws Exception {
 				Thread.sleep(1000);
-				sc.collectWithTimestamp(new Trade(1000L, 0L, "trade-1"), 1000);
+				sc.collectWithTimestamp(new Trade(1000L, 0L, "trade-1000"), 1000);
 				sc.emitWatermark(new Watermark(1000));
 				Thread.sleep(3000);
-				sc.collectWithTimestamp(new Trade(1200L, 0L, "trade-2"), 1200);
+				sc.collectWithTimestamp(new Trade(1200L, 0L, "trade-1200"), 1200);
 				sc.emitWatermark(new Watermark(1200));
 				Thread.sleep(1000);
-				sc.collectWithTimestamp(new Trade(1500L, 0L, "trade-3"), 1500);
+				sc.collectWithTimestamp(new Trade(1500L, 0L, "trade-1500"), 1500);
 				sc.emitWatermark(new Watermark(1500));
 				Thread.sleep(1000);
-				sc.collectWithTimestamp(new Trade(1700L, 0L, "trade-4"), 1700);
+				sc.collectWithTimestamp(new Trade(1700L, 0L, "trade-1700"), 1700);
 				sc.emitWatermark(new Watermark(1700));
 				Thread.sleep(1000);
-				sc.collectWithTimestamp(new Trade(1800L, 0L, "trade-5"), 1800);
+				sc.collectWithTimestamp(new Trade(1800L, 0L, "trade-1800"), 1800);
 				sc.emitWatermark(new Watermark(1800));
 				Thread.sleep(1000);
-				sc.collectWithTimestamp(new Trade(2000L, 0L, "trade-6"), 2000);
+				sc.collectWithTimestamp(new Trade(2000L, 0L, "trade-2000"), 2000);
 				sc.emitWatermark(new Watermark(2000));
 
 
-				while (true) {
+				while (running) {
 					Thread.sleep(1000);
 				}
 			}
 
 			@Override
 			public void cancel() {
+				running = false;
 			}
 		});
 
