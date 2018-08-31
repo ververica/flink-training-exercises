@@ -86,14 +86,14 @@ public class ProcessingTimeJoinExercise {
 
 		@Override
 		public void open(Configuration config) {
-			MapStateDescriptor tDescriptor = new MapStateDescriptor<Long, Trade>(
+			MapStateDescriptor<Long, Trade> tDescriptor = new MapStateDescriptor<>(
 					"tradeBuffer",
 					TypeInformation.of(Long.class),
 					TypeInformation.of(Trade.class)
 			);
 			tradeMap = getRuntimeContext().getMapState(tDescriptor);
 
-			ValueStateDescriptor cDescriptor = new ValueStateDescriptor<Customer>(
+			ValueStateDescriptor<Customer> cDescriptor = new ValueStateDescriptor<>(
 					"customer",
 					TypeInformation.of(Customer.class)
 			);
