@@ -31,16 +31,23 @@ public class RideCleansingTest extends TaxiRideTestBase<TaxiRide> {
 	static Testable javaExercise = () -> RideCleansingExercise.main(new String[]{});
 
 	@Test
-	public void testCleansingFilter() throws Exception {
-
+	public void testInNYC() throws Exception {
 		TaxiRide atPennStation = testRide(-73.9947F, 40.750626F, -73.9947F, 40.750626F);
+
+		TestRideSource source = new TestRideSource(atPennStation);
+
+		assertEquals(Lists.newArrayList(atPennStation), results(source));
+	}
+
+	@Test
+	public void testNotInNYC() throws Exception {
 		TaxiRide toThePole = testRide(-73.9947F, 40.750626F, 0, 90);
 		TaxiRide fromThePole = testRide(0, 90, -73.9947F, 40.750626F);
 		TaxiRide atNorthPole = testRide(0, 90, 0, 90);
 
-		TestRideSource source = new TestRideSource(atPennStation, toThePole, fromThePole, atNorthPole);
+		TestRideSource source = new TestRideSource(toThePole, fromThePole, atNorthPole);
 
-		assertEquals(Lists.newArrayList(atPennStation), results(source));
+		assertEquals(Lists.newArrayList(), results(source));
 	}
 
 	private TaxiRide testRide(float startLon, float startLat, float endLon, float endLat) {
