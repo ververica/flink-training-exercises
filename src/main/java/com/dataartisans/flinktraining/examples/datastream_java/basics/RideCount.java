@@ -34,6 +34,10 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  * Parameters:
  *   -input path-to-input-file
  *
+ * 	Note that this is implicitly keeping state for each driver.
+ * 	This sort of simple, non-windowed aggregation on an unbounded set of keys will use an unbounded amount of state.
+ * 	When this is an issue, look at the SQL/Table API, or ProcessFunction, or state TTL, all of which provide
+ * 	mechanisms for expiring state for stale keys.
  */
 public class RideCount {
 	public static void main(String[] args) throws Exception {
