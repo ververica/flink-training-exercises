@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 
@@ -55,7 +56,7 @@ public class TaxiQueryTest extends TaxiRideTestBase<Tuple2<String, String>> {
 		TaxiRide rideEnded = endRide(rideStarted, minutes(5), momaLon, momaLat);
 
 		TestRideSource rides = new TestRideSource(rideStarted, rideEnded);
-		TestStringSource queries = new TestStringSource(String.format("ride.getEuclideanDistance(%f, %f) < 1.0", momaLon, momaLat));
+		TestStringSource queries = new TestStringSource(String.format(Locale.US, "ride.getEuclideanDistance(%f, %f) < 1.0", momaLon, momaLat));
 
 		List<String> expected = Lists.newArrayList(rideEnded.toString());
 		assertEquals(expected, results(rides, queries));
