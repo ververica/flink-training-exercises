@@ -1,0 +1,31 @@
+tables:
+  - name: TaxiRides
+    type: source-table
+    update-mode: append
+    connector:
+      type: taxi-rides
+      path: "/Users/david/stuff/flink-training/trainingData/nycTaxiRides.gz"
+      max-event-delay-secs: 60
+      serving-speed-factor: 1800
+  - name: TaxiFares
+    type: source-table
+    update-mode: append
+    connector:
+      type: taxi-fares
+      path: "/Users/david/stuff/flink-training/trainingData/nycTaxiFares.gz"
+      max-event-delay-secs: 60
+      serving-speed-factor: 1800
+
+functions:
+- name: isInNYC
+  from: class
+  class: com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils$IsInNYC
+- name: toCellId
+  from: class
+  class: com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils$ToCellId
+- name: toAreaId
+  from: class
+  class: com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils$ToCellId
+- name: toCoords
+  from: class
+  class: com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils$ToCoords
