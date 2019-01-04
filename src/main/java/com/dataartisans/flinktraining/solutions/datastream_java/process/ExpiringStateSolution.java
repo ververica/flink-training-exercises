@@ -92,18 +92,6 @@ public class ExpiringStateSolution extends ExerciseBase {
 		}
 
 		@Override
-		public void onTimer(long timestamp, OnTimerContext ctx, Collector<Tuple2<TaxiRide, TaxiFare>> out) throws Exception {
-			if (fareState.value() != null) {
-				ctx.output(unmatchedFares, fareState.value());
-				fareState.clear();
-			}
-			if (rideState.value() != null) {
-				ctx.output(unmatchedRides, rideState.value());
-				rideState.clear();
-			}
-		}
-
-		@Override
 		public void processElement1(TaxiRide ride, Context context, Collector<Tuple2<TaxiRide, TaxiFare>> out) throws Exception {
 			TaxiFare fare = fareState.value();
 			if (fare != null) {
@@ -126,6 +114,18 @@ public class ExpiringStateSolution extends ExerciseBase {
 				fareState.update(fare);
 				// as soon as the watermark arrives, we can stop waiting for the corresponding ride
 				context.timerService().registerEventTimeTimer(fare.getEventTime());
+			}
+		}
+
+		@Override
+		public void onTimer(long timestamp, OnTimerContext ctx, Collector<Tuple2<TaxiRide, TaxiFare>> out) throws Exception {
+			if (fareState.value() != null) {
+				ctx.output(unmatchedFares, fareState.value());
+				fareState.clear();
+			}
+			if (rideState.value() != null) {
+				ctx.output(unmatchedRides, rideState.value());
+				rideState.clear();
 			}
 		}
 	}

@@ -44,7 +44,7 @@ public class RideCleansingSolution extends ExerciseBase {
 		DataStream<TaxiRide> rides = env.addSource(rideSourceOrTest(new TaxiRideSource(input, maxEventDelay, servingSpeedFactor)));
 
 		DataStream<TaxiRide> filteredRides = rides
-				// filter out rides that do not start or stop in NYC
+				// keep only those rides and both start and end in NYC
 				.filter(new NYCFilter());
 
 		// print the filtered stream
