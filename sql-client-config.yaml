@@ -17,6 +17,9 @@ tables:
       serving-speed-factor: 1800
 
 functions:
+- name: timeDiff
+  from: class
+  class: com.dataartisans.flinktraining.exercises.datastream_java.utils.TimeDiff
 - name: isInNYC
   from: class
   class: com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils$IsInNYC
