@@ -34,25 +34,9 @@ import org.apache.flink.streaming.api.functions.co.CoProcessFunction;
 import org.apache.flink.util.Collector;
 
 /*
- * This is a processing-time-based enrichment join implemented with a CoProcessFunction,
- * used to enrich a stream of financial Trades with Customer data.
- *
- * When we receive a Trade we immediately join it with whatever Customer data is
- * available. If nothing is known about this Customer, we wait until the current
- * watermark reaches the timestamp of the Trade and try again.
- *
- * The implementation assumes only one Trade per Customer per timestamp (typically, per millisecond).
- *
- * Exercise goals:
- *
- * Extend the implementation to handle multiple Trades with the same timestamp by changing
- *
- *
- *		MapState<Long, Trade> tradeMap
- *
- * to
- *
- * 		MapState<Long, List<Trade>> tradeMap
+ * This is the simplest possible enrichment join, used to enrich a stream of financial Trades
+ * with Customer data. When we receive a Trade we immediately join it with whatever Customer
+ * data is available.
  */
 
 public class ProcessingTimeJoinExercise {
@@ -78,21 +62,11 @@ public class ProcessingTimeJoinExercise {
 	}
 
 	public static class ProcessingTimeJoinFunction extends CoProcessFunction<Trade, Customer, EnrichedTrade> {
-		// Store pending Trades for a customerId, keyed by timestamp
-		private MapState<Long, Trade> tradeMap = null;
-
 		// Store latest Customer update
 		private ValueState<Customer> customerState = null;
 
 		@Override
 		public void open(Configuration config) {
-			MapStateDescriptor<Long, Trade> tDescriptor = new MapStateDescriptor<>(
-					"tradeBuffer",
-					TypeInformation.of(Long.class),
-					TypeInformation.of(Trade.class)
-			);
-			tradeMap = getRuntimeContext().getMapState(tDescriptor);
-
 			ValueStateDescriptor<Customer> cDescriptor = new ValueStateDescriptor<>(
 					"customer",
 					TypeInformation.of(Customer.class)
@@ -103,47 +77,15 @@ public class ProcessingTimeJoinExercise {
 		@Override
 		public void processElement1(Trade trade,
 									Context context,
-									Collector<EnrichedTrade> out)
-				throws Exception {
-
-			System.out.println("Received " + trade.toString());
-
-			if (customerState.value() != null) {
-				out.collect(new EnrichedTrade(trade, customerState.value()));
-			} else {
-				TimerService timerService = context.timerService();
-
-				if (context.timestamp() > timerService.currentWatermark()) {
-					// Do the join later, by which time a relevant Customer records will hopefully have arrived.
-					tradeMap.put(trade.timestamp, trade);
-					timerService.registerEventTimeTimer(trade.timestamp);
-				} else {
-					// Late Trades land here.
-				}
-			}
+									Collector<EnrichedTrade> out) throws Exception {
+			out.collect(new EnrichedTrade(trade, customerState.value()));
 		}
 
 		@Override
 		public void processElement2(Customer customer,
 									Context context,
-									Collector<EnrichedTrade> collector)
-				throws Exception {
-
-			System.out.println("Received " + customer.toString());
+									Collector<EnrichedTrade> collector) throws Exception {
 			customerState.update(customer);
-		}
-
-		@Override
-		public void onTimer(long t,
-							OnTimerContext context,
-							Collector<EnrichedTrade> out)
-				throws Exception {
-
-			Trade trade = tradeMap.get(t);
-			if (trade != null) {
-				tradeMap.remove(t);
-				out.collect(new EnrichedTrade(trade, customerState.value()));
-			}
 		}
 	}
 }
