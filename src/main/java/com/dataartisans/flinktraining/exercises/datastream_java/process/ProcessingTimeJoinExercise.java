@@ -20,14 +20,11 @@ import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.Custom
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.EnrichedTrade;
 import com.dataartisans.flinktraining.exercises.datastream_java.datatypes.Trade;
 import com.dataartisans.flinktraining.exercises.datastream_java.sources.FinSources;
-import org.apache.flink.api.common.state.MapState;
-import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
-import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.co.CoProcessFunction;
@@ -61,7 +58,8 @@ public class ProcessingTimeJoinExercise {
 		env.execute("processing-time join");
 	}
 
-	public static class ProcessingTimeJoinFunction extends CoProcessFunction<Trade, Customer, EnrichedTrade> {
+	public static class ProcessingTimeJoinFunction extends
+			CoProcessFunction<Trade, Customer, EnrichedTrade> {
 		// Store latest Customer update
 		private ValueState<Customer> customerState = null;
 
