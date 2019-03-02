@@ -100,7 +100,7 @@ public class WhyLate {
 
 		@Override
 		public String toString() {
-			return "Query{" + "userId=" + userId + ", partition=" + partition + ", @" + timestamp + '}';
+			return "Event{" + "userId=" + userId + ", partition=" + partition + ", @" + timestamp + '}';
 		}
 	}
 
