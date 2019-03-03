@@ -66,11 +66,6 @@ public class Sort {
 		Event() {
 			this.eventTime = Instant.now().toEpochMilli() + (new Random().nextInt(OUT_OF_ORDERNESS));
 		}
-
-		@Override
-		public String toString() {
-			return "Event@ " + eventTime;
-		}
 	}
 
 	private static class OutOfOrderEventSource implements SourceFunction<Event> {

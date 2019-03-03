@@ -16,6 +16,9 @@
 
 package com.dataartisans.flinktraining.examples.datastream_java.cep;
 
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.cep.CEP;
 import org.apache.flink.cep.PatternSelectFunction;
 import org.apache.flink.cep.PatternStream;
@@ -23,10 +26,12 @@ import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.cep.pattern.conditions.SimpleCondition;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.util.OutputTag;
 
 import java.time.Instant;
 import java.util.List;
@@ -36,6 +41,8 @@ import java.util.Random;
 /*
 	This is an example of how to sort an out-of-order stream, based on event time timestamps
 	and watermarks, using the CEP library.
+
+	Note that with CEP, it's possible to gather any late events in a side output stream.
  */
 
 public class Sort {
@@ -61,15 +68,23 @@ public class Sort {
 						});
 
 		PatternStream<Event> patternStream = CEP.pattern(eventStream, matchEverything);
+		OutputTag<Event> lateDataOutputTag = new OutputTag<Event>("late-events"){};
 
-		DataStream<Event> sorted = patternStream.select(new PatternSelectFunction<Event, Event>() {
-			@Override
-			public Event select(Map<String, List<Event>> map) throws Exception {
-				return map.get("any").get(0);
-			}
-		});
+		SingleOutputStreamOperator<Event> sorted = patternStream
+				.sideOutputLateData(lateDataOutputTag)
+				.select(new PatternSelectFunction<Event, Event>() {
+					@Override
+					public Event select(Map<String, List<Event>> map) throws Exception {
+						return map.get("any").get(0);
+					}
+				});
 
 		sorted.print();
+		sorted
+				.getSideOutput(lateDataOutputTag)
+				.map(e -> new Tuple2<>(e, "LATE"))
+				.returns(Types.TUPLE(TypeInformation.of(Event.class), Types.STRING))
+				.print();
 
 		env.execute();
 	}
@@ -106,7 +121,7 @@ public class Sort {
 
 	private static class TimestampsAndWatermarks extends BoundedOutOfOrdernessTimestampExtractor<Event> {
 		public TimestampsAndWatermarks() {
-			super(Time.milliseconds(OUT_OF_ORDERNESS));
+			super(Time.milliseconds(OUT_OF_ORDERNESS / 2));
 		}
 
 		@Override
