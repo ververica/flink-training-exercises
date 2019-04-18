@@ -34,7 +34,7 @@ import org.apache.flink.util.Collector
 
 /**
   * Scala reference implementation for the "Travel Time Prediction" exercise of the Flink training
-  * (http://training.data-artisans.com).
+  * (http://training.ververica.com).
   *
   * The task of the exercise is to continuously train a regression model that predicts
   * the travel time of a taxi based on the information of taxi ride end events.

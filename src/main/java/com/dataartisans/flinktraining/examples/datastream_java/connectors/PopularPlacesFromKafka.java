@@ -38,7 +38,7 @@ import java.util.Properties;
 
 /**
  * Java reference implementation for the "Popular Places" exercise of the Flink training
- * (http://training.data-artisans.com).
+ * (http://training.ververica.com).
  *
  * The task of the exercise is to identify every five minutes popular areas where many taxi rides
  * arrived or departed in the last 15 minutes.

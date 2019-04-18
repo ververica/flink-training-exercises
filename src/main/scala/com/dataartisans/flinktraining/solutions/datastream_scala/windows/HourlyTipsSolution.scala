@@ -30,7 +30,7 @@ import org.apache.flink.util.Collector
 
 /**
   * Scala reference implementation for the "Hourly Tips" exercise of the Flink training
-  * (http://training.data-artisans.com).
+  * (http://training.ververica.com).
   *
   * The task of the exercise is to first calculate the total tips collected by each driver, hour by hour, and
   * then from that stream, find the highest tip total in each hour.

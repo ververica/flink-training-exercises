@@ -34,7 +34,7 @@ import java.util.Map;
 
 /**
  * Java reference implementation for a CEP-based solution to the "Driving Segments" exercise of the Flink training
- * (http://training.data-artisans.com).
+ * (http://training.ververica.com).
  *
  * The task of the exercise is to divide the input stream of ConnectedCarEvents into segments,
  * where the car is being continuously driven without stopping.

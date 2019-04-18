@@ -29,7 +29,7 @@ import org.apache.flink.util.Collector
 
 /**
   * Scala reference implementation for the "Expiring State" exercise of the Flink training
-  * (http://training.data-artisans.com).
+  * (http://training.ververica.com).
   *
   * The goal for this exercise is to enrich TaxiRides with fare information.
   *

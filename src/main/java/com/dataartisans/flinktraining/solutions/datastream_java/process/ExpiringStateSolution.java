@@ -36,7 +36,7 @@ import org.apache.flink.util.OutputTag;
 
 /**
  * Java reference implementation for the "Expiring State" exercise of the Flink training
- * (http://training.data-artisans.com).
+ * (http://training.ververica.com).
  *
  * The goal for this exercise is to enrich TaxiRides with fare information.
  *

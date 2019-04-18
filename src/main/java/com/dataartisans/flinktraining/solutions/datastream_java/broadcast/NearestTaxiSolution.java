@@ -44,7 +44,7 @@ import java.util.Random;
 
 /**
  * Java reference implementation for the "Nearest Future Taxi" exercise of the Flink training
- * (http://training.data-artisans.com). This solution doesn't worry about leaking state.
+ * (http://training.ververica.com). This solution doesn't worry about leaking state.
  *
  * Given a location that is broadcast, the goal of this exercise is to watch the stream of
  * taxi rides, and report on the taxis that complete their ride closest to the requested location.
