@@ -32,7 +32,7 @@ import org.apache.flink.util.Collector;
 
 /**
  * Java reference implementation for the "Driving Sessions" exercise of the Flink training
- * (http://training.data-artisans.com).
+ * (http://training.ververica.com).
  * <p>
  * The task of the exercise is to divide the input stream of ConnectedCarEvents into
  * session windows, defined by a gap of 15 seconds. Each window should then be mapped onto

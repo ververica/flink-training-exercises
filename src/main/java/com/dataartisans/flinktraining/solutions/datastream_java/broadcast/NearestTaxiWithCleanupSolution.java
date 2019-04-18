@@ -49,7 +49,7 @@ import java.util.function.Consumer;
 
 /**
  * Java reference implementation for the "Nearest Future Taxi" exercise of the Flink training
- * (http://training.data-artisans.com). This solution takes care not to leak state.
+ * (http://training.ververica.com). This solution takes care not to leak state.
  *
  * Given a location that is broadcast, the goal of this exercise is to watch the stream of
  * taxi rides, and report on the taxis that complete their ride closest to the requested location.

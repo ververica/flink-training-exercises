@@ -40,7 +40,7 @@ import java.util.Locale;
 
 /**
  * The "Ongoing Rides" exercise of the Flink training
- * (http://training.data-artisans.com).
+ * (http://training.ververica.com).
  *
  * The goal of this exercise is to report on all taxis whose current ride has been ongoing
  * for at least n minutes whenever the broadcast stream is queried (with the value of n).

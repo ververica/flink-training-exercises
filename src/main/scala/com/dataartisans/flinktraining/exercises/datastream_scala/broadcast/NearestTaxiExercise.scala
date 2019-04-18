@@ -32,7 +32,7 @@ import scala.util.Random
 
 /**
   * The "Nearest Future Taxi" exercise of the Flink training
-  * (http://training.data-artisans.com).
+  * (http://training.ververica.com).
   *
   * Given a location that is broadcast, the goal of this exercise is to watch the stream of
   * taxi rides and report on taxis that complete rides closest to the requested location.
