@@ -79,7 +79,7 @@ object ExpiringStateExercise {
                                  context: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
                                  out: Collector[(TaxiRide, TaxiFare)]): Unit = {
 
-      throw new MissingSolutionException();
+      throw new MissingSolutionException()
     }
 
     override def processElement2(fare: TaxiFare,
