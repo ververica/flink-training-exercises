@@ -86,7 +86,7 @@ object LongRidesExercise {
 
     printOrTest(longRides.getSideOutput(timedoutTag))
 
-    throw new MissingSolutionException();
+    throw new MissingSolutionException()
 
 //    env.execute("Long Taxi Rides (CEP)")
   }
