@@ -51,7 +51,6 @@ object RidesAndFaresSolution {
 
     // set up streaming execution environment
     val env = StreamExecutionEnvironment.getExecutionEnvironment
-    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
     env.setParallelism(ExerciseBase.parallelism)
 
     val rides = env
