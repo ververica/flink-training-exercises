@@ -19,19 +19,19 @@ tables:
 functions:
 - name: timeDiff
   from: class
-  class: com.dataartisans.flinktraining.exercises.datastream_java.utils.TimeDiff
+  class: com.ververica.flinktraining.exercises.datastream_java.utils.TimeDiff
 - name: isInNYC
   from: class
-  class: com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils$IsInNYC
+  class: com.ververica.flinktraining.exercises.datastream_java.utils.GeoUtils$IsInNYC
 - name: toCellId
   from: class
-  class: com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils$ToCellId
+  class: com.ververica.flinktraining.exercises.datastream_java.utils.GeoUtils$ToCellId
 - name: toAreaId
   from: class
-  class: com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils$ToCellId
+  class: com.ververica.flinktraining.exercises.datastream_java.utils.GeoUtils$ToCellId
 - name: toCoords
   from: class
-  class: com.dataartisans.flinktraining.exercises.datastream_java.utils.GeoUtils$ToCoords
+  class: com.ververica.flinktraining.exercises.datastream_java.utils.GeoUtils$ToCoords
 
 execution:
   type: streaming                   # required: execution mode either 'batch' or 'streaming'
