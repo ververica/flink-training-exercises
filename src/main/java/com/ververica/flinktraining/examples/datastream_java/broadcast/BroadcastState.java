@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 data Artisans GmbH
+ * Copyright 2018 data Artisans GmbH, 2019 Ververica GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- Copyright 2015 data Artisans GmbH
+ Copyright 2015 data Artisans GmbH, 2019 Ververica GmbH
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -320,7 +320,7 @@
 					<numUnapprovedLicenses>0</numUnapprovedLicenses>
 					<licenses>
 						<!-- Enforce this license:
-							Copyright 2015 data Artisans GmbH
+							Copyright 2019 Ververica GmbH
 
 							Licensed under the Apache License, Version 2.0 (the "License");
 							you may not use this file except in compliance with the License.
@@ -339,7 +339,7 @@
 							<licenseFamilyName>Apache License 2.0</licenseFamilyName>
 							<notes />
 							<patterns>
-								<pattern>Copyright 2015 data Artisans GmbH</pattern>
+								<pattern>Copyright 2019 Ververica GmbH</pattern>
 								<pattern>Licensed under the Apache License, Version 2.0 (the "License");</pattern>
 							</patterns>
 						</license>
