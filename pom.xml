@@ -54,6 +54,7 @@
 		<flink.version>1.8.0</flink.version>
 		<scala.binary.version>2.12</scala.binary.version>
 		<junit.version>4.12</junit.version>
+		<assertj.version>3.11.1</assertj.version>
 	</properties>
 
 	<dependencies>
@@ -144,6 +145,13 @@
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-test-utils_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 			<scope>test</scope>
@@ -181,6 +189,14 @@
 			<artifactId>junit</artifactId>
 			<version>${junit.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>${assertj.version}</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
