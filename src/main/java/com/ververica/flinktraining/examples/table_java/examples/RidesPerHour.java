@@ -22,7 +22,6 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.Table;
-import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
 import org.apache.flink.types.Row;
 
@@ -41,7 +40,7 @@ public class RidesPerHour {
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
 		// create a TableEnvironment
-		StreamTableEnvironment tEnv = TableEnvironment.getTableEnvironment(env);
+		StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
 
 		// register TaxiRideTableSource as table "TaxiRides"
 		tEnv.registerTableSource(

@@ -24,6 +24,7 @@ import org.apache.flink.table.api.CatalogNotExistException;
 import org.apache.flink.table.api.TableNotExistException;
 import org.apache.flink.table.catalog.ExternalCatalog;
 import org.apache.flink.table.catalog.ExternalCatalogTable;
+import org.apache.flink.table.catalog.ExternalCatalogTableBuilder;
 import org.apache.flink.util.Preconditions;
 
 import java.util.ArrayList;
@@ -66,7 +67,7 @@ public class TaxiDataCatalog implements ExternalCatalog {
 					.servingSpeedFactor(servingSpeedFactor);
 			this.tables.put(
 					"TaxiRides",
-					ExternalCatalogTable.builder(ridesDescriptor)
+					new ExternalCatalogTableBuilder(ridesDescriptor)
 							.supportsStreaming()
 							.inAppendMode()
 							.asTableSource());
@@ -80,7 +81,7 @@ public class TaxiDataCatalog implements ExternalCatalog {
 					.servingSpeedFactor(servingSpeedFactor);
 			this.tables.put(
 					"TaxiFares",
-					ExternalCatalogTable.builder(faresDescriptor)
+					new ExternalCatalogTableBuilder(faresDescriptor)
 							.supportsStreaming()
 							.inAppendMode()
 							.asTableSource());

@@ -23,7 +23,9 @@ import com.ververica.flinktraining.exercises.datastream_java.utils.MissingSoluti
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable;
 import org.apache.flink.runtime.client.JobExecutionException;
+import org.apache.flink.streaming.runtime.tasks.ExceptionInChainedOperatorException;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
+import org.apache.flink.table.expressions.E;
 
 import java.util.*;
 
@@ -116,9 +118,8 @@ public abstract class TaxiRideTestBase<OUT> {
 
 		try {
 			exercise.main();
-		} catch (JobExecutionException | MissingSolutionException e) {
-			if (e instanceof MissingSolutionException ||
-					(e.getCause() != null && e.getCause() instanceof MissingSolutionException)) {
+		} catch (ExceptionInChainedOperatorException | JobExecutionException | MissingSolutionException e) {
+			if (ultimateCauseIsMissingSolution(e)) {
 				sink.values.clear();
 				solution.main();
 			} else {
@@ -138,5 +139,15 @@ public abstract class TaxiRideTestBase<OUT> {
 		solution.main();
 
 		return sink.values;
+	}
+
+	private boolean ultimateCauseIsMissingSolution(Throwable e) {
+		if (e instanceof MissingSolutionException) {
+			return true;
+		} else if (e.getCause() != null) {
+			return ultimateCauseIsMissingSolution(e.getCause());
+		} else {
+			return false;
+		}
 	}
 }

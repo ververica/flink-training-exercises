@@ -22,7 +22,6 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.Table;
-import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
 import org.apache.flink.types.Row;
 
@@ -45,7 +44,7 @@ public class ViaCatalog {
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
 		// create a TableEnvironment
-		StreamTableEnvironment tEnv = TableEnvironment.getTableEnvironment(env);
+		StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
 
 		// register the taxi data tables under the "nyc" schema
 		tEnv.registerExternalCatalog("nyc", new TaxiDataCatalog(ridesFile, faresFile, maxEventDelay, servingSpeedFactor));

@@ -51,11 +51,29 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.19</slf4j.version>
-		<flink.version>1.8.0</flink.version>
+		<flink.version>1.9.0</flink.version>
 		<scala.binary.version>2.12</scala.binary.version>
 		<junit.version>4.12</junit.version>
 		<assertj.version>3.11.1</assertj.version>
 	</properties>
+
+	<repositories>
+		<repository>
+			<id>apache.snapshots</id>
+			<name>Apache Development Snapshot Repository</name>
+			<url>https://repository.apache.org/content/repositories/snapshots/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>1.9.0-rc3</id>
+			<url>https://repository.apache.org/content/repositories/orgapacheflink-1236/</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 
@@ -110,18 +128,6 @@
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-table-uber_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-gelly-scala_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-gelly-examples_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 

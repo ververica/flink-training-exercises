@@ -28,7 +28,7 @@ import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.TimerService;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.co.CoProcessFunction;
+import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.util.Collector;
 
 import java.util.ArrayList;
@@ -84,7 +84,7 @@ public class EventTimeJoinExercise {
 		env.execute("event-time join");
 	}
 
-	public static class EventTimeJoinFunction extends CoProcessFunction<Trade, Customer, EnrichedTrade> {
+	public static class EventTimeJoinFunction extends KeyedCoProcessFunction<Long, Trade, Customer, EnrichedTrade> {
 		// Store pending Trades for a customerId, keyed by timestamp
 		private MapState<Long, Trade> tradeMap = null;
 

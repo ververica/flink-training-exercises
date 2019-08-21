@@ -50,7 +50,7 @@ public class TaxiRideTableSourceFactory implements StreamTableSourceFactory<Row>
 	@Override
 	public List<String> supportedProperties() {
 		List<String> properties = new ArrayList<>();
-		properties.add(StreamTableDescriptorValidator.UPDATE_MODE());
+		properties.add(StreamTableDescriptorValidator.UPDATE_MODE);
 		properties.add(CONNECTOR_PATH);
 		properties.add(CONNECTOR_MAX_EVENT_DELAY_SECS);
 		properties.add(CONNECTOR_SERVING_SPEED_FACTOR);

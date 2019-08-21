@@ -21,7 +21,8 @@ import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.api.scala._
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
-import org.apache.flink.table.api.{Table, TableEnvironment}
+import org.apache.flink.table.api.scala.StreamTableEnvironment
+import org.apache.flink.table.api.Table
 import org.apache.flink.types.Row
 
 object PopularPlacesSql {
@@ -40,7 +41,7 @@ object PopularPlacesSql {
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
     // create TableEnvironment
-    val tEnv = TableEnvironment.getTableEnvironment(env)
+    val tEnv = StreamTableEnvironment.create(env)
 
     // register TaxiRideTableSource as table "TaxiRides"
     tEnv.registerTableSource(

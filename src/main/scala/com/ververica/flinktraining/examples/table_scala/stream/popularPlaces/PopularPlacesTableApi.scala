@@ -20,9 +20,9 @@ import com.ververica.flinktraining.examples.table_java.sources.TaxiRideTableSour
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
-import org.apache.flink.table.api.TableEnvironment
 import org.apache.flink.types.Row
 import org.apache.flink.api.scala._
+import org.apache.flink.table.api.Slide
 import org.apache.flink.table.api.scala._
 
 object PopularPlacesTableApi {
@@ -41,7 +41,7 @@ object PopularPlacesTableApi {
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
     // create TableEnvironment
-    val tEnv = TableEnvironment.getTableEnvironment(env)
+    val tEnv = StreamTableEnvironment.create(env)
 
     // register TaxiRideTableSource as table "TaxiRides"
     tEnv.registerTableSource(
