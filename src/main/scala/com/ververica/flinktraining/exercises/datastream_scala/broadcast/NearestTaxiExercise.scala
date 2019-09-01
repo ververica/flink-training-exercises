@@ -31,24 +31,30 @@ import org.apache.flink.util.Collector
 import scala.util.Random
 
 /**
-  * The "Nearest Future Taxi" exercise of the Flink training
-  * (http://training.ververica.com).
-  *
-  * Given a location that is broadcast, the goal of this exercise is to watch the stream of
-  * taxi rides and report on taxis that complete rides closest to the requested location.
-  * The application should be able to handle simultaneous queries.
-  *
-  * Parameters:
-  * -input path-to-input-file
-  *
-  * Use nc -lk 9999 to establish a socket stream from stdin on port 9999
-  *
-  * Some good locations:
-  *
-  * -74, 41 					(Near, but outside the city to the NNW)
-  * -73.7781, 40.6413 			(JFK Airport)
-  * -73.977664, 40.761484		(Museum of Modern Art)
-  */
+ * The "Nearest Future Taxi" exercise of the Flink training
+ * (http://training.ververica.com).
+ *
+ * Given a location that is broadcast, the goal of this exercise is to watch the stream of
+ * taxi rides and report on taxis that complete rides closest to the requested location.
+ * The application should be able to handle simultaneous queries.
+ *
+ * Parameters:
+ * -input path-to-input-file
+ *
+ * Use
+ *
+ *     nc -lk 9999
+ *
+ * (or nc -l -p 9999, depending on your version of netcat)
+ * to establish a socket stream from stdin on port 9999.
+ * On Windows you can use ncat from https://nmap.org/ncat/.
+ *
+ * Some good locations:
+ *
+ * -74, 41 					(Near, but outside the city to the NNW)
+ * -73.7781, 40.6413 			(JFK Airport)
+ * -73.977664, 40.761484		(Museum of Modern Art)
+ */
 
 case class Query(queryId: Long, longitude: Float, latitude: Float)
 
@@ -74,8 +80,7 @@ object NearestTaxiExercise {
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
     env.setParallelism(ExerciseBase.parallelism)
 
-    val rides = env.addSource(rideSourceOrTest(
-      new TaxiRideSource(ridesFile, maxEventDelay, servingSpeedFactor)))
+    val rides = env.addSource(new TaxiRideSource(ridesFile, maxEventDelay, servingSpeedFactor))
 
     val splitQuery = (msg: String) => {
       val parts: Array[Float] = msg.split(",\\s*").map(_.toFloat)
@@ -92,32 +97,18 @@ object NearestTaxiExercise {
       .process(new QueryFunction)
 
     val nearest = reports
+      // key by the queryId
       .keyBy(_._1)
-      .process(new ClosestTaxi)
+      // the minimum, for each query, by distance
+      .minBy(2)
 
-    printOrTest(nearest)
+    nearest.print()
 
     env.execute("Nearest Available Taxi")
   }
 
-  // Only pass thru values that are new minima -- remove duplicates.
-  class ClosestTaxi extends KeyedProcessFunction[Long, (Long, Long, Float), (Long, Long, Float)] {
-    // store (taxiId, distance), keyed by queryId
-    lazy val closetState: ValueState[(Long, Float)] = getRuntimeContext.getState(
-      new ValueStateDescriptor[(Long, Float)]("report", createTypeInformation[(Long, Float)]))
-
-    // in and out tuples: (queryId, taxiId, distance)
-    override def processElement(report: (Long, Long, Float),
-                                context: KeyedProcessFunction[Long, (Long, Long, Float), (Long, Long, Float)]#Context,
-                                out: Collector[(Long, Long, Float)]): Unit =
-      if (closetState.value == null || report._3 < closetState.value._2) {
-        closetState.update((report._2, report._3))
-        out.collect(report)
-      }
-  }
-
   // Note that in order to have consistent results after a restore from a checkpoint, the
-  // behavior of this method must be deterministic, and NOT depend on characterisitcs of an
+  // behavior of this method must be deterministic, and NOT depend on characteristics of an
   // individual sub-task.
   class QueryFunction extends KeyedBroadcastProcessFunction[Long, TaxiRide, Query, (Long, Long, Float)]{
 
