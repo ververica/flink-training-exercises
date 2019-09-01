@@ -97,6 +97,7 @@ public class ExpiringStateSolution extends ExerciseBase {
 			TaxiFare fare = fareState.value();
 			if (fare != null) {
 				fareState.clear();
+				context.timerService().deleteEventTimeTimer(ride.getEventTime());
 				out.collect(new Tuple2(ride, fare));
 			} else {
 				rideState.update(ride);
@@ -110,6 +111,7 @@ public class ExpiringStateSolution extends ExerciseBase {
 			TaxiRide ride = rideState.value();
 			if (ride != null) {
 				rideState.clear();
+				context.timerService().deleteEventTimeTimer(ride.getEventTime());
 				out.collect(new Tuple2(ride, fare));
 			} else {
 				fareState.update(fare);

@@ -86,6 +86,7 @@ object ExpiringStateSolution {
       val fare = fareState.value
       if (fare != null) {
         fareState.clear()
+        context.timerService.deleteEventTimeTimer(ride.getEventTime)
         out.collect((ride, fare))
       }
       else {
@@ -101,6 +102,7 @@ object ExpiringStateSolution {
       val ride = rideState.value
       if (ride != null) {
         rideState.clear()
+        context.timerService.deleteEventTimeTimer(ride.getEventTime)
         out.collect((ride, fare))
       }
       else {
