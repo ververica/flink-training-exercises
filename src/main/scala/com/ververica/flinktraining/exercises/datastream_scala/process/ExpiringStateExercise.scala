@@ -20,12 +20,10 @@ import com.ververica.flinktraining.exercises.datastream_java.datatypes.{TaxiFare
 import com.ververica.flinktraining.exercises.datastream_java.sources.{TaxiFareSource, TaxiRideSource}
 import com.ververica.flinktraining.exercises.datastream_java.utils.{ExerciseBase, MissingSolutionException}
 import com.ververica.flinktraining.exercises.datastream_java.utils.ExerciseBase._
-import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
-import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.api.functions.co.CoProcessFunction
+import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction
+import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 import org.apache.flink.util.Collector
 
 /**
@@ -74,22 +72,22 @@ object ExpiringStateExercise {
     env.execute("ExpiringState (scala)")
   }
 
-  class EnrichmentFunction extends CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)] {
+  class EnrichmentFunction extends KeyedCoProcessFunction[Long, TaxiRide, TaxiFare, (TaxiRide, TaxiFare)] {
 
     override def processElement1(ride: TaxiRide,
-                                 context: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
+                                 context: KeyedCoProcessFunction[Long, TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
                                  out: Collector[(TaxiRide, TaxiFare)]): Unit = {
 
       throw new MissingSolutionException()
     }
 
     override def processElement2(fare: TaxiFare,
-                                 context: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
+                                 context: KeyedCoProcessFunction[Long, TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
                                  out: Collector[(TaxiRide, TaxiFare)]): Unit = {
     }
 
     override def onTimer(timestamp: Long,
-                         ctx: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#OnTimerContext,
+                         ctx: KeyedCoProcessFunction[Long, TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#OnTimerContext,
                          out: Collector[(TaxiRide, TaxiFare)]): Unit = {
     }
   }

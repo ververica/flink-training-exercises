@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 /*
- * This is an event-time-based enrichment join implemented with a CoProcessFunction, used to enrich a
+ * This is an event-time-based enrichment join implemented with a KeyedCoProcessFunction, used to enrich a
  * stream of financial Trades with Customer data.
  *
  * When we receive a Trade we want to join it with the newest Customer data that was knowable

@@ -23,7 +23,7 @@ import com.ververica.flinktraining.exercises.datastream_java.utils.ExerciseBase.
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.functions.co.CoProcessFunction
+import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction
 import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 import org.apache.flink.util.Collector
 
@@ -73,7 +73,7 @@ object ExpiringStateSolution {
     env.execute("ExpiringState (scala)")
   }
 
-  class EnrichmentFunction extends CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)] {
+  class EnrichmentFunction extends KeyedCoProcessFunction[Long, TaxiRide, TaxiFare, (TaxiRide, TaxiFare)] {
     // keyed, managed state
     lazy val rideState: ValueState[TaxiRide] = getRuntimeContext.getState(
       new ValueStateDescriptor[TaxiRide]("saved ride", classOf[TaxiRide]))
@@ -81,7 +81,7 @@ object ExpiringStateSolution {
       new ValueStateDescriptor[TaxiFare]("saved fare", classOf[TaxiFare]))
 
     override def processElement1(ride: TaxiRide,
-                                 context: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
+                                 context: KeyedCoProcessFunction[Long, TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
                                  out: Collector[(TaxiRide, TaxiFare)]): Unit = {
       val fare = fareState.value
       if (fare != null) {
@@ -96,7 +96,7 @@ object ExpiringStateSolution {
     }
 
     override def processElement2(fare: TaxiFare,
-                                 context: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
+                                 context: KeyedCoProcessFunction[Long, TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#Context,
                                  out: Collector[(TaxiRide, TaxiFare)]): Unit = {
       val ride = rideState.value
       if (ride != null) {
@@ -111,7 +111,7 @@ object ExpiringStateSolution {
     }
 
     override def onTimer(timestamp: Long,
-                         ctx: CoProcessFunction[TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#OnTimerContext,
+                         ctx: KeyedCoProcessFunction[Long, TaxiRide, TaxiFare, (TaxiRide, TaxiFare)]#OnTimerContext,
                          out: Collector[(TaxiRide, TaxiFare)]): Unit = {
       if (fareState.value != null) {
         ctx.output(unmatchedFares, fareState.value)

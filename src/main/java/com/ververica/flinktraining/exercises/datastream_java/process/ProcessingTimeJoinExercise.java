@@ -26,7 +26,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.co.CoProcessFunction;
+import org.apache.flink.streaming.api.functions.co.KeyedCoProcessFunction;
 import org.apache.flink.util.Collector;
 
 /*
@@ -57,7 +57,7 @@ public class ProcessingTimeJoinExercise {
 	}
 
 	public static class ProcessingTimeJoinFunction extends
-			CoProcessFunction<Trade, Customer, EnrichedTrade> {
+			KeyedCoProcessFunction<Long, Trade, Customer, EnrichedTrade> {
 		// Store latest Customer update
 		private ValueState<Customer> customerState = null;
 
