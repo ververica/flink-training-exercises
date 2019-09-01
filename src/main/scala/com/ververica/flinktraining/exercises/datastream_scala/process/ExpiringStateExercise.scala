@@ -17,7 +17,7 @@
 package com.ververica.flinktraining.exercises.datastream_scala.process
 
 import com.ververica.flinktraining.exercises.datastream_java.datatypes.{TaxiFare, TaxiRide}
-import com.ververica.flinktraining.exercises.datastream_java.sources.{CheckpointedTaxiFareSource, CheckpointedTaxiRideSource}
+import com.ververica.flinktraining.exercises.datastream_java.sources.{TaxiFareSource, TaxiRideSource}
 import com.ververica.flinktraining.exercises.datastream_java.utils.{ExerciseBase, MissingSolutionException}
 import com.ververica.flinktraining.exercises.datastream_java.utils.ExerciseBase._
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
@@ -50,6 +50,7 @@ object ExpiringStateExercise {
     val ridesFile = params.get("rides", ExerciseBase.pathToRideData)
     val faresFile = params.get("fares", ExerciseBase.pathToFareData)
 
+    val maxDelay = 60            // events are out of order by max 60 seconds
     val servingSpeedFactor = 600 // 10 minutes worth of events are served every second
 
     // set up streaming execution environment
@@ -58,13 +59,13 @@ object ExpiringStateExercise {
     env.setParallelism(ExerciseBase.parallelism)
 
     val rides = env
-      .addSource(rideSourceOrTest(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor)))
+      .addSource(rideSourceOrTest(new TaxiRideSource(ridesFile, maxDelay, servingSpeedFactor)))
       .filter { ride => ride.isStart && (ride.rideId % 1000 != 0) }
       .keyBy("rideId")
 
     val fares = env
-      .addSource(fareSourceOrTest(new CheckpointedTaxiFareSource(faresFile, servingSpeedFactor)))
-      .keyBy("rideId")
+      .addSource(fareSourceOrTest(new TaxiFareSource(faresFile, maxDelay, servingSpeedFactor)))
+      .keyBy(_.rideId)
 
     val processed = rides.connect(fares).process(new EnrichmentFunction)
 

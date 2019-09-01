@@ -18,8 +18,8 @@ package com.ververica.flinktraining.exercises.datastream_java.process;
 
 import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
 import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
-import com.ververica.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiFareSource;
-import com.ververica.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource;
+import com.ververica.flinktraining.exercises.datastream_java.sources.TaxiFareSource;
+import com.ververica.flinktraining.exercises.datastream_java.sources.TaxiRideSource;
 import com.ververica.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import com.ververica.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -54,6 +54,7 @@ public class ExpiringStateExercise extends ExerciseBase {
 		final String ridesFile = params.get("rides", ExerciseBase.pathToRideData);
 		final String faresFile = params.get("fares", ExerciseBase.pathToFareData);
 
+		final int maxEventDelay = 60;           // events are out of order by max 60 seconds
 		final int servingSpeedFactor = 600; 	// 10 minutes worth of events are served every second
 
 		// set up streaming execution environment
@@ -62,12 +63,12 @@ public class ExpiringStateExercise extends ExerciseBase {
 		env.setParallelism(ExerciseBase.parallelism);
 
 		DataStream<TaxiRide> rides = env
-				.addSource(rideSourceOrTest(new CheckpointedTaxiRideSource(ridesFile, servingSpeedFactor)))
+				.addSource(rideSourceOrTest(new TaxiRideSource(ridesFile, maxEventDelay, servingSpeedFactor)))
 				.filter((TaxiRide ride) -> (ride.isStart && (ride.rideId % 1000 != 0)))
 				.keyBy(ride -> ride.rideId);
 
 		DataStream<TaxiFare> fares = env
-				.addSource(fareSourceOrTest(new CheckpointedTaxiFareSource(faresFile, servingSpeedFactor)))
+				.addSource(fareSourceOrTest(new TaxiFareSource(faresFile, maxEventDelay, servingSpeedFactor)))
 				.keyBy(fare -> fare.rideId);
 
 		SingleOutputStreamOperator processed = rides
