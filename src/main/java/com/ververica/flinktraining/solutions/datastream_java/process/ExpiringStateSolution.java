@@ -66,7 +66,7 @@ public class ExpiringStateSolution extends ExerciseBase {
 		DataStream<TaxiRide> rides = env
 				.addSource(rideSourceOrTest(new TaxiRideSource(ridesFile, maxEventDelay, servingSpeedFactor)))
 				.filter((TaxiRide ride) -> (ride.isStart && (ride.rideId % 1000 != 0)))
-				.keyBy("rideId");
+				.keyBy(ride -> ride.rideId);
 
 		DataStream<TaxiFare> fares = env
 				.addSource(fareSourceOrTest(new TaxiFareSource(faresFile, maxEventDelay, servingSpeedFactor)))

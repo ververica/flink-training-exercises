@@ -47,8 +47,8 @@ public class ProcessingTimeJoinExercise {
 
 		// Stream of enriched trades
 		DataStream<EnrichedTrade> joinedStream = tradeStream
-				.keyBy("customerId")
-				.connect(customerStream.keyBy("customerId"))
+				.keyBy(t -> t.customerId)
+				.connect(customerStream.keyBy(c -> c.customerId))
 				.process(new ProcessingTimeJoinFunction());
 
 		joinedStream.print();

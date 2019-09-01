@@ -59,7 +59,7 @@ object ExpiringStateExercise {
     val rides = env
       .addSource(rideSourceOrTest(new TaxiRideSource(ridesFile, maxDelay, servingSpeedFactor)))
       .filter { ride => ride.isStart && (ride.rideId % 1000 != 0) }
-      .keyBy("rideId")
+      .keyBy(_.rideId)
 
     val fares = env
       .addSource(fareSourceOrTest(new TaxiFareSource(faresFile, maxDelay, servingSpeedFactor)))
