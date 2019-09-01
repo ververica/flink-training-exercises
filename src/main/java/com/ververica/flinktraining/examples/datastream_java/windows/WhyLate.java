@@ -47,8 +47,7 @@ import java.util.Random;
 	(1) Why are there no late events when PARTITIONS_PER_INSTANCE == 1?
 
 	(2) There are several different ways to fix this job so that it never has late events, even
-	when PARTITIONS_PER_INSTANCE is greater than 1. How many solutions can you find, and which
-	approach seems most appropriate?
+	when PARTITIONS_PER_INSTANCE is greater than 1. Which approach seems most appropriate?
 
 */
 
