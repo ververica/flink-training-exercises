@@ -74,6 +74,7 @@ public class HourlyTipsSolution extends ExerciseBase {
 
 // 		DataStream<Tuple3<Long, Long, Float>> hourlyMax = hourlyTips
 // 			.keyBy(0)
+//			.timeWindow(Time.hours(1))
 // 			.maxBy(2);
 
 		printOrTest(hourlyMax);
