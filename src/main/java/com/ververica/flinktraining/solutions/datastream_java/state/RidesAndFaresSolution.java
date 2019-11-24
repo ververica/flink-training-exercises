@@ -27,6 +27,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.co.RichCoFlatMapFunction;
 import org.apache.flink.util.Collector;
@@ -52,22 +53,35 @@ public class RidesAndFaresSolution extends ExerciseBase {
 		final int delay = 60;					// at most 60 seconds of delay
 		final int servingSpeedFactor = 1800; 	// 30 minutes worth of events are served every second
 
-		// set up streaming execution environment
-		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+		// Set up streaming execution environment, including Web UI and REST endpoint.
+		// Checkpointing isn't needed for the RidesAndFares exercise; this setup is for
+		// using the State Processor API.
+
+		Configuration conf = new Configuration();
+		conf.setString("state.backend", "filesystem");
+		conf.setString("state.savepoints.dir", "file:///tmp/savepoints");
+		conf.setString("state.checkpoints.dir", "file:///tmp/checkpoints");
+		StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf);
 		env.setParallelism(ExerciseBase.parallelism);
+
+		env.enableCheckpointing(10000L);
+		CheckpointConfig config = env.getCheckpointConfig();
+		config.enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
 		DataStream<TaxiRide> rides = env
 				.addSource(rideSourceOrTest(new TaxiRideSource(ridesFile, delay, servingSpeedFactor)))
 				.filter((TaxiRide ride) -> ride.isStart)
-				.keyBy("rideId");
+				.keyBy(ride -> ride.rideId);
 
 		DataStream<TaxiFare> fares = env
 				.addSource(fareSourceOrTest(new TaxiFareSource(faresFile, delay, servingSpeedFactor)))
-				.keyBy("rideId");
+				.keyBy(fare -> fare.rideId);
 
+		// Set a UID on the stateful flatmap operator so we can read its state using the State Processor API.
 		DataStream<Tuple2<TaxiRide, TaxiFare>> enrichedRides = rides
 				.connect(fares)
-				.flatMap(new EnrichmentFunction());
+				.flatMap(new EnrichmentFunction())
+				.uid("enrichment");
 
 		printOrTest(enrichedRides);
 
