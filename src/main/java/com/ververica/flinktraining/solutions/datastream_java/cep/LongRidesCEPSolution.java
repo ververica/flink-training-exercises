@@ -48,7 +48,7 @@ import java.util.Map;
  * -input path-to-input-file
  *
  */
-public class LongRidesSolution extends ExerciseBase {
+public class LongRidesCEPSolution extends ExerciseBase {
 	public static void main(String[] args) throws Exception {
 
 		ParameterTool params = ParameterTool.fromArgs(args);
