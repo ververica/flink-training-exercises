@@ -16,8 +16,10 @@
 
 package com.ververica.flinktraining.exercises.datastream_java.process;
 
+import com.ververica.flinktraining.exercises.datastream_java.cep.LongRidesCEPExercise;
 import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
 import com.ververica.flinktraining.exercises.datastream_java.testing.TaxiRideTestBase;
+import com.ververica.flinktraining.solutions.datastream_java.cep.LongRidesCEPSolution;
 import com.ververica.flinktraining.solutions.datastream_java.process.LongRidesSolution;
 import com.google.common.collect.Lists;
 import org.joda.time.DateTime;
@@ -30,7 +32,7 @@ import static org.junit.Assert.assertEquals;
 public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
 
 	static Testable javaExercise = () -> LongRidesExercise.main(new String[]{});
-	static Testable javaCEPExercise = () -> com.ververica.flinktraining.exercises.datastream_java.cep.LongRidesExercise.main(new String[]{});
+	static Testable javaCEPExercise = () -> LongRidesCEPExercise.main(new String[]{});
 
 	private DateTime beginning = new DateTime(2000, 1, 1, 0, 0);
 
@@ -110,7 +112,7 @@ public class LongRidesTest extends TaxiRideTestBase<TaxiRide> {
 	}
 
 	protected List<TaxiRide> cepResults(TestRideSource source) throws Exception {
-		Testable javaCEPSolution = () -> com.ververica.flinktraining.solutions.datastream_java.cep.LongRidesSolution.main(new String[]{});
+		Testable javaCEPSolution = () -> LongRidesCEPSolution.main(new String[]{});
 		return runApp(source, new TestSink<>(), javaCEPExercise, javaCEPSolution);
 	}
 

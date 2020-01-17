@@ -17,14 +17,13 @@
 package com.ververica.flinktraining.exercises.datastream_java.process;
 
 import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiRide;
-import com.ververica.flinktraining.exercises.datastream_java.testing.TaxiRideTestBase;
 
 import java.util.List;
 
 public class LongRidesScalaTest extends LongRidesTest {
 
 	static Testable scalaExercise = () -> com.ververica.flinktraining.exercises.datastream_scala.process.LongRidesExercise.main(new String[]{});
-	static Testable scalaCEPExercise = () -> com.ververica.flinktraining.exercises.datastream_scala.cep.LongRidesExercise.main(new String[]{});
+	static Testable scalaCEPExercise = () -> com.ververica.flinktraining.exercises.datastream_scala.cep.LongRidesCEPExercise.main(new String[]{});
 
 	protected List<TaxiRide> results(TestRideSource source) throws Exception {
 		Testable scalaSolution = () -> com.ververica.flinktraining.solutions.datastream_scala.process.LongRidesSolution.main(new String[]{});
@@ -32,7 +31,7 @@ public class LongRidesScalaTest extends LongRidesTest {
 	}
 
 	protected List<TaxiRide> cepResults(TestRideSource source) throws Exception {
-		Testable scalaCEPSolution = () -> com.ververica.flinktraining.solutions.datastream_scala.cep.LongRidesSolution.main(new String[]{});
+		Testable scalaCEPSolution = () -> com.ververica.flinktraining.solutions.datastream_scala.cep.LongRidesCEPSolution.main(new String[]{});
 		return runApp(source, new TestSink<>(), scalaCEPExercise, scalaCEPSolution);
 	}
 

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.ververica.flinktraining.solutions.datastream_scala.cep
+package com.ververica.flinktraining.exercises.datastream_scala.cep
 
-import com.ververica.flinktraining.exercises.datastream_java.utils.ExerciseBase._
 import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiRide
-import com.ververica.flinktraining.exercises.datastream_java.sources.{CheckpointedTaxiRideSource, TaxiRideSource}
-import com.ververica.flinktraining.exercises.datastream_java.utils.ExerciseBase
+import com.ververica.flinktraining.exercises.datastream_java.sources.CheckpointedTaxiRideSource
+import com.ververica.flinktraining.exercises.datastream_java.utils.{ExerciseBase, MissingSolutionException}
+import com.ververica.flinktraining.exercises.datastream_java.utils.ExerciseBase._
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.cep.scala.pattern.Pattern
 import org.apache.flink.cep.scala.{CEP, PatternStream}
@@ -41,7 +41,7 @@ import scala.collection.Map
   * -input path-to-input-file
   *
   */
-object LongRidesSolution {
+object LongRidesCEPExercise {
   def main(args: Array[String]) {
     val params = ParameterTool.fromArgs(args)
     val input = params.get("input", pathToRideData)
@@ -60,9 +60,9 @@ object LongRidesSolution {
     val keyedRides = rides.keyBy(_.rideId)
 
     // A complete taxi ride has a START event followed by an END event
+    // This pattern is incomplete ...
     val completedRides = Pattern
-      .begin[TaxiRide]("start").where(_.isStart)
-      .next("end").where(!_.isStart)
+      .begin[TaxiRide]("start") // ...
 
     // We want to find rides that have NOT been completed within 120 minutes
     // This pattern matches rides that ARE completed.
@@ -86,6 +86,8 @@ object LongRidesSolution {
 
     printOrTest(longRides.getSideOutput(timedoutTag))
 
-    env.execute("Long Taxi Rides (CEP)")
+    throw new MissingSolutionException()
+
+//    env.execute("Long Taxi Rides (CEP)")
   }
 }
