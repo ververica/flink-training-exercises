@@ -19,7 +19,7 @@
 	
 	<groupId>com.ververica</groupId>
 	<artifactId>flink-training-exercises</artifactId>
-	<version>2.10.0</version>
+	<version>3.0.0</version>
 	<packaging>jar</packaging>
 
 	<name>Apache Flink Training Exercises</name>
