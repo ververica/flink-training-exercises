@@ -22,10 +22,7 @@ import com.ververica.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import com.ververica.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable;
-import org.apache.flink.runtime.client.JobExecutionException;
-import org.apache.flink.streaming.runtime.tasks.ExceptionInChainedOperatorException;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
-import org.apache.flink.table.expressions.E;
 
 import java.util.*;
 
@@ -118,7 +115,7 @@ public abstract class TaxiRideTestBase<OUT> {
 
 		try {
 			exercise.main();
-		} catch (ExceptionInChainedOperatorException | JobExecutionException | MissingSolutionException e) {
+		} catch (Exception e) {
 			if (ultimateCauseIsMissingSolution(e)) {
 				sink.values.clear();
 				solution.main();
