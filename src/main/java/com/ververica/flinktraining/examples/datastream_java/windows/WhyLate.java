@@ -35,8 +35,6 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
 
-import com.google.common.collect.Iterables;
-
 import java.time.Instant;
 import java.util.Random;
 
@@ -144,9 +142,14 @@ public class WhyLate {
 		public void process(
 				String key,
 				Context context,
-				Iterable<Event> iterable,
+				Iterable<Event> events,
 				Collector<Tuple2<String, Integer>> out) throws Exception {
-			out.collect(new Tuple2<>(key, Iterables.size(iterable)));
+
+			int counter = 0;
+			for (Object i : events) {
+				counter++;
+			}
+			out.collect(new Tuple2<>(key, counter));
 		}
 	}
 
@@ -154,9 +157,14 @@ public class WhyLate {
 		@Override
 		public void process(
 				Context context,
-				Iterable<Event> iterable,
+				Iterable<Event> events,
 				Collector<Integer> out) throws Exception {
-			out.collect(Iterables.size(iterable));
+
+			int counter = 0;
+			for (Object i : events) {
+				counter++;
+			}
+			out.collect(counter);
 		}
 	}
 }
