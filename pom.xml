@@ -19,7 +19,7 @@
 	
 	<groupId>com.ververica</groupId>
 	<artifactId>flink-training-exercises</artifactId>
-	<version>3.0.0</version>
+	<version>3.1.0</version>
 	<packaging>jar</packaging>
 
 	<name>Apache Flink Training Exercises</name>
@@ -46,7 +46,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.19</slf4j.version>
-		<flink.version>1.9.0</flink.version>
+		<flink.version>1.10.0</flink.version>
 		<scala.binary.version>2.12</scala.binary.version>
 		<junit.version>4.12</junit.version>
 		<assertj.version>3.11.1</assertj.version>
@@ -266,7 +266,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.8.0</version>
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
