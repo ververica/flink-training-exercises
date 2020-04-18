@@ -24,11 +24,11 @@ import com.google.common.collect.Lists;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.joda.time.DateTime;
 import org.junit.Test;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
+import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 public class RidesAndFaresTest extends TaxiRideTestBase<Tuple2<TaxiRide, TaxiFare>> {
 
@@ -49,7 +49,7 @@ public class RidesAndFaresTest extends TaxiRideTestBase<Tuple2<TaxiRide, TaxiFar
 				new Tuple2<>(ride1, fare1),
 				new Tuple2<>(ride2, fare2));
 
-		assertEquals(expected, results(rides, fares));
+		assertThat("Join results don't match", results(rides, fares), containsInAnyOrder(expected.toArray()));
 	}
 
 	@Test
@@ -61,7 +61,7 @@ public class RidesAndFaresTest extends TaxiRideTestBase<Tuple2<TaxiRide, TaxiFar
 				new Tuple2<>(ride1, fare1),
 				new Tuple2<>(ride2, fare2));
 
-		assertEquals(expected, results(rides, fares));
+		assertThat("Join results don't match", results(rides, fares), containsInAnyOrder(expected.toArray()));
 	}
 
 	private TaxiRide testRide(long rideId) {
