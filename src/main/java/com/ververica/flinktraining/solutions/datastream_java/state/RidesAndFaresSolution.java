@@ -66,7 +66,8 @@ public class RidesAndFaresSolution extends ExerciseBase {
 
 		env.enableCheckpointing(10000L);
 		CheckpointConfig config = env.getCheckpointConfig();
-		config.enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
+		config.enableExternalizedCheckpoints(
+				CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 
 		DataStream<TaxiRide> rides = env
 				.addSource(rideSourceOrTest(new TaxiRideSource(ridesFile, delay, servingSpeedFactor)))

@@ -21,9 +21,15 @@ import com.ververica.flinktraining.exercises.datastream_java.sources.TaxiRideSou
 import com.ververica.flinktraining.exercises.datastream_java.utils.GeoUtils;
 import com.ververica.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 
 public class RideCleansingSolution extends ExerciseBase {
 	public static void main(String[] args) throws Exception {
@@ -47,6 +53,22 @@ public class RideCleansingSolution extends ExerciseBase {
 
 		// print the filtered stream
 		printOrTest(filteredRides);
+
+		rides.map(new MapFunction<TaxiRide, Object>() {
+			@Override
+			public Object map(TaxiRide value) throws Exception {
+				System.out.println(("hello"));
+				System.err.println(("world"));
+				return null;
+			}
+		});
+
+//JobGraph jobGraph = env.getStreamGraph().getJobGraph();
+//final String jobGraphFilename = "job.graph";
+//File jobGraphFile = new File(jobGraphFilename);
+//FileOutputStream output = new FileOutputStream(jobGraphFile);
+//ObjectOutputStream obOutput = new ObjectOutputStream(output);
+//obOutput.writeObject(jobGraph);
 
 		// run the cleansing pipeline
 		env.execute("Taxi Ride Cleansing");

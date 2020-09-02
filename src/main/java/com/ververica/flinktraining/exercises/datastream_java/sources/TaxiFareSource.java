@@ -210,7 +210,7 @@ public class TaxiFareSource implements SourceFunction<TaxiFare> {
 				sourceContext.emitWatermark(emitWatermark);
 				// schedule next watermark
 				long watermarkTime = delayedEventTime + watermarkDelayMSecs;
-				Watermark nextWatermark = new Watermark(watermarkTime - maxDelayMsecs - 1);
+				Watermark nextWatermark = new Watermark(watermarkTime);
 				emitSchedule.add(new Tuple2<Long, Object>(watermarkTime, nextWatermark));
 			}
 		}

@@ -24,12 +24,14 @@ import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.typeutils.RowTypeInfo;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.sources.DefinedRowtimeAttributes;
 import org.apache.flink.table.sources.RowtimeAttributeDescriptor;
 import org.apache.flink.table.sources.StreamTableSource;
 import org.apache.flink.table.sources.tsextractors.StreamRecordTimestamp;
 import org.apache.flink.table.sources.wmstrategies.PreserveWatermarks;
+import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.Row;
 
 import java.util.Collections;
@@ -130,17 +132,17 @@ public class TaxiRideTableSource implements StreamTableSource<Row>, DefinedRowti
 
 	@Override
 	public TableSchema getTableSchema() {
-		TypeInformation<?>[] types = new TypeInformation[] {
-				Types.LONG,
-				Types.LONG,
-				Types.LONG,
-				Types.BOOLEAN,
-				Types.FLOAT,
-				Types.FLOAT,
-				Types.FLOAT,
-				Types.FLOAT,
-				Types.SHORT,
-				Types.SQL_TIMESTAMP
+		DataType[] types = new DataType[] {
+				DataTypes.BIGINT(),
+				DataTypes.BIGINT(),
+				DataTypes.BIGINT(),
+				DataTypes.BOOLEAN(),
+				DataTypes.FLOAT(),
+				DataTypes.FLOAT(),
+				DataTypes.FLOAT(),
+				DataTypes.FLOAT(),
+				DataTypes.SMALLINT(),
+				DataTypes.TIMESTAMP()
 		};
 
 		String[] names = new String[]{
@@ -156,7 +158,10 @@ public class TaxiRideTableSource implements StreamTableSource<Row>, DefinedRowti
 				"eventTime"
 		};
 
-		return new TableSchema(names, types);
+		return new TableSchema.Builder()
+				.fields(names, types)
+				.watermark("eventTime", "eventTime - INTERVAL '5' SECOND", DataTypes.TIMESTAMP())
+				.build();
 	}
 
 	@Override
