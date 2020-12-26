@@ -20,10 +20,16 @@ import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
 import com.ververica.flinktraining.exercises.datastream_java.sources.TaxiFareSource;
 import com.ververica.flinktraining.exercises.datastream_java.utils.ExerciseBase;
 import com.ververica.flinktraining.exercises.datastream_java.utils.MissingSolutionException;
+import com.ververica.flinktraining.solutions.datastream_java.windows.HourlyTipsSolution;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
+import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.util.Collector;
 
 /**
  * The "Hourly Tips" exercise of the Flink training
@@ -55,12 +61,30 @@ public class HourlyTipsExercise extends ExerciseBase {
 		// start the data generator
 		DataStream<TaxiFare> fares = env.addSource(fareSourceOrTest(new TaxiFareSource(input, maxEventDelay, servingSpeedFactor)));
 
-		throw new MissingSolutionException();
+		DataStream<Tuple3<Long, Long, Float>> hourlyTips = fares
+				.keyBy((TaxiFare fare) -> fare.driverId)
+				.timeWindow(Time.hours(1))
+				.process(new AddTips());
 
-//		printOrTest(hourlyMax);
+		DataStream<Tuple3<Long, Long, Float>> hourlyMax = hourlyTips
+				.keyBy(0)
+				.maxBy(2);;
+
+		printOrTest(hourlyMax);
 
 		// execute the transformation pipeline
-//		env.execute("Hourly Tips (java)");
+		env.execute("Hourly Tips (java)");
+	}
+
+	public static class AddTips extends ProcessWindowFunction<TaxiFare, Tuple3<Long, Long, Float>, Long, TimeWindow> {
+		@Override
+		public void process(Long key, Context context, Iterable<TaxiFare> fares, Collector<Tuple3<Long, Long, Float>> out) throws Exception {
+			float sumOfTips = 0F;
+			for (TaxiFare f : fares) {
+				sumOfTips += f.tip;
+			}
+			out.collect(new Tuple3<>(context.window().getEnd(), key, sumOfTips));
+		}
 	}
 
 }
