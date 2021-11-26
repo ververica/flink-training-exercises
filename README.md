@@ -1,2 +1,5 @@
-This repository contains examples as well as reference solutions and utility classes for the Apache Flink Training exercises 
-found on [http://training.ververica.com](http://training.ververica.com).
+**⚠️ This repository has been archived and is no longer being maintained. For up-to-date content, see https://github.com/ververica/flink-training. ⚠️**
+
+---
+
+This repository contains examples and exercises for Apache Flink.
